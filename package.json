@@ -1,0 +1,21 @@
+{
+  "name": "legend-of-the-fitness-realm",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matthewtglove/legend-of-the-fitness-realm.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/matthewtglove/legend-of-the-fitness-realm/issues"
+  },
+  "homepage": "https://github.com/matthewtglove/legend-of-the-fitness-realm#readme",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
