@@ -1,0 +1,24 @@
+-   [ ] Parse workout file
+    -   [x] Define
+    -   [ ] Support all workout types
+    -   [ ] Post-process workout file
+        -   [ ] Seperate segment and session ranges into their own object
+-   [ ] Workout timer
+    -   [ ] Load workout session
+        -   [ ] Run workout session
+    -   [ ] Display current step
+    -   [ ] Timer controls
+        -   [ ] pause/resume
+            -   [ ] skip: skips to next step (exercise/rest)
+        -   [ ] **Workout**
+        -   [ ] ? next: go to next set in the step
+        -   [ ] ? prev: prev set
+    -   [ ]
+-   [ ] Workout program navigator (list)
+-   [ ] Workout tracking
+    -   [ ] Reps input
+        -   [ ] Touch
+        -   [ ] Voice input
+    -   [ ] Recording data
+        -   [ ] Exporting
+    -   [ ] Reports
