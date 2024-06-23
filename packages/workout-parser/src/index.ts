@@ -1,3 +1,1 @@
-import { test } from "./test";
-
-export { test };
+export { parseWorkoutDocument } from './parser';
