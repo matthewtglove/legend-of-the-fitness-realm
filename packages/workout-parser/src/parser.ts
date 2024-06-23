@@ -1,3 +1,5 @@
+import { splitWithRegex } from './string-utils';
+
 export type WorkoutProgram = {
     name: string;
     segments: WorkoutProgramSegment[];
@@ -18,6 +20,7 @@ export type WorkoutSession = {
 export type WorkoutSetExercise = {
     repCount: number;
     exerciseName: string;
+    twoSided?: boolean;
 };
 
 export type WorkoutStep =
@@ -72,7 +75,10 @@ export type WorkoutStep_Ladder = {
     kind: `ladder`;
     durationSec: number;
     repRange: { min: number; max: number };
-    exerciseName: string;
+    exercise: {
+        exerciseName: string;
+        twoSided?: boolean;
+    };
 };
 
 /**
@@ -83,7 +89,10 @@ export type WorkoutStep_Tabata = {
     durationSec: number;
     workDurationSec: number;
     restDurationSec: number;
-    exerciseName: string;
+    exercise: {
+        exerciseName: string;
+        twoSided?: boolean;
+    };
 };
 
 /**
@@ -139,6 +148,9 @@ export const parseWorkoutDocument = (document: string): WorkoutProgram => {
         }
 
         const lastSegment = workoutProgram.segments[workoutProgram.segments.length - 1];
+        if (!lastSegment) {
+            throw new Error(`No segment found`);
+        }
         if (line.startsWith(`### `)) {
             const session: WorkoutSession = {
                 name: line.slice(`### `.length).trim(),
@@ -150,6 +162,12 @@ export const parseWorkoutDocument = (document: string): WorkoutProgram => {
         }
 
         const lastSession = lastSegment.sessions[lastSegment.sessions.length - 1];
+        if (!lastSession) {
+            throw new Error(`No session found`);
+        }
+
+        // --- Steps ---
+
         if (line.startsWith(`- rest `)) {
             const rest: WorkoutStep_Rest = {
                 kind: `rest`,
@@ -159,7 +177,38 @@ export const parseWorkoutDocument = (document: string): WorkoutProgram => {
             continue;
         }
 
-        // TODO: Add support for other step types
+        if (line.startsWith(`- timed `)) {
+            // const timedRegex = /^- timed ((?:x|\d)+) ((?:\d|m|s)+)\/((?:\d|m|s)+) (\d+)rep\w* (2sided )?(.+)$/;
+            const timedRegex = /^- timed ((?:x|\d)+) ((?:\d|m|s)+)\/((?:\d|m|s)+) (.+)$/;
+            const match = line.match(timedRegex);
+            if (!match) {
+                throw new Error(`Invalid timed step: ${line}`);
+            }
+            const [
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                _,
+                setCountPart,
+                workDurationPart,
+                restDurationPart,
+                exerciseParts,
+            ] = match;
+
+            if (!exerciseParts || !setCountPart || !workDurationPart || !restDurationPart) {
+                throw new Error(`Invalid timed step: ${line}`);
+            }
+
+            const exercises = parseExercises(exerciseParts);
+
+            const timed: WorkoutStep_Timed = {
+                kind: `timed`,
+                setCount: parseInt(setCountPart),
+                workDurationSec: parseTimeSpan(workDurationPart).seconds,
+                restDurationSec: parseTimeSpan(restDurationPart).seconds,
+                exercises,
+            };
+            lastSession.steps.push(timed);
+            continue;
+        }
     }
 
     return workoutProgram;
@@ -169,7 +218,7 @@ const parseTimeSpan = (timeSpan: string): { seconds: number } => {
     // `1m30s` -> { seconds: 90 }
     // `10s` -> { seconds: 10 }
     // `120s` -> { seconds: 120 }
-    const timeRegex = /(?:(\d+)m)?(?:(\d+)s)?/;
+    const timeRegex = /^(?:(\d+)m)?(?:(\d+)s)?$/;
     const match = timeSpan.match(timeRegex);
     if (!match) {
         throw new Error(`Invalid time span: ${timeSpan}`);
@@ -178,4 +227,25 @@ const parseTimeSpan = (timeSpan: string): { seconds: number } => {
     const seconds = parseInt(match[2] ?? `0`);
     const totalSeconds = minutes * 60 + seconds;
     return { seconds: totalSeconds };
+};
+
+const parseExercises = (exerciseParts: string): WorkoutSetExercise[] => {
+    // (\d+)rep\w* (2sided )?
+    // Only split into multiple exercises if `/` is followed by `12rep` or similar
+    return splitWithRegex(exerciseParts, /\/\s*(\d+rep\w*)/g).map((part) => {
+        const text = (part.matchBefore ?? ``) + part.part;
+        const match = text.match(/^\/?\s*(\d+)rep\w* (2sided )?(.+)$/);
+        if (!match) {
+            throw new Error(`Invalid exercise: ${text}`);
+        }
+        const [, repCountPart, twoSidedPart, exerciseNamePart] = match;
+        if (!repCountPart || !exerciseNamePart) {
+            throw new Error(`Invalid exercise part: ${text}`);
+        }
+        return {
+            repCount: parseInt(repCountPart),
+            twoSided: !!twoSidedPart,
+            exerciseName: exerciseNamePart,
+        } satisfies WorkoutSetExercise;
+    });
 };
