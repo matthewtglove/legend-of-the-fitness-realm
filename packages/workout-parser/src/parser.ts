@@ -201,7 +201,7 @@ export const parseWorkoutDocument = (document: string): WorkoutProgram => {
 
             const timed: WorkoutStep_Timed = {
                 kind: `timed`,
-                setCount: parseInt(setCountPart),
+                setCount: parseInt(setCountPart.replace(`x`, ``)),
                 workDurationSec: parseTimeSpan(workDurationPart).seconds,
                 restDurationSec: parseTimeSpan(restDurationPart).seconds,
                 exercises,

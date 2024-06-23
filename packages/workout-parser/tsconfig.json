@@ -4,6 +4,8 @@
         "target": "ESNext",
         "module": "ESNext",
         "moduleResolution": "bundler",
+        "lib": ["es2020", "dom"],
+        "types": ["node"],
         "allowSyntheticDefaultImports": true,
         "strict": true,
         "noUncheckedIndexedAccess": true,
