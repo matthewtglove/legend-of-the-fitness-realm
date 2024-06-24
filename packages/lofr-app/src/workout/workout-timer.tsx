@@ -11,8 +11,11 @@ export const WorkoutSessionTimer = ({ workoutSession }: { workoutSession: Workou
         setStepIndex((index) => index + 1);
     };
     const startWorkout = () => {
-        speakText(`Starting workout`);
-        setHasStarted(true);
+        speakText(`Start Workout!`, {
+            onDone: () => {
+                setHasStarted(true);
+            },
+        });
     };
     if (!hasStarted) {
         return (
@@ -50,6 +53,10 @@ const RestTimer = ({ step, onDone }: { step: WorkoutStep_Rest; onDone: () => voi
     timeRemainingRef.current = timeRemaining;
     useEffect(() => {
         const interval = setInterval(() => {
+            if (timeRemainingRef.current === step.durationSec) {
+                speakText(`Rest for ${step.durationSec} seconds`);
+            }
+
             if (timeRemainingRef.current <= 1) {
                 clearInterval(interval);
                 onDone();
@@ -77,6 +84,7 @@ const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => v
     const [renderId, setRenderId] = useState(0);
     const timerDataRef = useRef({
         hasStarted: false,
+        isPending: false,
         stepSetIndex: 0,
         mode: `work` as `work` | `rest`,
         timeRemaining: step.workDurationSec,
@@ -87,10 +95,19 @@ const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => v
             const exercisePhrase = `Do ${step.exercises.map((x) => `${x.repCount} ${x.exerciseName}`).join(` and `)}.`;
 
             const timerData = timerDataRef.current;
+            if (timerData.isPending) {
+                return;
+            }
+
             if (!timerData.hasStarted) {
-                timerData.hasStarted = true;
-                speakText(`Start step.`);
-                speakText(`${exercisePhrase} Exercise!`);
+                timerData.isPending = true;
+                speakText(`Start of ${step.setCount} timed sets. ${exercisePhrase} Exercise!`, {
+                    onDone: () => {
+                        timerData.isPending = false;
+                        timerData.hasStarted = true;
+                        setRenderId((id) => id + 1);
+                    },
+                });
                 setRenderId((id) => id + 1);
                 return;
             }
