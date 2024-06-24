@@ -92,7 +92,7 @@ const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => v
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const exercisePhrase = `${step.exercises.map((x) => `${x.repCount} ${x.exerciseName}`).join(` and `)}.`;
+            const exercisePhrase = `${step.exercises.map((x) => `${x.repCount} "${x.exerciseName}"`).join(` and `)}.`;
 
             const timerData = timerDataRef.current;
             if (timerData.isPending) {
