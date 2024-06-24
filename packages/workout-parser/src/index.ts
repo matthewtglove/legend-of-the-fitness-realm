@@ -1,1 +1,1 @@
-export { parseWorkoutDocument } from './parser';
+export * from './parser';
