@@ -3,12 +3,27 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { speakText } from './workout-announce';
 
 export const WorkoutSessionTimer = ({ workoutSession }: { workoutSession: WorkoutSession }) => {
+    const [hasStarted, setHasStarted] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const step = workoutSession.steps[stepIndex];
     const nextStep = () => {
         console.log(`nextStep`);
         setStepIndex((index) => index + 1);
     };
+    const startWorkout = () => {
+        speakText(`Starting workout`);
+        setHasStarted(true);
+    };
+    if (!hasStarted) {
+        return (
+            <div>
+                <h1 className="m-6 text-2xl">Workout Session Timer</h1>
+                <button className="p-2 m-6 text-white bg-blue-500" onClick={startWorkout}>
+                    Start Workout
+                </button>
+            </div>
+        );
+    }
     return (
         <>
             <div>
