@@ -84,10 +84,13 @@ const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => v
 
     useEffect(() => {
         const interval = setInterval(() => {
+            const exercisePhrase = `Do ${step.exercises.map((x) => `${x.repCount} ${x.exerciseName}`).join(` and `)}.`;
+
             const timerData = timerDataRef.current;
             if (!timerData.hasStarted) {
                 timerData.hasStarted = true;
-                speakText(`Start step. Exercise!`);
+                speakText(`Start step.`);
+                speakText(`${exercisePhrase} Exercise!`);
                 setRenderId((id) => id + 1);
                 return;
             }
@@ -108,7 +111,7 @@ const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => v
 
             // Switch to next set (if not on last set)
             if (timerData.stepSetIndex + 1 < step.setCount) {
-                speakText(`Exercise!`);
+                speakText(`${exercisePhrase} Exercise!`);
                 timerData.stepSetIndex++;
                 timerData.mode = `work`;
                 timerData.timeRemaining = step.workDurationSec;
