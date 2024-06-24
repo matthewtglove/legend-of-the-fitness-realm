@@ -9,11 +9,13 @@ export const App = () => {
 
     return (
         <>
-            <WorkoutLoader onWorkoutLoaded={setWorkoutProgram} />
-            {workoutProgram && (
-                <WorkoutSelector workoutProgram={workoutProgram} onWorkoutSessionSelected={setWorkoutSession} />
-            )}
-            {workoutSession && <WorkoutSessionTimer workoutSession={workoutSession} />}
+            <div className="">
+                <WorkoutLoader onWorkoutLoaded={setWorkoutProgram} />
+                {workoutProgram && (
+                    <WorkoutSelector workoutProgram={workoutProgram} onWorkoutSessionSelected={setWorkoutSession} />
+                )}
+                {workoutSession && <WorkoutSessionTimer workoutSession={workoutSession} />}
+            </div>
         </>
     );
 };
