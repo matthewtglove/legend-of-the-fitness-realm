@@ -1,6 +1,7 @@
 import { WorkoutProgram, WorkoutSession } from '@lofr/workout-parser';
 import { useState } from 'react';
 import { WorkoutLoader, WorkoutSelector } from './workout/workout-loader';
+import { WorkoutSessionTimer } from './workout/workout-timer';
 
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
@@ -12,12 +13,7 @@ export const App = () => {
             {workoutProgram && (
                 <WorkoutSelector workoutProgram={workoutProgram} onWorkoutSessionSelected={setWorkoutSession} />
             )}
-            {workoutSession && (
-                <div>
-                    <h1 className="m-6 text-2xl">Workout Session</h1>
-                    <pre className="m-6">{JSON.stringify(workoutSession, null, 2)}</pre>
-                </div>
-            )}
+            {workoutSession && <WorkoutSessionTimer workoutSession={workoutSession} />}
         </>
     );
 };

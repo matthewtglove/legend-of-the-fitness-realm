@@ -1,5 +1,6 @@
 import { parseWorkoutDocument, WorkoutProgram, WorkoutSession } from '@lofr/workout-parser';
 import { useState } from 'react';
+import { ExpandableView } from '../components/expandable-view';
 
 export const WorkoutLoader = ({ onWorkoutLoaded }: { onWorkoutLoaded: (workoutProgram: WorkoutProgram) => void }) => {
     const [workoutText, setWorkoutText] = useState(``);
@@ -18,13 +19,12 @@ export const WorkoutLoader = ({ onWorkoutLoaded }: { onWorkoutLoaded: (workoutPr
                 value={workoutText}
                 onChange={(e) => setWorkoutText(e.target.value)}
             />
-            <button className="p-2 m-6 text-white bg-blue-500" onClick={loadWorkout}>
+            <button className="p-2 ml-6 text-white bg-blue-500" onClick={loadWorkout}>
                 Load Workout Program
             </button>
-            {/* <div>
+            <ExpandableView title="Workout Program Preview">
                 <pre className="m-6">{JSON.stringify(workoutProgram, null, 2)}</pre>
-            </div> */}
-            <div>{workoutProgram?.name ?? ``}</div>
+            </ExpandableView>
         </div>
     );
 };
@@ -42,12 +42,15 @@ export const WorkoutSelector = ({
     const workoutSession = workoutSegment?.sessions[sessionNumber - 1];
 
     const loadSession = () => {
+        if (!workoutSession) {
+            return;
+        }
         onWorkoutSessionSelected(workoutSession);
     };
 
     return (
         <>
-            <h1 className="m-6 text-2xl">Workout Selector</h1>
+            <h1 className="m-6 text-2xl">Session Selector</h1>
             <div>
                 <label className="m-6">Segment</label>
                 <input
@@ -68,24 +71,12 @@ export const WorkoutSelector = ({
                 />
                 {workoutSession?.name}
             </div>
-            <button className="p-2 m-6 text-white bg-blue-500" onClick={loadSession}>
+            <button className="p-2 ml-6 text-white bg-blue-500" onClick={loadSession}>
                 Load Session
             </button>
-            <ExpandableView title="Workout Session">
+            <ExpandableView title="Session Preview">
                 <pre className="m-6">{JSON.stringify(workoutSession, null, 2)}</pre>
             </ExpandableView>
         </>
-    );
-};
-
-const ExpandableView = ({ title, children }: { title: string; children: React.ReactNode }) => {
-    const [expanded, setExpanded] = useState(false);
-    return (
-        <div className="p-2 m-6 rounded bg-slate-200">
-            <button onClick={() => setExpanded(!expanded)}>
-                {expanded ? `⬇️` : `➡️`} {title}
-            </button>
-            {expanded && children}
-        </div>
     );
 };
