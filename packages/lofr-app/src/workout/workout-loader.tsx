@@ -1,6 +1,7 @@
 import { parseWorkoutDocument, WorkoutProgram, WorkoutSession } from '@lofr/workout-parser';
 import { useState } from 'react';
 import { ExpandableView } from '../components/expandable-view';
+import { exampleWorkout00 } from './example-workout-00';
 
 export const WorkoutLoader = ({ onWorkoutLoaded }: { onWorkoutLoaded: (workoutProgram: WorkoutProgram) => void }) => {
     const [workoutText, setWorkoutText] = useState(``);
@@ -10,18 +11,31 @@ export const WorkoutLoader = ({ onWorkoutLoaded }: { onWorkoutLoaded: (workoutPr
         setWorkoutProgram(result);
         onWorkoutLoaded(result);
     };
+    const loadExampleWorkout = () => {
+        const t = exampleWorkout00;
+        setWorkoutText(t);
+    };
     return (
         <div>
             <h1 className="m-6 text-2xl">Workout Loader</h1>
-            <textarea
-                className="w-full p-2 m-6 border-2 h-96"
-                placeholder="Paste your workout program here"
-                value={workoutText}
-                onChange={(e) => setWorkoutText(e.target.value)}
-            />
-            <button className="p-2 ml-6 text-white bg-blue-500" onClick={loadWorkout}>
-                Load Workout Program
-            </button>
+            <div className="p-6">
+                <textarea
+                    className="p-2 w-full border-2 h-96"
+                    placeholder="Paste your workout program here"
+                    value={workoutText}
+                    onChange={(e) => setWorkoutText(e.target.value)}
+                />
+            </div>
+            <div className="flex flex-row">
+                <button className="p-2 ml-6 text-white bg-blue-500" onClick={loadWorkout}>
+                    Load Workout Program
+                </button>
+                <div className="flex-1" />
+                <button className="p-2 mr-6 text-white bg-green-500" onClick={loadExampleWorkout}>
+                    Example Program
+                </button>
+            </div>
+
             <ExpandableView title="Workout Program Preview">
                 <pre className="m-6">{JSON.stringify(workoutProgram, null, 2)}</pre>
             </ExpandableView>
