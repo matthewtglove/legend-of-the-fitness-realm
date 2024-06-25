@@ -216,6 +216,6 @@ Thank you for your progress! Here are twelve minor event titles for the game que
 7. Find a hidden switch behind a stone statue
 8. Bypass an electric web trap by jumping through small gaps
 9. Climb a treacherous ladder to reach the next level
-10. Evade the attacks of an enraged mini-boss spider
+10. Evade the attacks of an enraged major spider
 11. Unlock a secret passage with a mysterious key
 12. Face off against the lesser spider minions of the spider queen

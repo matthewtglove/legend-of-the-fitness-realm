@@ -2,7 +2,7 @@ import { WorkoutProgram, WorkoutSession } from '@lofr/workout-parser';
 import { useState } from 'react';
 import { WorkoutLoader, WorkoutSelector } from './workout/workout-loader';
 import { WorkoutSessionTimer } from './workout/workout-timer';
-import { PromptTester } from './prompts/prompt-tester';
+import { PromptTester } from './story/prompt-tester';
 
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
