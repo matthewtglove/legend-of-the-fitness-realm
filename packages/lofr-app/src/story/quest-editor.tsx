@@ -3,8 +3,9 @@ import { extractMarkdownList } from './extract-prompt-results';
 import { prompt_questEventList } from './prompts/quest-prompts';
 import { sendOpenRouterAiRequest } from './call-llm';
 import { ExpandableView } from '../components/expandable-view';
+import { QuestContext } from './story-types';
 
-export const PromptTester = () => {
+export const QuestEditor = () => {
     const [questContext, setQuestContext] = useState<QuestContext & { instanceId: number }>({
         instanceId: 0,
         characterNames: [`Rick the Rock Breaker`, `Matthew the Musical`],
@@ -25,26 +26,14 @@ export const PromptTester = () => {
 
     return (
         <>
-            <ExpandableView title="Prompt Tester">
+            <ExpandableView title="Quest Editor">
                 <QuestContextEditor key={questContext.instanceId} value={questContext} onChange={updateQuestContext} />
-                <PromptTester_QuestEventList questContext={questContext} onQuestContextChange={updateQuestContext} />
+                <QuestEventLoader questContext={questContext} onQuestContextChange={updateQuestContext} />
             </ExpandableView>
         </>
     );
 };
 
-type QuestContext = {
-    characterNames: string[];
-    questName: string;
-    questProgress: number;
-    currentEnvironment: string;
-    questLog: string[];
-    remainingEvents: {
-        minor: string[];
-        major: string[];
-        main: string[];
-    };
-};
 const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange: (value: QuestContext) => void }) => {
     const [characterNames, setCharacterNames] = useState(value.characterNames);
     const [questName, setQuestName] = useState(value.questName);
@@ -125,7 +114,7 @@ const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange
     );
 };
 
-export const PromptTester_QuestEventList = ({
+export const QuestEventLoader = ({
     questContext,
     onQuestContextChange,
 }: {
@@ -157,7 +146,7 @@ export const PromptTester_QuestEventList = ({
 
     return (
         <div className="flex flex-col p-6">
-            <h1 className="m-6 text-2xl">QuestEventList Tester</h1>
+            <h1 className="m-6 text-2xl">Quest Event Loader</h1>
             <label>Event Severity</label>
             <select
                 className="p-1 border-2"
@@ -173,14 +162,16 @@ export const PromptTester_QuestEventList = ({
                     Send Prompt
                 </button>
             </div>
-            <div>
-                <label>Response</label>
-                <div className="p-2 whitespace-pre-wrap border-2">{responseText}</div>
-            </div>
-            <div>
-                <label>Response Raw</label>
-                <div className="p-2 whitespace-pre-wrap border-2">{responseTextRaw}</div>
-            </div>
+            <ExpandableView title="Response">
+                <div>
+                    <label>Response</label>
+                    <div className="p-2 whitespace-pre-wrap border-2">{responseText}</div>
+                </div>
+                <div>
+                    <label>Response Raw</label>
+                    <div className="p-2 whitespace-pre-wrap border-2">{responseTextRaw}</div>
+                </div>
+            </ExpandableView>
         </div>
     );
 };
