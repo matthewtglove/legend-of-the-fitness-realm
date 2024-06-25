@@ -1,22 +1,34 @@
 import { WorkoutProgram, WorkoutSession } from '@lofr/workout-parser';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { WorkoutLoader, WorkoutSelector } from './workout/workout-loader';
 import { WorkoutSessionTimer } from './workout/workout-timer';
 import { QuestEditor } from './story/quest-editor';
+import { QuestContext } from './story/story-types';
+import { createStoryRuntime } from './story/story-runtime';
 
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
     const [workoutSession, setWorkoutSession] = useState(undefined as undefined | WorkoutSession);
+    const storyRuntimeRef = useRef(createStoryRuntime());
 
+    // console.log(`App`, {
+    //     questContext: storyRuntimeRef.current.questContext,
+    //     storyRuntimeRef: storyRuntimeRef.current,
+    // });
     return (
         <>
             <div className="">
-                <QuestEditor />
+                <QuestEditor
+                    value={storyRuntimeRef.current.questContext}
+                    onChange={(x) => (storyRuntimeRef.current.questContext = x)}
+                />
                 <WorkoutLoader onWorkoutLoaded={setWorkoutProgram} />
                 {workoutProgram && (
                     <WorkoutSelector workoutProgram={workoutProgram} onWorkoutSessionSelected={setWorkoutSession} />
                 )}
-                {workoutSession && <WorkoutSessionTimer workoutSession={workoutSession} />}
+                {workoutSession && (
+                    <WorkoutSessionTimer workoutSession={workoutSession} storyRuntime={storyRuntimeRef.current} />
+                )}
             </div>
         </>
     );

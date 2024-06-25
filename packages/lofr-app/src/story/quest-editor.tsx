@@ -2,28 +2,31 @@ import { useRef, useState } from 'react';
 import { extractMarkdownList } from './extract-prompt-results';
 import { prompt_questEventList } from './prompts/quest-prompts';
 import { sendOpenRouterAiRequest } from './call-llm';
+import { defaultQuestContext } from './story-runtime';
 import { ExpandableView } from '../components/expandable-view';
 import { QuestContext, WorkoutStoryKind } from './story-types';
 import { QuestEventStorySuccessLevel, prompt_questEventStory } from './prompts/story-prompt';
 
-export const QuestEditor = () => {
-    const [questContext, setQuestContext] = useState<QuestContext & { instanceId: number }>({
-        instanceId: 0,
-        characterNames: [`Rick the Rock Breaker`, `Matthew the Musical`],
-        questName: `Defeat the Spider Queen in the Infested Mine`,
-        questProgress: 0,
-        currentEnvironment: `In the dark forest outside the Infested Mine`,
-        questLog: [`Rick found a rotting tree stump. (success)`],
-        nextEvent: ``,
-        remainingEvents: {
-            minor: [],
-            major: [],
-            main: [],
-        },
-    });
+export const QuestEditor = ({ value, onChange }: { value?: QuestContext; onChange: (value: QuestContext) => void }) => {
+    const [questContext, setQuestContext] = useState<QuestContext & { instanceId: number }>(
+        value
+            ? { ...value, instanceId: 0 }
+            : {
+                  instanceId: 0,
+                  ...defaultQuestContext,
+              },
+    );
+    const questContextRef = useRef(questContext);
+    questContextRef.current = questContext;
 
     const updateQuestContext = (newContext: Partial<QuestContext>) => {
-        setQuestContext((s) => ({ ...s, ...newContext, instanceId: s.instanceId + 1 }));
+        questContextRef.current = {
+            ...questContextRef.current,
+            ...newContext,
+            instanceId: questContextRef.current.instanceId + 1,
+        };
+        setQuestContext(questContextRef.current);
+        onChange(questContextRef.current);
     };
 
     return (

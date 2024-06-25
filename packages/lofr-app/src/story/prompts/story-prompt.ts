@@ -5,7 +5,7 @@ export const prompt_questEventStory = (options: {
     questContext: QuestContext;
     kind: WorkoutStoryKind;
     workoutSessionProgress: number;
-    nextSet: string;
+    nextSet?: string;
     lastActionText?: string;
     successLevel?: QuestEventStorySuccessLevel;
 }): PromptData => {
@@ -53,9 +53,9 @@ You will tell the story of an rpg dungeun campaign responding to the user's work
 Quest: ${questName}
 QuestProgress: ${questProgress}%
 CurrentEnvironment: ${currentEnvironment}
+LastAction: ${lastActionText}
 QuestLog: 
 ${questLog.map((x) => `- ${x}`).join(`\n`)}
-LastAction: ${lastActionText}
 WorkoutSessionProgress: ${workoutSessionProgress}%
 Example AI Response:
 

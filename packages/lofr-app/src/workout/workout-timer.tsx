@@ -1,8 +1,15 @@
 import { WorkoutSession, WorkoutStep_Rest, WorkoutStep_Timed } from '@lofr/workout-parser';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { speakText } from './workout-announce';
+import { StoryRuntime } from '../story/story-runtime';
 
-export const WorkoutSessionTimer = ({ workoutSession }: { workoutSession: WorkoutSession }) => {
+export const WorkoutSessionTimer = ({
+    workoutSession,
+    storyRuntime,
+}: {
+    workoutSession: WorkoutSession;
+    storyRuntime: StoryRuntime;
+}) => {
     const [hasStarted, setHasStarted] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const step = workoutSession.steps[stepIndex];
@@ -11,9 +18,15 @@ export const WorkoutSessionTimer = ({ workoutSession }: { workoutSession: Workou
         setStepIndex((index) => index + 1);
     };
     const startWorkout = () => {
+        // console.log(`WorkoutSessionTimer.startWorkout`, {
+        //     questContext: storyRuntime.questContext,
+        //     storyRuntime: storyRuntime,
+        // });
+
         speakText(`Start Workout!`, {
             onDone: () => {
                 setHasStarted(true);
+                storyRuntime.startWorkout();
             },
         });
     };
@@ -47,15 +60,27 @@ export const WorkoutSessionTimer = ({ workoutSession }: { workoutSession: Workou
                             Workout Complete!
                         </div>
                     )}
-                    {step?.kind === `rest` && <RestTimer key={stepIndex} step={step} onDone={nextStep} />}
-                    {step?.kind === `timed` && <TimedTimer key={stepIndex} step={step} onDone={nextStep} />}
+                    {step?.kind === `rest` && (
+                        <RestTimer key={stepIndex} step={step} onDone={nextStep} storyRuntime={storyRuntime} />
+                    )}
+                    {step?.kind === `timed` && (
+                        <TimedTimer key={stepIndex} step={step} onDone={nextStep} storyRuntime={storyRuntime} />
+                    )}
                 </div>
             </div>
         </>
     );
 };
 
-const RestTimer = ({ step, onDone }: { step: WorkoutStep_Rest; onDone: () => void }) => {
+const RestTimer = ({
+    step,
+    onDone,
+    storyRuntime,
+}: {
+    step: WorkoutStep_Rest;
+    onDone: () => void;
+    storyRuntime: StoryRuntime;
+}) => {
     const [timeRemaining, setTimeRemaining] = useState(step.durationSec);
     const timeRemainingRef = useRef(timeRemaining);
     timeRemainingRef.current = timeRemaining;
@@ -63,6 +88,7 @@ const RestTimer = ({ step, onDone }: { step: WorkoutStep_Rest; onDone: () => voi
         const interval = setInterval(() => {
             if (timeRemainingRef.current === step.durationSec) {
                 speakText(`Rest for ${step.durationSec} seconds`);
+                storyRuntime.startLongRest();
             }
 
             if (timeRemainingRef.current <= 1) {
@@ -87,7 +113,15 @@ const RestTimer = ({ step, onDone }: { step: WorkoutStep_Rest; onDone: () => voi
     );
 };
 
-const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => void }) => {
+const TimedTimer = ({
+    step,
+    onDone,
+    storyRuntime,
+}: {
+    step: WorkoutStep_Timed;
+    onDone: () => void;
+    storyRuntime: StoryRuntime;
+}) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [renderId, setRenderId] = useState(0);
     const timerDataRef = useRef({
@@ -114,6 +148,7 @@ const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => v
                         timerData.isPending = false;
                         timerData.hasStarted = true;
                         setRenderId((id) => id + 1);
+                        storyRuntime.startWorkoutSet(exercisePhrase);
                     },
                 });
                 setRenderId((id) => id + 1);
@@ -128,6 +163,7 @@ const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => v
             // Swtich to next mode
             if (timerData.mode === `work`) {
                 speakText(`Rest`);
+                storyRuntime.finishWorkoutSet(exercisePhrase, 0, `success`);
                 timerData.mode = `rest`;
                 timerData.timeRemaining = step.restDurationSec;
                 setRenderId((id) => id + 1);
@@ -137,6 +173,7 @@ const TimedTimer = ({ step, onDone }: { step: WorkoutStep_Timed; onDone: () => v
             // Switch to next set (if not on last set)
             if (timerData.stepSetIndex + 1 < step.setCount) {
                 speakText(`${exercisePhrase}`);
+                storyRuntime.startWorkoutSet(exercisePhrase);
                 timerData.stepSetIndex++;
                 timerData.mode = `work`;
                 timerData.timeRemaining = step.workDurationSec;
