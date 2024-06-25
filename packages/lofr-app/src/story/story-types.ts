@@ -12,10 +12,10 @@ export type QuestContext = {
     };
 };
 
+export type QuestEventSeverity = `minor` | `major` | `main`;
+
 export type PromptData = {
     systemPrompt: string;
     userPrompt: string;
     extractResult: (x: string) => undefined | string;
 };
-
-export type WorkoutStoryKind = `intro` | `next-set` | `set-result`;

@@ -1,5 +1,6 @@
-import { PromptData, QuestContext, WorkoutStoryKind } from '../story-types';
+import { PromptData, QuestContext } from '../story-types';
 
+export type WorkoutStoryKind = `session-intro` | `event-intro` | `event-conclusion` | `next-set` | `set-result`;
 export type QuestEventStorySuccessLevel = `failure` | `mild-sucess` | `success` | `amazing-success`;
 export const prompt_questEventStory = (options: {
     questContext: QuestContext;
@@ -11,6 +12,17 @@ export const prompt_questEventStory = (options: {
 }): PromptData => {
     const { questContext, kind, workoutSessionProgress, nextSet, lastActionText, successLevel } = options;
     const { characterNames, questName, questProgress, currentEnvironment, questLog, nextEvent } = questContext;
+
+    console.log(`prompt_questEventStory ${kind}`, {
+        nextSet,
+        successLevel,
+        nextEvent,
+        lastActionText,
+        kind,
+        workoutSessionProgress,
+        questContext,
+    });
+
     const getRandomCharacterName = () => {
         return characterNames[Math.floor(Math.random() * characterNames.length)]?.split(` `)[0] ?? `Rick`;
     };
@@ -18,7 +30,7 @@ export const prompt_questEventStory = (options: {
         return characterNames[Math.floor(Math.random() * characterNames.length)] ?? `Rick`;
     };
 
-    if (kind === `intro`) {
+    if (kind === `session-intro`) {
         return {
             systemPrompt: `
 You are a personal trainer dungeon master for an exercise rpg game.
@@ -38,7 +50,57 @@ Example AI Response:
 -   Break open the locked door of the prison
 -   Move the boulder that is blocking the passage
     `.trim(),
-            userPrompt: `In a short phrase give an intro for today's context. Great job!`,
+            userPrompt: `In a short phrase give an intro for today's story session. Great job!`,
+            extractResult: (x: string) => x,
+        };
+    }
+
+    if (kind === `event-intro`) {
+        return {
+            systemPrompt: `
+You are a personal trainer dungeon master for an exercise rpg game.
+
+You will tell the story of an rpg dungeun campaign responding to the user's workout routine.
+
+CharacterNames: 
+${characterNames.map((x) => `- ${x}`).join(`\n`)}
+Quest: ${questName}
+QuestProgress: ${questProgress}%
+CurrentEnvironment: ${currentEnvironment}
+QuestLog: 
+${questLog.map((x) => `- ${x}`).join(`\n`)}
+Example AI Response:
+
+-   Attack a Level 3 Goblin with an axe
+-   Break open the locked door of the prison
+-   Move the boulder that is blocking the passage
+    `.trim(),
+            userPrompt: `In a short phrase describe the intro for the next event called: "${nextEvent}"`,
+            extractResult: (x: string) => x,
+        };
+    }
+
+    if (kind === `event-conclusion`) {
+        return {
+            systemPrompt: `
+You are a personal trainer dungeon master for an exercise rpg game.
+
+You will tell the story of an rpg dungeun campaign responding to the user's workout routine.
+
+CharacterNames: 
+${characterNames.map((x) => `- ${x}`).join(`\n`)}
+Quest: ${questName}
+QuestProgress: ${questProgress}%
+CurrentEnvironment: ${currentEnvironment}
+QuestLog: 
+${questLog.map((x) => `- ${x}`).join(`\n`)}
+Example AI Response:
+
+-   Attack a Level 3 Goblin with an axe
+-   Break open the locked door of the prison
+-   Move the boulder that is blocking the passage
+    `.trim(),
+            userPrompt: `In a short phrase describe the conclusion of the event called: "${nextEvent}"`,
             extractResult: (x: string) => x,
         };
     }
@@ -66,7 +128,7 @@ Example AI Response:
 - ${getRandomCharacterName()} shoots an arrow into the Knight's knee. 
 - ${getRandomCharacterName()} throws a potion of healing to the wounded party member.
 
-Instructions: In a single sentance describe what the characters' will do in the next quest event.
+Instructions: In a single sentance describe an action that the characters' will do during the quest event.
 `.trim(),
             userPrompt: `
 CharacterNames: 

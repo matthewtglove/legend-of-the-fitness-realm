@@ -4,8 +4,8 @@ import { prompt_questEventList } from './prompts/quest-prompts';
 import { sendOpenRouterAiRequest } from './call-llm';
 import { defaultQuestContext } from './story-runtime';
 import { ExpandableView } from '../components/expandable-view';
-import { QuestContext, WorkoutStoryKind } from './story-types';
-import { QuestEventStorySuccessLevel, prompt_questEventStory } from './prompts/story-prompt';
+import { QuestContext } from './story-types';
+import { QuestEventStorySuccessLevel, prompt_questEventStory, WorkoutStoryKind } from './prompts/story-prompt';
 
 export const QuestEditor = ({ value, onChange }: { value?: QuestContext; onChange: (value: QuestContext) => void }) => {
     const [questContext, setQuestContext] = useState<QuestContext & { instanceId: number }>(
