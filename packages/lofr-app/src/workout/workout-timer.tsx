@@ -19,12 +19,20 @@ export const WorkoutSessionTimer = ({ workoutSession }: { workoutSession: Workou
     };
     if (!hasStarted) {
         return (
-            <div>
-                <h1 className="m-6 text-2xl">Workout Session Timer</h1>
-                <button className="p-2 m-6 text-white bg-blue-500" onClick={startWorkout}>
-                    Start Workout
-                </button>
-            </div>
+            <>
+                <div>
+                    <div>
+                        <h1 className="m-6 text-2xl">Workout Session Timer</h1>
+                    </div>
+                    <div className="min-h-[50vh] flex flex-col">
+                        <div className="flex items-center justify-center flex-1 p-2 m-6 text-center bg-blue-200 rounded">
+                            <button className="p-2 m-6 text-white bg-blue-500" onClick={startWorkout}>
+                                Start Workout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </>
         );
     }
     return (
