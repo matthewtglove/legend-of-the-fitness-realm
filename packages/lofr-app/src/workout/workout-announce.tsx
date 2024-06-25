@@ -7,8 +7,8 @@ export const speakText = (
 ) => {
     const utterance = new SpeechSynthesisUtterance(text);
 
-    const voiceIndex = options?.voice === `workout` ? 1 : 0;
-    utterance.voice = speechSynthesis.getVoices()[voiceIndex] ?? null;
+    utterance.voice =
+        options?.voice === `story` ? speechSynthesis.getVoices().find((x) => x.lang.startsWith(`en-`)) ?? null : null;
 
     console.log(`speakText voices`, { voices: speechSynthesis.getVoices() });
 
