@@ -61,7 +61,7 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
 
                 const response = await sendOpenRouterAiRequest(prompt.systemPrompt, prompt.userPrompt);
                 const result = prompt.extractResult(response ?? ``);
-                speakText(result ?? ``);
+                speakText(result ?? ``, { voice: `story` });
                 storyState.lastActionText = result ?? ``;
             })();
         },
@@ -82,7 +82,7 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
 
                 const response = await sendOpenRouterAiRequest(prompt.systemPrompt, prompt.userPrompt);
                 const result = prompt.extractResult(response ?? ``);
-                speakText(result ?? ``);
+                speakText(result ?? ``, { voice: `story` });
                 storyState.lastActionText = result ?? ``;
             })();
         },
@@ -106,8 +106,9 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
 
                 const response = await sendOpenRouterAiRequest(prompt.systemPrompt, prompt.userPrompt);
                 const result = prompt.extractResult(response ?? ``);
-                speakText(result ?? ``);
+                speakText(result ?? ``, { voice: `story` });
                 storyState.lastActionText = result ?? ``;
+                storyState.questContext.questLog.push(`${storyState.questContext.nextEvent} (${successLevel})`);
             })();
         },
         /** Add detailed background story, location transition */
