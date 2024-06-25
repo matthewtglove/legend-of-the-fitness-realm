@@ -87,8 +87,9 @@ const RestTimer = ({
     useEffect(() => {
         const interval = setInterval(() => {
             if (timeRemainingRef.current === step.durationSec) {
-                speakText(`Rest for ${step.durationSec} seconds`);
-                storyRuntime.startLongRest();
+                speakText(`Rest for ${step.durationSec} seconds`, {
+                    onDone: () => storyRuntime.startLongRest(),
+                });
             }
 
             if (timeRemainingRef.current <= 1) {
@@ -162,8 +163,11 @@ const TimedTimer = ({
             }
             // Swtich to next mode
             if (timerData.mode === `work`) {
-                speakText(`Rest`);
-                storyRuntime.finishWorkoutSet(exercisePhrase, 0, `success`);
+                speakText(`Rest`, {
+                    onDone: () => {
+                        storyRuntime.finishWorkoutSet(exercisePhrase, 0, `success`);
+                    },
+                });
                 timerData.mode = `rest`;
                 timerData.timeRemaining = step.restDurationSec;
                 setRenderId((id) => id + 1);
@@ -172,8 +176,11 @@ const TimedTimer = ({
 
             // Switch to next set (if not on last set)
             if (timerData.stepSetIndex + 1 < step.setCount) {
-                speakText(`${exercisePhrase}`);
-                storyRuntime.startWorkoutSet(exercisePhrase);
+                speakText(`${exercisePhrase}`, {
+                    onDone: () => {
+                        storyRuntime.startWorkoutSet(exercisePhrase);
+                    },
+                });
                 timerData.stepSetIndex++;
                 timerData.mode = `work`;
                 timerData.timeRemaining = step.workDurationSec;
