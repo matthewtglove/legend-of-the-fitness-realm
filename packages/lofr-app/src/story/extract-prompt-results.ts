@@ -1,4 +1,4 @@
-export const extractMarkdownList = (responseText: string): undefined | string[] => {
+export const extractMarkdownList = (responseText: string): undefined | string => {
     // skip text until a markdown list
     const listLines = responseText
         .split(`\n`)
@@ -6,5 +6,5 @@ export const extractMarkdownList = (responseText: string): undefined | string[] 
         .filter((line) => line.startsWith(`- `) || line.startsWith(`* `) || line.match(/^\d/));
 
     // trim list marker
-    return listLines.map((line) => line.replace(/^(\-|\*|\d+\.?) /, ``).trim());
+    return listLines.map((line) => line.replace(/^(\-|\*|\d+\.?) /, ``).trim()).join(`\n`);
 };

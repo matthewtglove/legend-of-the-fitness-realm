@@ -3,7 +3,8 @@ import { extractMarkdownList } from './extract-prompt-results';
 import { prompt_questEventList } from './prompts/quest-prompts';
 import { sendOpenRouterAiRequest } from './call-llm';
 import { ExpandableView } from '../components/expandable-view';
-import { QuestContext } from './story-types';
+import { QuestContext, WorkoutStoryKind } from './story-types';
+import { QuestEventStorySuccessLevel, prompt_questEventStory } from './prompts/story-prompt';
 
 export const QuestEditor = () => {
     const [questContext, setQuestContext] = useState<QuestContext & { instanceId: number }>({
@@ -12,7 +13,8 @@ export const QuestEditor = () => {
         questName: `Defeat the Spider Queen in the Infested Mine`,
         questProgress: 0,
         currentEnvironment: `In the dark forest outside the Infested Mine`,
-        questLog: [`Rick found a rotting tree stump`],
+        questLog: [`Rick found a rotting tree stump. (success)`],
+        nextEvent: ``,
         remainingEvents: {
             minor: [],
             major: [],
@@ -29,6 +31,7 @@ export const QuestEditor = () => {
             <ExpandableView title="Quest Editor">
                 <QuestContextEditor key={questContext.instanceId} value={questContext} onChange={updateQuestContext} />
                 <QuestEventLoader questContext={questContext} onQuestContextChange={updateQuestContext} />
+                <StoryTester questContext={questContext} />
             </ExpandableView>
         </>
     );
@@ -40,6 +43,7 @@ const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange
     const [questProgress, setQuestProgress] = useState(value.questProgress);
     const [currentEnvironment, setCurrentEnvironment] = useState(value.currentEnvironment);
     const [questLog, setQuestLog] = useState(value.questLog);
+    const [nextEvent, setNextEvent] = useState(value.nextEvent);
     const [remainingMinorEvents, setRemainingMinorEvents] = useState(value.remainingEvents.minor);
     const [remainingMajorEvents, setRemainingMajorEvents] = useState(value.remainingEvents.major);
     const [remainingMainEvents, setRemainingMainEvents] = useState(value.remainingEvents.main);
@@ -51,6 +55,7 @@ const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange
             questProgress,
             currentEnvironment,
             questLog,
+            nextEvent,
             remainingEvents: {
                 minor: remainingMinorEvents,
                 major: remainingMajorEvents,
@@ -88,6 +93,8 @@ const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange
                 value={questLog.join(`\n`)}
                 onChange={(e) => setQuestLog(e.target.value.split(`\n`))}
             />
+            <label>Next Event</label>
+            <textarea className="p-1 border-2" value={nextEvent} onChange={(e) => setNextEvent(e.target.value)} />
             <label>Remaining Minor Events</label>
             <textarea
                 className="p-1 border-2"
@@ -126,20 +133,22 @@ export const QuestEventLoader = ({
     const [responseText, setResponseText] = useState(undefined as undefined | string);
 
     const sendPrompt = async () => {
-        const prompt = prompt_questEventList({ ...questContext, eventSeverity });
+        const prompt = prompt_questEventList({ questContext, eventSeverity });
         const result = await sendOpenRouterAiRequest(prompt.systemPrompt, prompt.userPrompt);
-        const eventNames = prompt.extractResult(result ?? ``) ?? [];
+        const eventNames = prompt.extractResult(result ?? ``) ?? ``;
         setResponseTextRaw(result);
-        setResponseText(eventNames.join(`\n`));
+        setResponseText(eventNames);
 
         // Update the quest context with the new events
-        const newContext = {
+        const newContext: QuestContext = {
             ...questContext,
             remainingEvents: {
                 ...questContext.remainingEvents,
-                [eventSeverity]: eventNames,
+                [eventSeverity]: eventNames.split(`\n`),
             },
         };
+        // Choose the next event
+        newContext.nextEvent = newContext.remainingEvents[eventSeverity]?.shift() ?? ``;
 
         onQuestContextChange(newContext);
     };
@@ -170,6 +179,88 @@ export const QuestEventLoader = ({
                 <div>
                     <label>Response Raw</label>
                     <div className="p-2 whitespace-pre-wrap border-2">{responseTextRaw}</div>
+                </div>
+            </ExpandableView>
+        </div>
+    );
+};
+
+const StoryTester = ({ questContext }: { questContext: QuestContext }) => {
+    const [storyKind, setStoryKind] = useState(`intro` as WorkoutStoryKind);
+    const [nextSet, setNextSet] = useState(``);
+    const [workoutSessionProgress, setWorkoutSessionProgress] = useState(0);
+    const [responseText, setResponseText] = useState(undefined as undefined | string);
+    const [lastActionText, setLastActionText] = useState(``);
+    const [successLevel, setSuccessLevel] = useState(`success` as QuestEventStorySuccessLevel);
+
+    const sendPrompt = async () => {
+        const prompt = prompt_questEventStory({
+            questContext,
+            kind: storyKind,
+            nextSet,
+            workoutSessionProgress,
+            lastActionText,
+            successLevel,
+        });
+        const result = await sendOpenRouterAiRequest(prompt.systemPrompt, prompt.userPrompt);
+        setResponseText(prompt.extractResult(result ?? ``));
+    };
+
+    return (
+        <div className="flex flex-col p-6">
+            <h1 className="m-6 text-2xl">Story Tester</h1>
+
+            <label>Story Kind</label>
+            <select
+                className="p-1 border-2"
+                value={storyKind}
+                onChange={(e) => setStoryKind(e.target.value as WorkoutStoryKind)}
+            >
+                <option value="intro">Intro</option>
+                <option value="next-set">Next Set</option>
+                <option value="set-result">Set Result</option>
+            </select>
+
+            <label>Next Set</label>
+            <textarea className="p-1 border-2" value={nextSet} onChange={(e) => setNextSet(e.target.value)} />
+
+            <label>Workout Session Progress</label>
+            <input
+                type="number"
+                className="p-1 border-2"
+                value={workoutSessionProgress}
+                onChange={(e) => setWorkoutSessionProgress(e.target.valueAsNumber)}
+            />
+
+            <label>Last Action Text</label>
+            <textarea
+                className="p-1 border-2"
+                value={lastActionText}
+                onChange={(e) => setLastActionText(e.target.value)}
+            />
+
+            <label>Success Level</label>
+            <select
+                className="p-1 border-2"
+                value={successLevel}
+                onChange={(e) => setSuccessLevel(e.target.value as QuestEventStorySuccessLevel)}
+            >
+                <option value="failure">Failure</option>
+                <option value="mild-sucess">Mild Success</option>
+                <option value="success">Success</option>
+                <option value="amazing-success">Amazing Success</option>
+            </select>
+
+            <div>
+                <button className="p-2 text-white bg-blue-500" onClick={sendPrompt}>
+                    Send Prompt
+                </button>
+            </div>
+
+            <ExpandableView title="Response">
+                <div>
+                    <label>Response</label>
+                    <div className="p-2 whitespace-pre-wrap border-2">{responseText}</div>
                 </div>
             </ExpandableView>
         </div>

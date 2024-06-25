@@ -17,7 +17,7 @@ export const sendOpenRouterAiRequest = async (
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            model: 'openai/gpt-3.5-turbo',
+            model,
             messages: [
                 {
                     role: 'system',
