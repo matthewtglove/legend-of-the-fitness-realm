@@ -6,6 +6,8 @@ import { QuestEditor } from './story/quest-editor';
 import { QuestContext } from './story/story-types';
 import { createEmptyStoryRuntime, createStoryRuntime } from './story/story-runtime';
 
+const appVersion = `v1.0.1`;
+
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
     const [workoutSession, setWorkoutSession] = useState(undefined as undefined | WorkoutSession);
@@ -30,6 +32,7 @@ export const App = () => {
                     <WorkoutSessionTimer workoutSession={workoutSession} storyRuntime={storyRuntimeRef.current} />
                 )}
             </div>
+            <div className="absolute bottom-1 right-1">{appVersion}</div>
         </>
     );
 };
