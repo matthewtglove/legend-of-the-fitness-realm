@@ -46,7 +46,9 @@ const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange
     const [questProgress, setQuestProgress] = useState(value.questProgress);
     const [currentEnvironment, setCurrentEnvironment] = useState(value.currentEnvironment);
     const [questLog, setQuestLog] = useState(value.questLog);
-    const [nextEvent, setNextEvent] = useState(value.nextEvent);
+    const [currentEvent, setCurrentEvent] = useState(value.currentEvent);
+    const [currentAction, setCurrentAction] = useState(value.currentAction);
+    const [remainingActionEvents, setRemainingActionEvents] = useState(value.remainingEvents.action);
     const [remainingMinorEvents, setRemainingMinorEvents] = useState(value.remainingEvents.minor);
     const [remainingMajorEvents, setRemainingMajorEvents] = useState(value.remainingEvents.major);
     const [remainingMainEvents, setRemainingMainEvents] = useState(value.remainingEvents.main);
@@ -58,8 +60,10 @@ const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange
             questProgress,
             currentEnvironment,
             questLog,
-            nextEvent,
+            currentEvent,
+            currentAction,
             remainingEvents: {
+                action: remainingActionEvents,
                 minor: remainingMinorEvents,
                 major: remainingMajorEvents,
                 main: remainingMainEvents,
@@ -96,8 +100,23 @@ const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange
                 value={questLog.join(`\n`)}
                 onChange={(e) => setQuestLog(e.target.value.split(`\n`))}
             />
-            <label>Next Event</label>
-            <textarea className="p-1 border-2" value={nextEvent} onChange={(e) => setNextEvent(e.target.value)} />
+
+            <label>Current Event</label>
+            <textarea className="p-1 border-2" value={currentEvent} onChange={(e) => setCurrentEvent(e.target.value)} />
+
+            <label>Current Action</label>
+            <textarea
+                className="p-1 border-2"
+                value={currentAction}
+                onChange={(e) => setCurrentAction(e.target.value)}
+            />
+
+            <label>Remaining Actions</label>
+            <textarea
+                className="p-1 border-2"
+                value={remainingActionEvents.join(`\n`)}
+                onChange={(e) => setRemainingActionEvents(e.target.value.split(`\n`))}
+            />
             <label>Remaining Minor Events</label>
             <textarea
                 className="p-1 border-2"
@@ -131,7 +150,7 @@ export const QuestEventLoader = ({
     questContext: QuestContext;
     onQuestContextChange: (value: QuestContext) => void;
 }) => {
-    const [eventSeverity, setEventSeverity] = useState(`minor` as `minor` | `major` | `main`);
+    const [eventSeverity, setEventSeverity] = useState(`minor` as `action` | `minor` | `major` | `main`);
     const [responseTextRaw, setResponseTextRaw] = useState(undefined as undefined | string);
     const [responseText, setResponseText] = useState(undefined as undefined | string);
 
@@ -151,7 +170,7 @@ export const QuestEventLoader = ({
             },
         };
         // Choose the next event
-        newContext.nextEvent = newContext.remainingEvents[eventSeverity]?.shift() ?? ``;
+        newContext.currentEvent = newContext.remainingEvents[eventSeverity]?.shift() ?? ``;
 
         onQuestContextChange(newContext);
     };
@@ -163,8 +182,9 @@ export const QuestEventLoader = ({
             <select
                 className="p-1 border-2"
                 value={eventSeverity}
-                onChange={(e) => setEventSeverity(e.target.value as `minor` | `major` | `main`)}
+                onChange={(e) => setEventSeverity(e.target.value as `action` | `minor` | `major` | `main`)}
             >
+                <option value="action">Action</option>
                 <option value="minor">Minor</option>
                 <option value="major">Major</option>
                 <option value="main">Main</option>

@@ -8,7 +8,7 @@ export const sendOpenRouterAiRequest = async (
     const YOUR_SITE_URL = `http://www.lofr.app/`;
     const YOUR_SITE_NAME = `Lofr - Legend of the Fitness Realm`;
 
-    // console.log(`sendOpenRouterAiRequest: systemPrompt=${systemPrompt}, prompt=${prompt}, model=${model}`);
+    console.log(`sendOpenRouterAiRequest: START`, { systemPrompt, prompt, model });
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -35,6 +35,8 @@ export const sendOpenRouterAiRequest = async (
 
     const result: Response = await response.json();
     const message = (result.choices[0] as NonStreamingChoice)?.message.content ?? undefined;
+
+    console.log(`sendOpenRouterAiRequest: END`, { message, systemPrompt, prompt, model });
     return message;
 };
 

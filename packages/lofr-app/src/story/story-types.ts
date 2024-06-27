@@ -4,15 +4,17 @@ export type QuestContext = {
     questProgress: number;
     currentEnvironment: string;
     questLog: string[];
-    nextEvent: string;
+    currentEvent: string;
+    currentAction: string;
     remainingEvents: {
+        action: string[];
         minor: string[];
         major: string[];
         main: string[];
     };
 };
 
-export type QuestEventSeverity = `minor` | `major` | `main`;
+export type QuestEventSeverity = `action` | `minor` | `major` | `main`;
 
 export type PromptData = {
     systemPrompt: string;

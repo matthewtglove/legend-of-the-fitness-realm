@@ -9,6 +9,8 @@ export const speakText = (
         onDone?: () => void;
     },
 ) => {
+    console.log(`speakText`, { text, options });
+
     const utterance = new SpeechSynthesisUtterance(text);
 
     if (options?.voice === `story` && voiceState.storyVoice === undefined) {

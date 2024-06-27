@@ -10,8 +10,10 @@ export const defaultQuestContext: QuestContext = {
     questProgress: 0,
     currentEnvironment: `In the dark forest outside the Infested Mine`,
     questLog: [`Rick found a rotting tree stump. (success)`],
-    nextEvent: ``,
+    currentEvent: ``,
+    currentAction: ``,
     remainingEvents: {
+        action: [],
         minor: [],
         major: [],
         main: [],
@@ -39,31 +41,61 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
         }
     };
     const gotoNextEvent = async (eventSeverity: QuestEventSeverity) => {
+        if (eventSeverity === `action`) {
+            if (!storyState.questContext.currentEvent) {
+                await gotoNextEvent(`minor`);
+            }
+            await loadRemainingEvents(eventSeverity);
+            storyState.questContext.currentAction =
+                storyState.questContext.remainingEvents[eventSeverity].shift() ?? ``;
+            console.log(`gotoNextEvent: ${eventSeverity} "${storyState.questContext.currentAction}"`);
+            return;
+        }
         await loadRemainingEvents(eventSeverity);
-        storyState.questContext.nextEvent = storyState.questContext.remainingEvents.minor.shift() ?? ``;
-        console.log(`gotoNextEvent: "${storyState.questContext.nextEvent}"`);
+        storyState.questContext.currentEvent = storyState.questContext.remainingEvents[eventSeverity].shift() ?? ``;
+        console.log(`gotoNextEvent: ${eventSeverity} "${storyState.questContext.currentEvent}"`);
     };
 
-    let speakIndex = 0;
-    let speakIndex_speaking = undefined as undefined | number;
-    const promptAndSpeak = async (prompt: PromptData) => {
-        speakIndex++;
-        const _speakIndex = speakIndex;
-        const speakPromptedAt = Date.now();
-        const MAX_DELAY_MS = 15000;
+    let _speakIndex_speaking = undefined as undefined | number;
+    const speakTextWrapper = async (text: string, speakIndex: number) => {
+        console.log(`(${speakIndex}) speakTextWrapper START`, { text });
 
-        const response = await sendOpenRouterAiRequest(prompt.systemPrompt, prompt.userPrompt);
-        while (speakIndex_speaking && Date.now() < speakPromptedAt + MAX_DELAY_MS) {
+        while (_speakIndex_speaking) {
+            console.log(`(${speakIndex}) waiting for speakIndex ${_speakIndex_speaking} to finish`);
             await new Promise<void>((resolve) => setTimeout(resolve, 100));
         }
 
-        if (_speakIndex !== speakIndex || speakIndex_speaking) {
-            // took to long to respond
+        if (speakIndex !== _speakIndex) {
+            console.warn(`(${speakIndex}) is no longer the latest: ${_speakIndex}`);
+
             return {
                 text: undefined,
             };
         }
 
+        _speakIndex_speaking = speakIndex;
+        // reset in case something breaks
+        setTimeout(() => {
+            if (speakIndex === _speakIndex_speaking) {
+                _speakIndex_speaking = undefined;
+            }
+        }, 60 * 1000);
+
+        await new Promise<void>((resolve) => {
+            speakText(text, { voice: `story`, onDone: () => resolve() });
+        });
+        if (speakIndex === _speakIndex_speaking) {
+            _speakIndex_speaking = undefined;
+        }
+    };
+
+    let _speakIndex = 0;
+    const promptAndSpeak = async (prompt: PromptData) => {
+        _speakIndex++;
+        const speakIndex = _speakIndex;
+        const speakPromptedAtMs = Date.now();
+
+        const response = await sendOpenRouterAiRequest(prompt.systemPrompt, prompt.userPrompt);
         const result = prompt.extractResult(response ?? ``);
         if (!result) {
             return {
@@ -71,20 +103,13 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
             };
         }
 
-        speakIndex_speaking = _speakIndex;
-        // reset in case something breaks
-        setTimeout(() => {
-            if (_speakIndex === speakIndex_speaking) {
-                speakIndex_speaking = undefined;
-            }
-        }, 60 * 1000);
-
-        await new Promise<void>((resolve) => {
-            speakText(result, { voice: `story`, onDone: () => resolve() });
-        });
-        if (_speakIndex === speakIndex_speaking) {
-            speakIndex_speaking = undefined;
+        const MAX_DELAY_MS = 15000;
+        while (Date.now() < speakPromptedAtMs + MAX_DELAY_MS) {
+            await new Promise<void>((resolve) => setTimeout(resolve, 100));
         }
+
+        await speakTextWrapper(result, speakIndex);
+
         return {
             text: result,
         };
@@ -125,8 +150,11 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
             (async () => {
                 console.log(`startWorkout`);
                 await speakStory(`session-intro`);
-                await gotoNextEvent(`minor`);
+                await gotoNextEvent(`action`);
+                _speakIndex++;
+                await speakTextWrapper(storyState.questContext.currentEvent, _speakIndex);
                 await speakStory(`event-intro`);
+                // await speakTextWrapper(storyState.questContext.currentAction, ++_speakIndex);
             })();
         },
         /** conclude session */
@@ -136,8 +164,13 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
             (async () => {
                 console.log(`workoutTransition`);
                 await speakStory(`event-conclusion`);
+                storyState.questContext.questLog.push(`${storyState.questContext.currentEvent}`);
                 await gotoNextEvent(`minor`);
+                await gotoNextEvent(`action`);
+                _speakIndex++;
+                await speakTextWrapper(storyState.questContext.currentEvent, _speakIndex);
                 await speakStory(`event-intro`);
+                // await speakTextWrapper(storyState.questContext.currentAction, ++_speakIndex);
             })();
         },
         /** describe planned action */
@@ -162,10 +195,23 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
                     nextSet: finishedSet,
                     successLevel,
                 });
-                storyState.questContext.questLog.push(`${storyState.questContext.nextEvent} (${successLevel})`);
+                storyState.questContext.questLog.push(`- ${storyState.questContext.currentAction} (${successLevel})`);
+                await gotoNextEvent(`action`);
+                // await speakTextWrapper(storyState.questContext.currentAction, ++_speakIndex);
             })();
         },
     };
 };
 
 export type StoryRuntime = ReturnType<typeof createStoryRuntime>;
+
+export const createEmptyStoryRuntime = (): StoryRuntime => {
+    return {
+        questContext: defaultQuestContext,
+        startWorkout: () => {},
+        finishWorkout: () => {},
+        workoutTransition: () => {},
+        startWorkoutSet: () => {},
+        finishWorkoutSet: () => {},
+    };
+};

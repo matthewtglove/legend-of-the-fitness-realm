@@ -4,12 +4,12 @@ import { WorkoutLoader, WorkoutSelector } from './workout/workout-loader';
 import { WorkoutSessionTimer } from './workout/workout-timer';
 import { QuestEditor } from './story/quest-editor';
 import { QuestContext } from './story/story-types';
-import { createStoryRuntime } from './story/story-runtime';
+import { createEmptyStoryRuntime, createStoryRuntime } from './story/story-runtime';
 
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
     const [workoutSession, setWorkoutSession] = useState(undefined as undefined | WorkoutSession);
-    const storyRuntimeRef = useRef(createStoryRuntime());
+    const storyRuntimeRef = useRef(createEmptyStoryRuntime());
 
     // console.log(`App`, {
     //     questContext: storyRuntimeRef.current.questContext,

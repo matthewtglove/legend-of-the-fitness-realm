@@ -11,12 +11,14 @@ export const prompt_questEventStory = (options: {
     successLevel?: QuestEventStorySuccessLevel;
 }): PromptData => {
     const { questContext, kind, workoutSessionProgress, nextSet, lastActionText, successLevel } = options;
-    const { characterNames, questName, questProgress, currentEnvironment, questLog, nextEvent } = questContext;
+    const { characterNames, questName, questProgress, currentEnvironment, questLog, currentEvent, currentAction } =
+        questContext;
 
     console.log(`prompt_questEventStory ${kind}`, {
         nextSet,
         successLevel,
-        nextEvent,
+        currentEvent,
+        currentAction,
         lastActionText,
         kind,
         workoutSessionProgress,
@@ -75,7 +77,7 @@ Example AI Response:
 -   Break open the locked door of the prison
 -   Move the boulder that is blocking the passage
     `.trim(),
-            userPrompt: `In a short phrase describe the intro for the next event called: "${nextEvent}"`,
+            userPrompt: `In a short phrase describe the intro for the next event called: "${currentEvent}"`,
             extractResult: (x: string) => x,
         };
     }
@@ -100,7 +102,7 @@ Example AI Response:
 -   Break open the locked door of the prison
 -   Move the boulder that is blocking the passage
     `.trim(),
-            userPrompt: `In a short phrase describe the conclusion of the event called: "${nextEvent}"`,
+            userPrompt: `In a short phrase describe the conclusion of the event called: "${currentEvent}"`,
             extractResult: (x: string) => x,
         };
     }
@@ -134,9 +136,9 @@ Instructions: In a single sentance describe an action that the characters' will 
 CharacterNames: 
 ${characterNames.map((x) => `- ${x}`).join(`\n`)}
 CurrentSet: ${nextSet}
-CurrentEvent: ${nextEvent}
+CurrentEvent: ${currentEvent}
 
-In a single sentance, describe what actions the characters will do next. (You are an excellent dungeun master and really good at telling stories!)
+In a single sentance, describe what how the characters "${currentAction}". (You are an excellent dungeun master and really good at telling stories!)
             `.trim(),
             extractResult: (x: string) => x,
         };
@@ -168,12 +170,12 @@ Instructions: In a single sentance add a vivid story to explain that the party h
 CharacterNames: 
 ${characterNames.map((x) => `- ${x}`).join(`\n`)}
 CurrentSet: ${nextSet}
-CurrentEvent: ${nextEvent}
-LastAction: ${lastActionText}
+CurrentEvent: ${currentEvent}
+LastText: ${lastActionText}
 
 In a single sentance, describe what happened as a result of the ${
                 successLevel ?? `success`
-            }. (You are an excellent dungeun master and really good at telling stories!)
+            } during the characters doing "${currentAction}". (You are an excellent dungeun master and really good at telling stories!)
             `.trim(),
             extractResult: (x: string) => x,
         };
