@@ -7,6 +7,12 @@ export default defineConfig({
     plugins: [
         react(),
         VitePWA({
+            // add this to cache all the imports
+            workbox: {
+                globPatterns: ['**/*'],
+            },
+            // cache all the static assets in the public folder
+            includeAssets: ['**/*'],
             manifest: {
                 theme_color: '#3c2522',
                 background_color: '#3c2522',
