@@ -6,7 +6,7 @@ import { QuestEditor } from './story/quest-editor';
 import { QuestContext } from './story/story-types';
 import { createEmptyStoryRuntime, createStoryRuntime } from './story/story-runtime';
 
-const appVersion = `v1.0.2`;
+const appVersion = `v1.0.3`;
 
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
