@@ -11,6 +11,7 @@ export const WorkoutSessionTimer = ({
     storyRuntime: StoryRuntime;
 }) => {
     const [hasStarted, setHasStarted] = useState(false);
+    const [isStarting, setIsStarting] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const step = workoutSession.steps[stepIndex];
     const nextStep = () => {
@@ -18,6 +19,7 @@ export const WorkoutSessionTimer = ({
         setStepIndex((index) => index + 1);
     };
     const startWorkout = () => {
+        setIsStarting(true);
         // console.log(`WorkoutSessionTimer.startWorkout`, {
         //     questContext: storyRuntime.questContext,
         //     storyRuntime: storyRuntime,
@@ -39,7 +41,11 @@ export const WorkoutSessionTimer = ({
                     </div>
                     <div className="min-h-[50vh] flex flex-col">
                         <div className="flex items-center justify-center flex-1 p-2 m-6 text-center bg-blue-200 rounded">
-                            <button className="p-2 m-6 text-white bg-blue-500" onClick={startWorkout}>
+                            <button
+                                className={`p-2 m-6 text-white ${isStarting ? `bg-gray-500` : `bg-blue-500`}`}
+                                onClick={startWorkout}
+                                disabled={isStarting}
+                            >
                                 Start Workout
                             </button>
                         </div>
@@ -88,7 +94,7 @@ const RestTimer = ({
         const interval = setInterval(() => {
             if (timeRemainingRef.current === step.durationSec) {
                 speakText(`Rest for ${step.durationSec} seconds`, {
-                    onDone: () => storyRuntime.startLongRest(),
+                    onDone: () => storyRuntime.workoutTransition(),
                 });
             }
 
