@@ -71,28 +71,38 @@ export const WorkoutSelector = ({
     return (
         <>
             <h1 className="m-6 text-2xl">Session Selector</h1>
-            <div>
-                <label className="m-6">Segment</label>
-                <input
-                    type="number"
-                    className="p-1 m-2 border-2"
-                    value={segmentNumber}
-                    onChange={(e) => setSegmentNumber(e.target.valueAsNumber)}
-                />
-                {workoutSegment?.name}
-            </div>
-            <div>
-                <label className="m-6">Session</label>
-                <input
-                    type="number"
-                    className="p-1 m-2 border-2"
-                    value={sessionNumber}
-                    onChange={(e) => setSessionNumber(e.target.valueAsNumber)}
-                />
-                {workoutSession?.name}
+            <div className="flex flex-col">
+                <div className="flex items-center">
+                    <label className="ml-6 min-w-20">Segment</label>
+                    <select
+                        className="p-1 m-2 border-2 rounded min-w-40"
+                        value={segmentNumber}
+                        onChange={(e) => setSegmentNumber(Number(e.target.value))}
+                    >
+                        {workoutProgram.segments.map((segment, i) => (
+                            <option key={i} value={i + 1}>
+                                {segment.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="flex items-center">
+                    <label className="ml-6 min-w-20">Session</label>
+                    <select
+                        className="p-1 m-2 border-2 rounded min-w-40"
+                        value={sessionNumber}
+                        onChange={(e) => setSessionNumber(Number(e.target.value))}
+                    >
+                        {workoutSegment?.sessions.map((session, i) => (
+                            <option key={i} value={i + 1}>
+                                {session.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
             <button
-                className="p-2 ml-6 text-white bg-blue-500 rounded hover:opacity-90 active:opacity-80"
+                className="p-2 mt-6 ml-6 text-white bg-blue-500 rounded hover:opacity-90 active:opacity-80"
                 onClick={loadSession}
             >
                 Load Session
