@@ -42,7 +42,9 @@ export const WorkoutSessionTimer = ({
                     <div className="min-h-[50vh] flex flex-col">
                         <div className="flex items-center justify-center flex-1 p-2 m-6 text-center bg-blue-200 rounded">
                             <button
-                                className={`p-2 m-6 text-white ${isStarting ? `bg-gray-500` : `bg-blue-500`}`}
+                                className={`p-2 m-6 text-white rounded hover:opacity-90 active:opacity-80 ${
+                                    isStarting ? `bg-gray-500` : `bg-blue-500`
+                                }`}
                                 onClick={startWorkout}
                                 disabled={isStarting}
                             >
@@ -112,7 +114,10 @@ const RestTimer = ({
             <div className="flex-1 p-2 m-6 text-center bg-red-300 rounded">
                 <div className="m-6 text-2xl">Rest Timer</div>
                 <div className="m-6 text-6xl">{timeRemaining}</div>
-                <button className="p-2 text-white bg-blue-500" onClick={onDone}>
+                <button
+                    className="p-2 text-white bg-blue-500 rounded hover:opacity-90 active:opacity-80"
+                    onClick={onDone}
+                >
                     Skip
                 </button>
             </div>
@@ -216,7 +221,10 @@ const TimedTimer = ({
                 </div>
                 <div className="m-4 text-6xl">{timeRemaining}</div>
                 <div>
-                    <button className="p-2 m-2 text-white bg-blue-500" onClick={onDone}>
+                    <button
+                        className="p-2 m-2 text-white bg-blue-500 rounded hover:opacity-90 active:opacity-80"
+                        onClick={onDone}
+                    >
                         Skip
                     </button>
                 </div>

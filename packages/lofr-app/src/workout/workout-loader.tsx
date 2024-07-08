@@ -20,18 +20,24 @@ export const WorkoutLoader = ({ onWorkoutLoaded }: { onWorkoutLoaded: (workoutPr
             <h1 className="m-6 text-2xl">Workout Loader</h1>
             <div className="p-6">
                 <textarea
-                    className="p-2 w-full border-2 h-96"
+                    className="w-full p-2 border-2 h-96"
                     placeholder="Paste your workout program here"
                     value={workoutText}
                     onChange={(e) => setWorkoutText(e.target.value)}
                 />
             </div>
             <div className="flex flex-row">
-                <button className="p-2 ml-6 text-white bg-blue-500" onClick={loadWorkout}>
+                <button
+                    className="p-2 ml-6 text-white bg-blue-500 rounded hover:opacity-90 active:opacity-80"
+                    onClick={loadWorkout}
+                >
                     Load Workout Program
                 </button>
                 <div className="flex-1" />
-                <button className="p-2 mr-6 text-white bg-green-500" onClick={loadExampleWorkout}>
+                <button
+                    className="p-2 mr-6 text-white bg-green-500 rounded hover:opacity-90 active:opacity-80"
+                    onClick={loadExampleWorkout}
+                >
                     Example Program
                 </button>
             </div>
@@ -85,7 +91,10 @@ export const WorkoutSelector = ({
                 />
                 {workoutSession?.name}
             </div>
-            <button className="p-2 ml-6 text-white bg-blue-500" onClick={loadSession}>
+            <button
+                className="p-2 ml-6 text-white bg-blue-500 rounded hover:opacity-90 active:opacity-80"
+                onClick={loadSession}
+            >
                 Load Session
             </button>
             <ExpandableView title="Session Preview">
