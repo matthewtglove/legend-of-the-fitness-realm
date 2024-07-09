@@ -12,9 +12,21 @@ jobs:
       - uses: actions/checkout@v3
       - name: Run Prepublish and Commit
         run: |
-          npm run prepublish-ci
+          # Set git bot user
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
+
+          # Checkout 'release' branch
+          git checkout release
+
+          # Merbe 'publish' branch into 'release' branch
+          git merge --no-ff --no-edit publish
+
+          # Run prepublish-ci script
+          npm run prepublish-ci
+
+          # Commit changes
           git commit -am "Prepublish"
-          # Push to 'release' branch
-          git push origin HEAD:release
+
+          # Push changes
+          git push origin
