@@ -7,7 +7,9 @@
         "dev": "vite",
         "build": "cd ../workout-parser && npm run build && cd ../lofr-app && tsc -b && vite build",
         "prepublish": "npm run increment-build",
+        "prepublish-ci": "npm run increment-build-ci",
         "increment-build": "tsx ./scripts/increment-build.ts",
+        "increment-build-ci": "expr `cat ./src/build-version.json 2>/dev/null` + 1 >./src/build-version.json",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview"
     },
