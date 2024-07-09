@@ -89,7 +89,7 @@ export const WorkoutSessionTimer = ({
                     <>
                         <div className="m-6">
                             <button
-                                className={`p-2 w-full min-h-[50vh]- text-lg rounded hover:opacity-80 active:opacity-70 ${
+                                className={`p-2 w-full min-h-[50vh] text-lg rounded hover:opacity-80 active:opacity-70 ${
                                     isStarting ? `bg-gray-500` : `bg-blue-300`
                                 }`}
                                 onClick={startWorkout}
