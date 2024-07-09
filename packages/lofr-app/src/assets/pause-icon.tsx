@@ -1,13 +1,13 @@
-export const PauseIcon = () => (
+export const PauseIcon = ({ fill = '#3b82f6' }: { fill?: string }) => (
     <svg
-        fill="#3b82f6"
+        fill={fill}
         viewBox="0 0 32 32"
-        enable-background="new 0 0 32 32"
+        enableBackground="new 0 0 32 32"
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g id="play"></g> <g id="stop"></g>
             <g id="pause">
