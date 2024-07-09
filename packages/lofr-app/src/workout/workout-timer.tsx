@@ -1,7 +1,9 @@
-import { WorkoutSession, WorkoutStep_Rest, WorkoutStep_Timed } from '@lofr/workout-parser';
+import { WorkoutSession, WorkoutStep, WorkoutStep_Rest, WorkoutStep_Timed } from '@lofr/workout-parser';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { speakText } from './workout-announce';
 import { StoryRuntime } from '../story/story-runtime';
+import { PauseIcon } from '../icons/pause-icon';
+import { PlayIcon } from '../icons/play-icon';
 
 export const WorkoutSessionTimer = ({
     workoutSession,
@@ -75,6 +77,39 @@ export const WorkoutSessionTimer = ({
                         <TimedTimer key={stepIndex} step={step} onDone={nextStep} storyRuntime={storyRuntime} />
                     )}
                 </div>
+                <div>
+                    <WorkoutStepList stepIndex={stepIndex} steps={workoutSession.steps} />
+                </div>
+            </div>
+        </>
+    );
+};
+
+const WorkoutStepList = ({ stepIndex, steps }: { stepIndex: number; steps: WorkoutStep[] }) => {
+    return (
+        <>
+            <div className="p-1 m-6 mt-0 bg-gray-200 rounded">
+                {steps.map((step, i) => (
+                    <div
+                        key={i}
+                        className={`p-1 ${
+                            i === stepIndex
+                                ? `bg-blue-500 text-white`
+                                : i < stepIndex
+                                ? `bg-blue-300`
+                                : `bg-gray-200 opacity-60`
+                        }`}
+                    >
+                        {step.kind === `rest` && `Rest: ${step.durationSec}`}
+                        {step.kind === `timed` &&
+                            `Timed Set: ${step.setCount} x ${step.workDurationSec}/${
+                                step.restDurationSec
+                            } of ${step.exercises
+                                .map((x) => `${x.exerciseName} (${x.repCount} Reps${x.twoSided ? `, Both Sides` : ``})`)
+                                .join(`, `)}`}
+                        {/* TODO: Support other step kinds */}
+                    </div>
+                ))}
             </div>
         </>
     );
@@ -124,14 +159,14 @@ const RestTimer = ({
                 <div className={`m-6 text-6xl ${isPaused && `opacity-60`}`}>{timeRemaining}</div>
                 <div className="flex flex-col items-center">
                     <button
-                        className="p-2 m-2 text-white bg-blue-500 rounded min-w-20 hover:opacity-80 active:opacity-70"
+                        className="items-center p-4 m-2 bg-blue-200 border-2 border-blue-500 rounded-full min-w-14 hover:opacity-80 active:opacity-70"
                         onClick={() => setIsPaused(!isPaused)}
                     >
-                        {isPaused ? `Resume` : `Pause`}
+                        {isPaused ? <PlayIcon /> : <PauseIcon />}
                     </button>
                     {isPaused && (
                         <button
-                            className="p-2 m-2 text-white bg-red-500 rounded min-w-20 hover:opacity-80 active:opacity-70"
+                            className="p-2 m-4 text-white bg-red-500 rounded min-w-20 hover:opacity-80 active:opacity-70"
                             onClick={onDone}
                         >
                             Skip Step
@@ -246,14 +281,14 @@ const TimedTimer = ({
                 <div className={`m-4 text-6xl ${isPaused && `opacity-60`}`}>{timeRemaining}</div>
                 <div className="flex flex-col items-center">
                     <button
-                        className="p-2 m-2 text-white bg-blue-500 rounded min-w-20 hover:opacity-80 active:opacity-70"
+                        className="items-center p-4 m-2 bg-blue-200 border-2 border-blue-500 rounded-full min-w-14 hover:opacity-80 active:opacity-70"
                         onClick={() => setIsPaused(!isPaused)}
                     >
-                        {isPaused ? `Resume` : `Pause`}
+                        {isPaused ? <PlayIcon /> : <PauseIcon />}
                     </button>
                     {isPaused && (
                         <button
-                            className="p-2 m-2 text-white bg-red-500 rounded min-w-20 hover:opacity-80 active:opacity-70"
+                            className="p-2 m-4 text-white bg-red-500 rounded min-w-20 hover:opacity-80 active:opacity-70"
                             onClick={onDone}
                         >
                             Skip Step
@@ -265,7 +300,7 @@ const TimedTimer = ({
                     {step.exercises.map((x) => (
                         <Fragment key={x.exerciseName}>
                             <div className="m-4 text-lg bg-orange-200 border-2 border-orange-300 rounded">
-                                {x.repCount} Reps: {x.exerciseName} {x.twoSided ? `[Both Sides]` : ``}
+                                {x.exerciseName} ({x.repCount} Reps{x.twoSided && `, Both Sides`})
                             </div>
                         </Fragment>
                     ))}
