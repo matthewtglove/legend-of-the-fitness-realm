@@ -18,10 +18,10 @@ jobs:
 
           # Checkout 'release' branch
           git fetch --all
-          git checkout origin/release
+          git checkout release
 
           # Merbe 'publish' branch into 'release' branch
-          git merge --no-ff --no-edit origin/publish
+          git merge --no-ff --no-edit publish
 
           # Run prepublish-ci script
           npm run prepublish-ci
