@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run Prepublish and Commit
         run: |
-          npm run prepublish
+          npm run prepublish-ci
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git push origin
