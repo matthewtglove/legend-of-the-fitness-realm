@@ -8,12 +8,12 @@
         -   [x] Run workout session
     -   [x] Display current step
     -   [x] Timer controls
-        -   [ ] pause/resume
+        -   [x] pause/resume
         -   [x] skip: skips to next step (exercise/rest)
-        -   [ ] **Workout**
+        -   [x] **Workout**
         -   [ ] ? next: go to next set in the step
         -   [ ] ? prev: prev set
-    -   [ ]
+    -   [ ] Convert all times to render as `10m 30s` format
 -   [ ] Workout program navigator (list)
 -   [ ] Workout tracking
     -   [ ] Reps input
@@ -22,4 +22,3 @@
     -   [ ] Recording data
         -   [ ] Exporting
     -   [ ] Reports
-

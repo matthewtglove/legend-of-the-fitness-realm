@@ -28,14 +28,14 @@ export const WorkoutLoader = ({ onWorkoutLoaded }: { onWorkoutLoaded: (workoutPr
             </div>
             <div className="flex flex-row">
                 <button
-                    className="p-2 ml-6 text-white bg-blue-500 rounded hover:opacity-90 active:opacity-80"
+                    className="p-2 ml-6 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
                     onClick={loadWorkout}
                 >
                     Load Workout Program
                 </button>
                 <div className="flex-1" />
                 <button
-                    className="p-2 mr-6 text-white bg-green-500 rounded hover:opacity-90 active:opacity-80"
+                    className="p-2 mr-6 text-white bg-green-500 rounded hover:opacity-80 active:opacity-70"
                     onClick={loadExampleWorkout}
                 >
                     Example Program
@@ -102,7 +102,7 @@ export const WorkoutSelector = ({
                 </div>
             </div>
             <button
-                className="p-2 mt-6 ml-6 text-white bg-blue-500 rounded hover:opacity-90 active:opacity-80"
+                className="p-2 mt-6 ml-6 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
                 onClick={loadSession}
             >
                 Load Session
