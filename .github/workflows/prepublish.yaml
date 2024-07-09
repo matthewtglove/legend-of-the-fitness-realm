@@ -15,4 +15,5 @@ jobs:
           npm run prepublish-ci
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
+          git commit -am "Prepublish"
           git push origin
