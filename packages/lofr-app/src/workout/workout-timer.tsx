@@ -1,10 +1,34 @@
 import { WorkoutSession, WorkoutStep, WorkoutStep_Rest, WorkoutStep_Timed } from '@lofr/workout-parser';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { speakText } from './workout-announce';
 import { StoryRuntime } from '../story/story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
 import clickSoundUrl from '../assets/wooden-click.mp3';
+
+const createSoundManager = () => {
+    const state = {
+        enabled: true,
+        clickSound: new Audio(clickSoundUrl),
+    };
+
+    return {
+        playClickSound: () => {
+            if (!state.enabled) {
+                return;
+            }
+
+            state.clickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
+        },
+        toggleSound: () => {
+            state.enabled = !state.enabled;
+            // console.log(`toggleSound`, state.enabled);
+            return state.enabled;
+        },
+    };
+};
+
+type SoundManager = ReturnType<typeof createSoundManager>;
 
 export const WorkoutSessionTimer = ({
     workoutSession,
@@ -42,11 +66,12 @@ export const WorkoutSessionTimer = ({
     - Find out why the click sound is delayed by 1 second (without the +1 condition in the interval)
     */
 
-    const clickSound = new Audio(clickSoundUrl);
-    const [isClickSoundEnabled, setIsClickSoundEnabled] = useState(true);
-    const toggleClickSound = () => {
-        setIsClickSoundEnabled(!isClickSoundEnabled);
-    };
+    // const [isClickSoundEnabled, setIsClickSoundEnabled] = useState(true);
+    // const toggleClickSound = () => {
+    //     setIsClickSoundEnabled((s) => !s);
+    // };
+
+    const soundManager = useMemo(createSoundManager, []);
 
     return (
         <>
@@ -57,7 +82,7 @@ export const WorkoutSessionTimer = ({
                     </div>
                     <div>
                         <label className="m-2 text">Enable Countdown Clicks</label>
-                        <input className="" type="checkbox" checked={isClickSoundEnabled} onChange={toggleClickSound} />
+                        <input className="" type="checkbox" defaultChecked={true} onChange={soundManager.toggleSound} />
                     </div>
                 </div>
                 {!hasStarted && (
@@ -92,8 +117,7 @@ export const WorkoutSessionTimer = ({
                                     step={step}
                                     onDone={nextStep}
                                     storyRuntime={storyRuntime}
-                                    clickSound={clickSound}
-                                    isClickSoundEnabled={isClickSoundEnabled}
+                                    soundManager={soundManager}
                                 />
                             )}
                             {step?.kind === `timed` && (
@@ -102,8 +126,7 @@ export const WorkoutSessionTimer = ({
                                     step={step}
                                     onDone={nextStep}
                                     storyRuntime={storyRuntime}
-                                    clickSound={clickSound}
-                                    isClickSoundEnabled={isClickSoundEnabled}
+                                    soundManager={soundManager}
                                 />
                             )}
                         </div>
@@ -151,14 +174,12 @@ const RestTimer = ({
     step,
     onDone,
     storyRuntime,
-    clickSound,
-    isClickSoundEnabled,
+    soundManager,
 }: {
     step: WorkoutStep_Rest;
     onDone: () => void;
     storyRuntime: StoryRuntime;
-    clickSound: HTMLAudioElement;
-    isClickSoundEnabled: boolean;
+    soundManager: SoundManager;
 }) => {
     const [timeRemaining, setTimeRemaining] = useState(step.durationSec);
     const timeRemainingRef = useRef(timeRemaining);
@@ -177,9 +198,8 @@ const RestTimer = ({
             }
             // Play clicking sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
-            if (timeRemainingRef.current <= 3 && timeRemainingRef.current > 0 && isClickSoundEnabled) {
-                clickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
-                console.log(`click bool`, isClickSoundEnabled);
+            if (timeRemainingRef.current <= 3 && timeRemainingRef.current > 0) {
+                soundManager.playClickSound();
             }
 
             if (timeRemainingRef.current <= 1) {
@@ -226,14 +246,12 @@ const TimedTimer = ({
     step,
     onDone,
     storyRuntime,
-    clickSound,
-    isClickSoundEnabled,
+    soundManager,
 }: {
     step: WorkoutStep_Timed;
     onDone: () => void;
     storyRuntime: StoryRuntime;
-    clickSound: HTMLAudioElement;
-    isClickSoundEnabled: boolean;
+    soundManager: SoundManager;
 }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [renderId, setRenderId] = useState(0);
@@ -274,9 +292,8 @@ const TimedTimer = ({
 
             // Play clicking sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
-            if (timerData.timeRemaining <= 3 + 1 && timerData.timeRemaining > 0 && isClickSoundEnabled) {
-                clickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
-                console.log(`click bool`, isClickSoundEnabled);
+            if (timerData.timeRemaining <= 3 + 1 && timerData.timeRemaining > 0) {
+                soundManager.playClickSound();
             }
 
             if (timerData.timeRemaining > 1) {
