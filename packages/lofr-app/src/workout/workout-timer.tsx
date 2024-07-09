@@ -223,7 +223,7 @@ const RestTimer = ({
                 <div className={`m-6 text-6xl ${isPaused && `opacity-60`}`}>{timeRemaining}</div>
                 <div className="flex flex-col items-center">
                     <button
-                        className="items-center p-4 m-2 bg-blue-200 border-2 border-blue-500 rounded-full min-w-14 hover:opacity-80 active:opacity-70"
+                        className="items-center p-3 m-2 bg-blue-200 border-2 border-blue-500 rounded-full min-w-14 hover:opacity-80 active:opacity-70"
                         onClick={() => setIsPaused(!isPaused)}
                     >
                         {isPaused ? <PlayIcon /> : <PauseIcon />}
@@ -353,7 +353,7 @@ const TimedTimer = ({
                 <div className={`m-4 text-6xl ${isPaused && `opacity-60`}`}>{timeRemaining}</div>
                 <div className="flex flex-col items-center">
                     <button
-                        className="items-center p-4 m-2 bg-blue-200 border-2 border-blue-500 rounded-full min-w-14 hover:opacity-80 active:opacity-70"
+                        className="items-center p-3 m-2 bg-blue-200 border-2 border-blue-500 rounded-full min-w-14 hover:opacity-80 active:opacity-70"
                         onClick={() => setIsPaused(!isPaused)}
                     >
                         {isPaused ? <PlayIcon /> : <PauseIcon />}
