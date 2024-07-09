@@ -21,7 +21,7 @@ jobs:
           git checkout release
 
           # Merbe 'publish' branch into 'release' branch
-          git merge --no-ff --no-edit publish
+          git merge --no-ff --no-edit origin/publish
 
           # Run prepublish-ci script
           npm run prepublish-ci
