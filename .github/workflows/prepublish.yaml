@@ -3,7 +3,7 @@ name: Prepublish
 on:
   push:
     branches:
-      - publish
+      - release
 
 jobs:
   prepublish:
@@ -15,13 +15,6 @@ jobs:
           # Set git bot user
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-
-          # Checkout release
-          git fetch --all
-          git switch -c release origin/release
-
-          # Merge 'publish' branch into 'release' branch
-          git merge --commit origin/publish
 
           # Run prepublish-ci script
           npm run prepublish-ci
