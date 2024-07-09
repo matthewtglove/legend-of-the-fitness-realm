@@ -136,7 +136,10 @@ const QuestContextEditor = ({ value, onChange }: { value: QuestContext; onChange
                 onChange={(e) => setRemainingMainEvents(e.target.value.split(`\n`))}
             />
 
-            <button className="p-2 m-6 text-white bg-blue-500" onClick={update}>
+            <button
+                className="p-2 m-6 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                onClick={update}
+            >
                 Update Context
             </button>
         </div>
@@ -190,7 +193,10 @@ export const QuestEventLoader = ({
                 <option value="main">Main</option>
             </select>
             <div>
-                <button className="p-2 text-white bg-blue-500" onClick={sendPrompt}>
+                <button
+                    className="p-2 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                    onClick={sendPrompt}
+                >
                     Send Prompt
                 </button>
             </div>
@@ -275,7 +281,10 @@ const StoryTester = ({ questContext }: { questContext: QuestContext }) => {
             </select>
 
             <div>
-                <button className="p-2 text-white bg-blue-500" onClick={sendPrompt}>
+                <button
+                    className="p-2 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                    onClick={sendPrompt}
+                >
                     Send Prompt
                 </button>
             </div>

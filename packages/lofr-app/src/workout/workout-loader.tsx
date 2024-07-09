@@ -20,18 +20,24 @@ export const WorkoutLoader = ({ onWorkoutLoaded }: { onWorkoutLoaded: (workoutPr
             <h1 className="m-6 text-2xl">Workout Loader</h1>
             <div className="p-6">
                 <textarea
-                    className="p-2 w-full border-2 h-96"
+                    className="w-full p-2 border-2 h-96"
                     placeholder="Paste your workout program here"
                     value={workoutText}
                     onChange={(e) => setWorkoutText(e.target.value)}
                 />
             </div>
             <div className="flex flex-row">
-                <button className="p-2 ml-6 text-white bg-blue-500" onClick={loadWorkout}>
+                <button
+                    className="p-2 ml-6 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                    onClick={loadWorkout}
+                >
                     Load Workout Program
                 </button>
                 <div className="flex-1" />
-                <button className="p-2 mr-6 text-white bg-green-500" onClick={loadExampleWorkout}>
+                <button
+                    className="p-2 mr-6 text-white bg-green-500 rounded hover:opacity-80 active:opacity-70"
+                    onClick={loadExampleWorkout}
+                >
                     Example Program
                 </button>
             </div>
@@ -65,27 +71,40 @@ export const WorkoutSelector = ({
     return (
         <>
             <h1 className="m-6 text-2xl">Session Selector</h1>
-            <div>
-                <label className="m-6">Segment</label>
-                <input
-                    type="number"
-                    className="p-1 m-2 border-2"
-                    value={segmentNumber}
-                    onChange={(e) => setSegmentNumber(e.target.valueAsNumber)}
-                />
-                {workoutSegment?.name}
+            <div className="flex flex-col">
+                <div className="flex items-center">
+                    <label className="ml-6 min-w-20">Segment</label>
+                    <select
+                        className="p-1 m-2 border-2 rounded min-w-40"
+                        value={segmentNumber}
+                        onChange={(e) => setSegmentNumber(Number(e.target.value))}
+                    >
+                        {workoutProgram.segments.map((segment, i) => (
+                            <option key={i} value={i + 1}>
+                                {segment.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="flex items-center">
+                    <label className="ml-6 min-w-20">Session</label>
+                    <select
+                        className="p-1 m-2 border-2 rounded min-w-40"
+                        value={sessionNumber}
+                        onChange={(e) => setSessionNumber(Number(e.target.value))}
+                    >
+                        {workoutSegment?.sessions.map((session, i) => (
+                            <option key={i} value={i + 1}>
+                                {session.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
-            <div>
-                <label className="m-6">Session</label>
-                <input
-                    type="number"
-                    className="p-1 m-2 border-2"
-                    value={sessionNumber}
-                    onChange={(e) => setSessionNumber(e.target.valueAsNumber)}
-                />
-                {workoutSession?.name}
-            </div>
-            <button className="p-2 ml-6 text-white bg-blue-500" onClick={loadSession}>
+            <button
+                className="p-2 mt-6 ml-6 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                onClick={loadSession}
+            >
                 Load Session
             </button>
             <ExpandableView title="Session Preview">
