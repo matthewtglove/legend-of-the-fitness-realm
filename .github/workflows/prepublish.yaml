@@ -16,4 +16,5 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git commit -am "Prepublish"
-          git push origin
+          # Push to 'release' branch
+          git push origin HEAD:release
