@@ -80,8 +80,8 @@ export const WorkoutSessionTimer = ({
                     <div>
                         <h1 className="text-2xl">Workout Session Timer</h1>
                     </div>
-                    <div>
-                        <label className="m-2 text">Enable Countdown Clicks</label>
+                    <div className="flex flex-row items-center">
+                        <label className="m-2 text">Countdown Clicks</label>
                         <input className="" type="checkbox" defaultChecked={true} onChange={soundManager.toggleSound} />
                     </div>
                 </div>
