@@ -5,8 +5,10 @@ import { WorkoutSessionTimer } from './workout/workout-timer';
 import { QuestEditor } from './story/quest-editor';
 import { QuestContext } from './story/story-types';
 import { createEmptyStoryRuntime, createStoryRuntime } from './story/story-runtime';
+import { ExpandableView } from './components/expandable-view';
+import buildNumber from './build-version.json';
 
-const appVersion = `v1.0.4`;
+const appVersion = `v1.0.${buildNumber}`;
 
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
@@ -20,17 +22,24 @@ export const App = () => {
     return (
         <>
             <div className="">
+                {workoutSession && (
+                    <WorkoutSessionTimer workoutSession={workoutSession} storyRuntime={storyRuntimeRef.current} />
+                )}
+                <ExpandableView mode={'hide'} title="Workout Loader" expanded={!workoutSession}>
+                    <>
+                        <WorkoutLoader onWorkoutLoaded={setWorkoutProgram} />
+                        {workoutProgram && (
+                            <WorkoutSelector
+                                workoutProgram={workoutProgram}
+                                onWorkoutSessionSelected={setWorkoutSession}
+                            />
+                        )}
+                    </>
+                </ExpandableView>
                 <QuestEditor
                     value={storyRuntimeRef.current.questContext}
                     onChange={(x) => (storyRuntimeRef.current.questContext = x)}
                 />
-                <WorkoutLoader onWorkoutLoaded={setWorkoutProgram} />
-                {workoutProgram && (
-                    <WorkoutSelector workoutProgram={workoutProgram} onWorkoutSessionSelected={setWorkoutSession} />
-                )}
-                {workoutSession && (
-                    <WorkoutSessionTimer workoutSession={workoutSession} storyRuntime={storyRuntimeRef.current} />
-                )}
             </div>
             <div className="absolute pointer-events-none top-1 right-1 opacity-20">{appVersion}</div>
         </>
