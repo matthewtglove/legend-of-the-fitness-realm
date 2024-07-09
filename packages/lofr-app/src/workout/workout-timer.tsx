@@ -87,18 +87,16 @@ export const WorkoutSessionTimer = ({
                 </div>
                 {!hasStarted && (
                     <>
-                        <div className="min-h-[50vh] flex flex-col">
-                            <div className="flex items-center justify-center flex-1 p-2 m-6 text-center bg-blue-200 rounded">
-                                <button
-                                    className={`p-2 m-6 text-white rounded hover:opacity-80 active:opacity-70 ${
-                                        isStarting ? `bg-gray-500` : `bg-blue-500`
-                                    }`}
-                                    onClick={startWorkout}
-                                    disabled={isStarting}
-                                >
-                                    Start Workout
-                                </button>
-                            </div>
+                        <div className="m-6">
+                            <button
+                                className={`p-2 w-full min-h-[50vh]- text-lg rounded hover:opacity-80 active:opacity-70 ${
+                                    isStarting ? `bg-gray-500` : `bg-blue-300`
+                                }`}
+                                onClick={startWorkout}
+                                disabled={isStarting}
+                            >
+                                Start Workout
+                            </button>
                         </div>
                     </>
                 )}

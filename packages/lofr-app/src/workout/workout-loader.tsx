@@ -17,34 +17,38 @@ export const WorkoutLoader = ({ onWorkoutLoaded }: { onWorkoutLoaded: (workoutPr
     };
     return (
         <div>
-            <h1 className="m-6 text-2xl">Workout Loader</h1>
-            <div className="p-6">
+            <h1 className="mb-2 text-2xl">Workout Program Loader</h1>
+            <div>
                 <textarea
                     className="w-full p-2 border-2 h-96"
                     placeholder="Paste your workout program here"
                     value={workoutText}
                     onChange={(e) => setWorkoutText(e.target.value)}
                 />
-            </div>
-            <div className="flex flex-row">
-                <button
-                    className="p-2 ml-6 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
-                    onClick={loadWorkout}
-                >
-                    Load Workout Program
-                </button>
-                <div className="flex-1" />
-                <button
-                    className="p-2 mr-6 text-white bg-green-500 rounded hover:opacity-80 active:opacity-70"
-                    onClick={loadExampleWorkout}
-                >
-                    Example Program
-                </button>
+                <div className="flex flex-row mt-2">
+                    <button
+                        className="p-2 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                        onClick={loadWorkout}
+                    >
+                        Load Workout Program
+                    </button>
+                    <div className="flex-1" />
+                    <button
+                        className="p-2 text-white bg-green-500 rounded hover:opacity-80 active:opacity-70"
+                        onClick={loadExampleWorkout}
+                    >
+                        Example Program
+                    </button>
+                </div>
             </div>
 
-            <ExpandableView title="Workout Program Preview">
-                <pre className="m-6">{JSON.stringify(workoutProgram, null, 2)}</pre>
-            </ExpandableView>
+            {workoutProgram && (
+                <div className="mt-4">
+                    <ExpandableView title="Workout Program Preview">
+                        <pre className="m-6">{JSON.stringify(workoutProgram, null, 2)}</pre>
+                    </ExpandableView>
+                </div>
+            )}
         </div>
     );
 };
@@ -70,12 +74,12 @@ export const WorkoutSelector = ({
 
     return (
         <>
-            <h1 className="m-6 text-2xl">Session Selector</h1>
+            <h1 className="text-2xl">Session Selector</h1>
             <div className="flex flex-col">
-                <div className="flex items-center">
-                    <label className="ml-6 min-w-20">Segment</label>
+                <div className="flex items-center mt-2 mb-2">
+                    <label className="min-w-20">Segment</label>
                     <select
-                        className="p-1 m-2 border-2 rounded min-w-40"
+                        className="w-full p-1 ml-2 border-2 rounded max-w-80"
                         value={segmentNumber}
                         onChange={(e) => setSegmentNumber(Number(e.target.value))}
                     >
@@ -86,10 +90,10 @@ export const WorkoutSelector = ({
                         ))}
                     </select>
                 </div>
-                <div className="flex items-center">
-                    <label className="ml-6 min-w-20">Session</label>
+                <div className="flex items-center mt-2 mb-2">
+                    <label className="min-w-20">Session</label>
                     <select
-                        className="p-1 m-2 border-2 rounded min-w-40"
+                        className="w-full p-1 ml-2 border-2 rounded max-w-80"
                         value={sessionNumber}
                         onChange={(e) => setSessionNumber(Number(e.target.value))}
                     >
@@ -101,15 +105,17 @@ export const WorkoutSelector = ({
                     </select>
                 </div>
             </div>
+            <div className="mt-2">
+                <ExpandableView title="Session Preview">
+                    <pre className="m-6">{JSON.stringify(workoutSession, null, 2)}</pre>
+                </ExpandableView>
+            </div>
             <button
-                className="p-2 mt-6 ml-6 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                className="w-full p-2 mt-16 text-white bg-blue-500 rounded animate-minorPulse hover:opacity-80 active:opacity-70"
                 onClick={loadSession}
             >
-                Load Session
+                Load Workout Session
             </button>
-            <ExpandableView title="Session Preview">
-                <pre className="m-6">{JSON.stringify(workoutSession, null, 2)}</pre>
-            </ExpandableView>
         </>
     );
 };

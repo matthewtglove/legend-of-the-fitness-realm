@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes minorPulse {
+    50% {
+        opacity: 0.85;
+    }
+}
+.animate-minorPulse {
+    animation: minorPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
