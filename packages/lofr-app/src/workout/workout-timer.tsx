@@ -35,66 +35,83 @@ export const WorkoutSessionTimer = ({
             },
         });
     };
-    const clickSound = new Audio(clickSoundUrl);
 
-    if (!hasStarted) {
-        return (
-            <>
-                <div>
-                    <div>
-                        <h1 className="m-6 text-2xl">Workout Session Timer</h1>
-                    </div>
-                    <div className="min-h-[50vh] flex flex-col">
-                        <div className="flex items-center justify-center flex-1 p-2 m-6 text-center bg-blue-200 rounded">
-                            <button
-                                className={`p-2 m-6 text-white rounded hover:opacity-80 active:opacity-70 ${
-                                    isStarting ? `bg-gray-500` : `bg-blue-500`
-                                }`}
-                                onClick={startWorkout}
-                                disabled={isStarting}
-                            >
-                                Start Workout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </>
-        );
-    }
+    /* TODO:
+    - Fix isClickSoundEnabled to update during a step
+        - Currently only updates when a new step starts
+    - Find out why the click sound is delayed by 1 second (without the +1 condition in the interval)
+    */
+
+    const clickSound = new Audio(clickSoundUrl);
+    const [isClickSoundEnabled, setIsClickSoundEnabled] = useState(true);
+    const toggleClickSound = () => {
+        setIsClickSoundEnabled(!isClickSoundEnabled);
+    };
+
     return (
         <>
             <div>
-                <div>
-                    <h1 className="m-6 text-2xl">Workout Session Timer</h1>
+                <div className="flex flex-row justify-between m-6 mb-0">
+                    <div>
+                        <h1 className="text-2xl">Workout Session Timer</h1>
+                    </div>
+                    <div>
+                        <label className="m-2 text">Enable Countdown Clicks</label>
+                        <input className="" type="checkbox" checked={isClickSoundEnabled} onChange={toggleClickSound} />
+                    </div>
                 </div>
-                <div className="min-h-[50vh] flex flex-col">
-                    {!step && (
-                        <div className="p-2 m-6 text-2xl text-center rounded bg-gradient-to-br from-yellow-100 to-yellow-400 animate-bounce">
-                            Workout Complete!
+                {!hasStarted && (
+                    <>
+                        <div className="min-h-[50vh] flex flex-col">
+                            <div className="flex items-center justify-center flex-1 p-2 m-6 text-center bg-blue-200 rounded">
+                                <button
+                                    className={`p-2 m-6 text-white rounded hover:opacity-80 active:opacity-70 ${
+                                        isStarting ? `bg-gray-500` : `bg-blue-500`
+                                    }`}
+                                    onClick={startWorkout}
+                                    disabled={isStarting}
+                                >
+                                    Start Workout
+                                </button>
+                            </div>
                         </div>
-                    )}
-                    {step?.kind === `rest` && (
-                        <RestTimer
-                            key={stepIndex}
-                            step={step}
-                            onDone={nextStep}
-                            storyRuntime={storyRuntime}
-                            clickSound={clickSound}
-                        />
-                    )}
-                    {step?.kind === `timed` && (
-                        <TimedTimer
-                            key={stepIndex}
-                            step={step}
-                            onDone={nextStep}
-                            storyRuntime={storyRuntime}
-                            clickSound={clickSound}
-                        />
-                    )}
-                </div>
-                <div>
-                    <WorkoutProgressList stepIndex={stepIndex} steps={workoutSession.steps} />
-                </div>
+                    </>
+                )}
+
+                {hasStarted && (
+                    <>
+                        <div className="min-h-[50vh] flex flex-col">
+                            {!step && (
+                                <div className="p-2 m-6 text-2xl text-center rounded bg-gradient-to-br from-yellow-100 to-yellow-400 animate-bounce">
+                                    Workout Complete!
+                                </div>
+                            )}
+                            {step?.kind === `rest` && (
+                                <RestTimer
+                                    key={stepIndex}
+                                    step={step}
+                                    onDone={nextStep}
+                                    storyRuntime={storyRuntime}
+                                    clickSound={clickSound}
+                                    isClickSoundEnabled={isClickSoundEnabled}
+                                />
+                            )}
+                            {step?.kind === `timed` && (
+                                <TimedTimer
+                                    key={stepIndex}
+                                    step={step}
+                                    onDone={nextStep}
+                                    storyRuntime={storyRuntime}
+                                    clickSound={clickSound}
+                                    isClickSoundEnabled={isClickSoundEnabled}
+                                />
+                            )}
+                        </div>
+                        <div>
+                            <WorkoutProgressList stepIndex={stepIndex} steps={workoutSession.steps} />
+                        </div>
+                    </>
+                )}
             </div>
         </>
     );
@@ -135,11 +152,13 @@ const RestTimer = ({
     onDone,
     storyRuntime,
     clickSound,
+    isClickSoundEnabled,
 }: {
     step: WorkoutStep_Rest;
     onDone: () => void;
     storyRuntime: StoryRuntime;
     clickSound: HTMLAudioElement;
+    isClickSoundEnabled: boolean;
 }) => {
     const [timeRemaining, setTimeRemaining] = useState(step.durationSec);
     const timeRemainingRef = useRef(timeRemaining);
@@ -158,8 +177,9 @@ const RestTimer = ({
             }
             // Play clicking sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
-            if (timeRemainingRef.current <= 3 && timeRemainingRef.current > 0) {
+            if (timeRemainingRef.current <= 3 && timeRemainingRef.current > 0 && isClickSoundEnabled) {
                 clickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
+                console.log(`click bool`, isClickSoundEnabled);
             }
 
             if (timeRemainingRef.current <= 1) {
@@ -207,11 +227,13 @@ const TimedTimer = ({
     onDone,
     storyRuntime,
     clickSound,
+    isClickSoundEnabled,
 }: {
     step: WorkoutStep_Timed;
     onDone: () => void;
     storyRuntime: StoryRuntime;
     clickSound: HTMLAudioElement;
+    isClickSoundEnabled: boolean;
 }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [renderId, setRenderId] = useState(0);
@@ -252,8 +274,9 @@ const TimedTimer = ({
 
             // Play clicking sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
-            if (timerData.timeRemaining <= 3 + 1 && timerData.timeRemaining > 0) {
+            if (timerData.timeRemaining <= 3 + 1 && timerData.timeRemaining > 0 && isClickSoundEnabled) {
                 clickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
+                console.log(`click bool`, isClickSoundEnabled);
             }
 
             if (timerData.timeRemaining > 1) {
