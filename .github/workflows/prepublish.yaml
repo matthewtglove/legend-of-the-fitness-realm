@@ -16,12 +16,8 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
 
-          # Checkout 'release' branch
-          git fetch --all
-          git checkout -b release origin/release
-
-          # Merbe 'publish' branch into 'release' branch
-          git merge --no-ff --no-edit origin/publish
+          # Merge in 'release' branch (to ensure latest changes are included in 'publish' branch)
+          git merge --commit origin/release
 
           # Run prepublish-ci script
           npm run prepublish-ci
@@ -29,5 +25,5 @@ jobs:
           # Commit changes
           git commit -am "Prepublish"
 
-          # Push changes
-          git push origin
+          # Push changes to 'release' branch
+          git push origin HEAD:release
