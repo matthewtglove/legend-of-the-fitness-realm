@@ -331,7 +331,11 @@ const TimedTimer = ({
                 <div>
                     {step.exercises.map((x) => (
                         <Fragment key={x.exerciseName}>
-                            <div className="m-4 text-lg bg-orange-200 border-2 border-orange-300 rounded">
+                            <div
+                                className={`m-4 text-lg bg-orange-200 border-2 border-orange-300 rounded ${
+                                    isPaused && `opacity-60`
+                                }`}
+                            >
                                 {x.exerciseName} ({x.repCount} Reps{x.twoSided && `, Both Sides`})
                             </div>
                         </Fragment>
