@@ -2,8 +2,9 @@ import { WorkoutSession, WorkoutStep, WorkoutStep_Rest, WorkoutStep_Timed } from
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { speakText } from './workout-announce';
 import { StoryRuntime } from '../story/story-runtime';
-import { PauseIcon } from '../icons/pause-icon';
-import { PlayIcon } from '../icons/play-icon';
+import { PauseIcon } from '../assets/pause-icon';
+import { PlayIcon } from '../assets/play-icon';
+import clickSoundUrl from '../assets/wooden-click.mp3';
 
 export const WorkoutSessionTimer = ({
     workoutSession,
@@ -34,6 +35,8 @@ export const WorkoutSessionTimer = ({
             },
         });
     };
+    const clickSound = new Audio(clickSoundUrl);
+
     if (!hasStarted) {
         return (
             <>
@@ -71,21 +74,33 @@ export const WorkoutSessionTimer = ({
                         </div>
                     )}
                     {step?.kind === `rest` && (
-                        <RestTimer key={stepIndex} step={step} onDone={nextStep} storyRuntime={storyRuntime} />
+                        <RestTimer
+                            key={stepIndex}
+                            step={step}
+                            onDone={nextStep}
+                            storyRuntime={storyRuntime}
+                            clickSound={clickSound}
+                        />
                     )}
                     {step?.kind === `timed` && (
-                        <TimedTimer key={stepIndex} step={step} onDone={nextStep} storyRuntime={storyRuntime} />
+                        <TimedTimer
+                            key={stepIndex}
+                            step={step}
+                            onDone={nextStep}
+                            storyRuntime={storyRuntime}
+                            clickSound={clickSound}
+                        />
                     )}
                 </div>
                 <div>
-                    <WorkoutStepList stepIndex={stepIndex} steps={workoutSession.steps} />
+                    <WorkoutProgressList stepIndex={stepIndex} steps={workoutSession.steps} />
                 </div>
             </div>
         </>
     );
 };
 
-const WorkoutStepList = ({ stepIndex, steps }: { stepIndex: number; steps: WorkoutStep[] }) => {
+const WorkoutProgressList = ({ stepIndex, steps }: { stepIndex: number; steps: WorkoutStep[] }) => {
     return (
         <>
             <div className="p-1 m-6 mt-0 bg-gray-200 rounded">
@@ -119,10 +134,12 @@ const RestTimer = ({
     step,
     onDone,
     storyRuntime,
+    clickSound,
 }: {
     step: WorkoutStep_Rest;
     onDone: () => void;
     storyRuntime: StoryRuntime;
+    clickSound: HTMLAudioElement;
 }) => {
     const [timeRemaining, setTimeRemaining] = useState(step.durationSec);
     const timeRemainingRef = useRef(timeRemaining);
@@ -139,12 +156,19 @@ const RestTimer = ({
                     onDone: () => storyRuntime.workoutTransition(),
                 });
             }
+            // Play clicking sound at 3, 2, 1 seconds
+            // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
+            if (timeRemainingRef.current <= 3 && timeRemainingRef.current > 0) {
+                clickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
+            }
 
-            if (timeRemainingRef.current <= 1 || isPaused) {
-                // Pause when isPaused is true
+            if (timeRemainingRef.current <= 1) {
                 clearInterval(interval);
                 onDone();
                 return;
+            }
+            if (timeRemainingRef.current === 30 && step.durationSec >= 60) {
+                speakText(`30 seconds remaining.`);
             }
             setTimeRemaining(timeRemainingRef.current - 1);
         }, 1000);
@@ -182,10 +206,12 @@ const TimedTimer = ({
     step,
     onDone,
     storyRuntime,
+    clickSound,
 }: {
     step: WorkoutStep_Timed;
     onDone: () => void;
     storyRuntime: StoryRuntime;
+    clickSound: HTMLAudioElement;
 }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [renderId, setRenderId] = useState(0);
@@ -222,6 +248,12 @@ const TimedTimer = ({
                 });
                 setRenderId((id) => id + 1);
                 return;
+            }
+
+            // Play clicking sound at 3, 2, 1 seconds
+            // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
+            if (timerData.timeRemaining <= 3 + 1 && timerData.timeRemaining > 0) {
+                clickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
             }
 
             if (timerData.timeRemaining > 1) {
