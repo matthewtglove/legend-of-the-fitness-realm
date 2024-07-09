@@ -17,7 +17,7 @@ jobs:
           git config user.email "<>"
 
           # Merge in 'release' branch (to ensure latest changes are included in 'publish' branch)
-          git fetch origin release
+          git fetch --all
           git merge --commit origin/release
 
           # Run prepublish-ci script
