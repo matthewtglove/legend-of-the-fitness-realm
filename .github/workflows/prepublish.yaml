@@ -1,0 +1,18 @@
+name: Prepublish
+
+on:
+  push:
+    branches:
+      - publish
+
+jobs:
+  prepublish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Prepublish and Commit
+        run: |
+          npm run prepublish
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git push origin
