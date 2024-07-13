@@ -69,3 +69,26 @@ export type GameItem = {
         defense: number;
     };
 };
+
+export type GameRuntime = {
+    state: GameState;
+
+    triggerSessionStart: () => GameEvent;
+    triggerSessionEnd: () => GameEvent;
+    triggerWorkPeriod: (options: { durationSec: number }) => GameEvent;
+    triggerRestPeriod: (options: { durationSec: number; successRatio: number }) => GameEvent;
+};
+
+/** A game event is something that should be communicated to the player
+ *
+ * It can be read directly as a message or used to prompt an AI message
+ *
+ * Examples:
+ *
+ * - move to a new location
+ * - defeat an enemy
+ * - talk to an npc
+ * - level up
+ * - equip a new weapon
+ */
+export type GameEvent = {};
