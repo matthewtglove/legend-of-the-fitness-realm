@@ -1,0 +1,26 @@
+name: Prepublish
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  prepublish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Prepublish and Commit
+        run: |
+          # Set git bot user
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+
+          # Run prepublish-ci script
+          npm run prepublish-ci
+
+          # Commit changes
+          git commit -am "Prepublish"
+
+          # Push changes to 'release' branch
+          git push origin
