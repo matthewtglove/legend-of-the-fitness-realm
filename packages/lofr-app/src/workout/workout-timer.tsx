@@ -238,6 +238,12 @@ const RestTimer = ({
                 speakText(`Rest for ${timeTotal} seconds`, {
                     onDone: () => storyRuntime.workoutTransition(),
                 });
+                // speakText(
+                //     `One: This is story text. This is a lot of text as if I'm telling a story. Two: This is story text. This is a lot of text as if I'm telling a story. Three: This is story text. This is a lot of text as if I'm telling a story. Four: This is story text. This is a lot of text as if I'm telling a story.`,
+                //     {
+                //         voice: `story`,
+                //     },
+                // );
             }
             // Play clicking sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
