@@ -56,6 +56,15 @@ export const speakText = (
         options?.onDone?.();
     };
 
+    const timeoutId = setTimeout(() => {
+        console.error(`speakText timeout`, { text });
+        options?.onDone?.();
+        speechSynthesis.cancel();
+    }, 3000);
+    utterance.onstart = () => {
+        clearTimeout(timeoutId);
+    };
+
     utterance.onerror = (e) => {
         console.error(`speakText error`, { text, e });
         options?.onDone?.();
