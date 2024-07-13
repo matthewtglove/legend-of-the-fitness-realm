@@ -3,9 +3,10 @@ export type GameState = {
     locations: GameLocation[];
     characters: GameCharacter[];
     keyItems: GameKeyItem[];
+    items: GameItem[];
 };
 
-export type GameLocationId = string & { __type: 'GameLocationId' };
+export type GameLocationId = string & { __type: `GameLocationId` };
 export type GameLocation = {
     id: GameLocationId;
     name: string;
@@ -16,7 +17,7 @@ export type GameLocation = {
     keyItem?: GameKeyItemId;
 };
 
-export type GameCharacterId = string & { __type: 'GameCharacterId' };
+export type GameCharacterId = string & { __type: `GameCharacterId` };
 export type GameCharacter = {
     id: GameCharacterId;
     name: string;
@@ -51,14 +52,14 @@ export type GameCharacter = {
     }[];
 };
 
-export type GameKeyItemId = string & { __type: 'GameKeyItemId' };
+export type GameKeyItemId = string & { __type: `GameKeyItemId` };
 export type GameKeyItem = {
     id: GameKeyItemId;
     name: string;
     obtained: boolean;
 };
 
-export type GameItemId = string & { __type: 'GameItemId' };
+export type GameItemId = string & { __type: `GameItemId` };
 export type GameItem = {
     id: GameItemId;
     name: string;
@@ -73,10 +74,31 @@ export type GameItem = {
 export type GameRuntime = {
     state: GameState;
 
-    triggerSessionStart: () => GameEvent;
-    triggerSessionEnd: () => GameEvent;
-    triggerWorkPeriod: (options: { durationSec: number }) => GameEvent;
-    triggerRestPeriod: (options: { durationSec: number; successRatio: number }) => GameEvent;
+    /** Recap and offer player decision */
+    triggerSessionStart: (options: { context: CampaignContext }) => GameEventResponse;
+    /** Provide cliffhanger for next session */
+    triggerSessionEnd: (options: { context: CampaignContext }) => GameEventResponse;
+    /** For long work periods provide periodic game events */
+    triggerWorkPeriod: (options: { durationSec: number; context: CampaignContext }) => GameEventResponse;
+    /** Provide game event and for long rest periods offer player decision */
+    triggerRestPeriod: (options: {
+        durationSec: number;
+        successRatio: number;
+        context: CampaignContext;
+    }) => GameEventResponse;
+    /** Handle player decision */
+    enterPlayerDecision: (options: { decisionId: GameDecisionId; context: CampaignContext }) => GameEventResponse;
+};
+
+type CampaignContext = {
+    sessionPeriodsRemaining: { kind: `work` | `rest`; durationSec: number }[];
+    sessionPeriodsTotal: { kind: `work` | `rest`; durationSec: number }[];
+    campaignSessionsRemaining: number;
+    campaignSessionsTotal: number;
+};
+
+export type GameEventResponse = {
+    events: GameEvent[];
 };
 
 /** A game event is something that should be communicated to the player
@@ -91,4 +113,44 @@ export type GameRuntime = {
  * - level up
  * - equip a new weapon
  */
-export type GameEvent = {};
+export type GameEvent = MoveEvent | AttackEnemyEvent | TalkToNPCEvent | LevelUpEvent | EquipWeaponEvent;
+
+type MoveEvent = {
+    kind: `move`;
+    location: GameLocationId;
+};
+
+type AttackEnemyEvent = {
+    kind: `attack-enemy`;
+    enemies: {
+        enemy: GameCharacterId;
+        health?: number;
+        healthMax?: number;
+        healthStatus: `ok` | `hurt` | `wounded` | `critical` | `defeated`;
+        attackKind: `melee` | `ranged` | `magic`;
+        attackWeapon?: GameItemId;
+        damageSeverity: `miss` | `graze` | `hit` | `critical`;
+        damage: number;
+        isDefeated: boolean;
+    }[];
+};
+
+// TODO: define other events
+
+type TalkToNPCEvent = {
+    kind: `talk-to-npc`;
+    npc: GameCharacterId;
+};
+
+type LevelUpEvent = {
+    kind: `level-up`;
+    character: GameCharacterId;
+};
+
+type EquipWeaponEvent = {
+    kind: `equip-weapon`;
+    character: GameCharacterId;
+    weapon: GameItemId;
+};
+
+export type GameDecisionId = string & { __type: `GameDecisionId` };
