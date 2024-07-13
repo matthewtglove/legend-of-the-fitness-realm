@@ -197,8 +197,6 @@ const CircularPieTimer = ({
                     strokeDashoffset={-circumference * ratioComplete}
                     transform="rotate(-90 60 60)"
                 />
-                {/* <line x1="0" y1="60" x2="120" y2="60" stroke="black" /> */}
-                {/* <line x1="60" y1="0" x2="60" y2="120" stroke="black" /> */}
                 <text
                     style={{ fontFamily: `monospace` }}
                     enableBackground="true"
