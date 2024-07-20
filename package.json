@@ -16,6 +16,8 @@
     "packages/*"
   ],
   "scripts": {
+    "build": "npm run build --w packages",
+    "--watch": "npm run watch --w packages",
     "prepublish": "cd packages/lofr-app && npm run prepublish",
     "prepublish-ci": "cd packages/lofr-app && npm run prepublish-ci",
     "test": "echo \"Error: no test specified\" && exit 1"

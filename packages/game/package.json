@@ -1,5 +1,5 @@
 {
-    "name": "@lofr/workout-parser",
+    "name": "@lofr/game",
     "version": "1.0.0",
     "type": "module",
     "exports": {
@@ -15,11 +15,13 @@
     ],
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "unbuild",
+        "build": "unbuild --sourcemap && tsc --emitDeclarationOnly",
+        "watch": "nodemon --watch src -e ts,tsx -x \"npm run build\"",
         "parse-example": "tsx ./scripts/parse-example.ts"
     },
     "devDependencies": {
         "@types/node": "^20.14.8",
+        "nodemon": "^3.1.4",
         "tsx": "^4.15.7",
         "unbuild": "^2.0.0"
     }

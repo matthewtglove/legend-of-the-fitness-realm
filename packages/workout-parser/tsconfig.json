@@ -4,11 +4,19 @@
         "target": "ESNext",
         "module": "ESNext",
         "moduleResolution": "bundler",
-        "lib": ["es2020", "dom"],
-        "types": ["node"],
+        "lib": [
+            "es2020",
+            "dom"
+        ],
+        "types": [
+            "node"
+        ],
         "allowSyntheticDefaultImports": true,
         "strict": true,
         "noUncheckedIndexedAccess": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
     }
 }
