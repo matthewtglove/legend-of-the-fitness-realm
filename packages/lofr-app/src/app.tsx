@@ -25,21 +25,29 @@ export const App = () => {
                 {workoutSession && (
                     <WorkoutSessionTimer workoutSession={workoutSession} storyRuntime={storyRuntimeRef.current} />
                 )}
-                <ExpandableView mode={'hide'} title="Workout Loader" expanded={!workoutSession}>
-                    <>
-                        <WorkoutLoader onWorkoutLoaded={setWorkoutProgram} />
-                        {workoutProgram && (
-                            <WorkoutSelector
-                                workoutProgram={workoutProgram}
-                                onWorkoutSessionSelected={setWorkoutSession}
-                            />
-                        )}
-                    </>
-                </ExpandableView>
-                <QuestEditor
-                    value={storyRuntimeRef.current.questContext}
-                    onChange={(x) => (storyRuntimeRef.current.questContext = x)}
-                />
+                <div className="m-2">
+                    <ExpandableView mode={`hide`} title="Workout Loader" expanded={!workoutSession}>
+                        <>
+                            <div className="m-6">
+                                <WorkoutLoader onWorkoutLoaded={setWorkoutProgram} />
+                                {workoutProgram && (
+                                    <div className="mt-12">
+                                        <WorkoutSelector
+                                            workoutProgram={workoutProgram}
+                                            onWorkoutSessionSelected={setWorkoutSession}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    </ExpandableView>
+                </div>
+                <div className="m-2">
+                    <QuestEditor
+                        value={storyRuntimeRef.current.questContext}
+                        onChange={(x) => (storyRuntimeRef.current.questContext = x)}
+                    />
+                </div>
             </div>
             <div className="absolute pointer-events-none top-1 right-1 opacity-20">{appVersion}</div>
         </>

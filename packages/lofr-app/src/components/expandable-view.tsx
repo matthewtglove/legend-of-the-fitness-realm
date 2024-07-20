@@ -18,7 +18,7 @@ export const ExpandableView = ({
     }, [expandedDefault]);
 
     return (
-        <div className="p-2 m-2 border-2 rounded border-slate-200">
+        <div className="p-2 border-2 rounded border-slate-200">
             <button onClick={() => setExpanded(!expanded)}>
                 {expanded ? `⬇️` : `➡️`} {title}
             </button>

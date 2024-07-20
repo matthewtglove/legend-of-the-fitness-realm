@@ -60,12 +60,6 @@ export const WorkoutSessionTimer = ({
         });
     };
 
-    /* TODO:
-    - Fix isClickSoundEnabled to update during a step
-        - Currently only updates when a new step starts
-    - Find out why the click sound is delayed by 1 second (without the +1 condition in the interval)
-    */
-
     // const [isClickSoundEnabled, setIsClickSoundEnabled] = useState(true);
     // const toggleClickSound = () => {
     //     setIsClickSoundEnabled((s) => !s);
@@ -99,6 +93,9 @@ export const WorkoutSessionTimer = ({
                                     Start Workout
                                 </button>
                             </div>
+                        </div>
+                        <div>
+                            <WorkoutProgressList stepIndex={stepIndex} steps={workoutSession.steps} />
                         </div>
                     </>
                 )}
@@ -170,6 +167,51 @@ const WorkoutProgressList = ({ stepIndex, steps }: { stepIndex: number; steps: W
     );
 };
 
+const CircularPieTimer = ({
+    timeTotal,
+    timeRemaining,
+    progressColor = `tomato`,
+    trackColor = `#eee`,
+}: {
+    timeTotal: number;
+    timeRemaining: number;
+    progressColor?: string;
+    trackColor?: string;
+}) => {
+    const radius = 50;
+    const circumference = 2 * Math.PI * radius;
+    const ratioComplete = 1 - timeRemaining / timeTotal;
+
+    return (
+        <div className="text-4xl">
+            <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r={radius} fill="none" stroke={trackColor} strokeWidth="10" />
+                <circle
+                    cx="60"
+                    cy="60"
+                    r={radius}
+                    fill="none"
+                    stroke={progressColor}
+                    strokeWidth="10"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={-circumference * ratioComplete}
+                    transform="rotate(-90 60 60)"
+                />
+                <text
+                    style={{ fontFamily: `monospace` }}
+                    enableBackground="true"
+                    x="60"
+                    y="60"
+                    textAnchor="middle"
+                    alignmentBaseline="central"
+                >
+                    {timeRemaining}
+                </text>
+            </svg>
+        </div>
+    );
+};
+
 const RestTimer = ({
     step,
     onDone,
@@ -181,7 +223,8 @@ const RestTimer = ({
     storyRuntime: StoryRuntime;
     soundManager: SoundManager;
 }) => {
-    const [timeRemaining, setTimeRemaining] = useState(step.durationSec);
+    const timeTotal = step.durationSec;
+    const [timeRemaining, setTimeRemaining] = useState(timeTotal);
     const timeRemainingRef = useRef(timeRemaining);
     timeRemainingRef.current = timeRemaining;
     const [isPaused, setIsPaused] = useState(false);
@@ -191,10 +234,16 @@ const RestTimer = ({
             if (isPaused) {
                 return;
             }
-            if (timeRemainingRef.current === step.durationSec) {
-                speakText(`Rest for ${step.durationSec} seconds`, {
+            if (timeRemainingRef.current === timeTotal) {
+                speakText(`Rest for ${timeTotal} seconds`, {
                     onDone: () => storyRuntime.workoutTransition(),
                 });
+                // speakText(
+                //     `One: This is story text. This is a lot of text as if I'm telling a story. Two: This is story text. This is a lot of text as if I'm telling a story. Three: This is story text. This is a lot of text as if I'm telling a story. Four: This is story text. This is a lot of text as if I'm telling a story.`,
+                //     {
+                //         voice: `story`,
+                //     },
+                // );
             }
             // Play clicking sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
@@ -207,20 +256,31 @@ const RestTimer = ({
                 onDone();
                 return;
             }
-            if (timeRemainingRef.current === 30 && step.durationSec >= 60) {
+            if (timeRemainingRef.current === 30 && timeTotal >= 60) {
                 speakText(`30 seconds remaining.`);
             }
             setTimeRemaining(timeRemainingRef.current - 1);
         }, 1000);
         return () => clearInterval(interval);
     }, [isPaused]);
+
     return (
         <>
             <div
-                className={`flex-1 flex flex-col p-2 m-6 text-center bg-red-300 rounded ${isPaused && `bg-opacity-60`}`}
+                className={`flex-1 flex flex-col p-2 m-6 items-center text-center bg-red-200 rounded ${
+                    isPaused && `bg-opacity-60`
+                }`}
             >
                 <div className={`m-6 text-2xl ${isPaused && `opacity-60`}`}>Rest Timer</div>
-                <div className={`m-6 text-6xl ${isPaused && `opacity-60`}`}>{timeRemaining}</div>
+                {/* <div className={`m-6 text-6xl ${isPaused && `opacity-60`}`}>{timeRemaining}</div> */}
+                <div className={`m-6 ${isPaused && `opacity-60`}`}>
+                    <CircularPieTimer
+                        timeTotal={timeTotal}
+                        timeRemaining={timeRemaining}
+                        progressColor="#ef4444"
+                        trackColor="#fecaca"
+                    />
+                </div>
                 <div className="flex flex-col items-center">
                     <button
                         className="items-center p-3 m-2 bg-blue-200 border-2 border-blue-500 rounded-full min-w-14 hover:opacity-80 active:opacity-70"
@@ -260,6 +320,7 @@ const TimedTimer = ({
         isPending: false,
         stepSetIndex: 0,
         mode: `work` as `work` | `rest`,
+        timeTotal: step.workDurationSec,
         timeRemaining: step.workDurationSec,
     });
     const [isPaused, setIsPaused] = useState(false);
@@ -309,6 +370,7 @@ const TimedTimer = ({
                     },
                 });
                 timerData.mode = `rest`;
+                timerData.timeTotal = step.restDurationSec;
                 timerData.timeRemaining = step.restDurationSec;
                 setRenderId((id) => id + 1);
                 return;
@@ -323,6 +385,7 @@ const TimedTimer = ({
                 });
                 timerData.stepSetIndex++;
                 timerData.mode = `work`;
+                timerData.timeTotal = step.workDurationSec;
                 timerData.timeRemaining = step.workDurationSec;
                 setRenderId((id) => id + 1);
                 return;
@@ -336,11 +399,12 @@ const TimedTimer = ({
         }, 1000);
         return () => clearInterval(interval);
     }, [isPaused]);
-    const { mode, timeRemaining, stepSetIndex } = timerDataRef.current;
+    const { mode, timeTotal, timeRemaining, stepSetIndex } = timerDataRef.current;
+
     return (
         <>
             <div
-                className={`flex-1 flex flex-col p-2 m-6 text-center ${
+                className={`flex-1 flex flex-col p-2 m-6 items-center text-center ${
                     mode === `work` ? `bg-green-300` : `bg-red-300`
                 } rounded ${isPaused && `bg-opacity-60`}`}
             >
@@ -350,7 +414,14 @@ const TimedTimer = ({
                 <div className={`m-2 text-4xl ${isPaused && `opacity-60`}`}>
                     {stepSetIndex + 1} / {step.setCount}
                 </div>
-                <div className={`m-4 text-6xl ${isPaused && `opacity-60`}`}>{timeRemaining}</div>
+                <div className={`m-6 ${isPaused && `opacity-60`}`}>
+                    <CircularPieTimer
+                        timeTotal={timeTotal}
+                        timeRemaining={timeRemaining}
+                        progressColor={mode === `work` ? `#22c55e` : `#ef4444`}
+                        trackColor={mode === `work` ? `#bbf7d0` : `#fecaca`}
+                    />
+                </div>
                 <div className="flex flex-col items-center">
                     <button
                         className="items-center p-3 m-2 bg-blue-200 border-2 border-blue-500 rounded-full min-w-14 hover:opacity-80 active:opacity-70"
@@ -372,7 +443,7 @@ const TimedTimer = ({
                     {step.exercises.map((x) => (
                         <Fragment key={x.exerciseName}>
                             <div
-                                className={`m-4 text-lg bg-orange-200 border-2 border-orange-300 rounded ${
+                                className={`m-4 px-8 text-lg bg-orange-200 border-2 border-orange-300 rounded ${
                                     isPaused && `opacity-60`
                                 }`}
                             >

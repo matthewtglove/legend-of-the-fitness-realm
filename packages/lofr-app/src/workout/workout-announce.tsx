@@ -34,11 +34,12 @@ export const speakText = (
 
     utterance.voice = options?.voice === `story` ? voiceState.storyVoice ?? null : null;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let activeSentence = ``;
     utterance.onboundary = (e) => {
         if (e.name === `sentence`) {
             const iSentenceStart = e.charIndex;
-            const lenSentence = (text.substring(iSentenceStart).match(/[\.!?$]/)?.index ?? -1) + 1;
+            const lenSentence = (text.substring(iSentenceStart).match(/[.!?$]/)?.index ?? -1) + 1;
             const sentence = text.substring(iSentenceStart, iSentenceStart + lenSentence);
             activeSentence = sentence;
             console.log(`sentence '${sentence}'`, { sentence, iSentenceStart, lenSentence });
@@ -54,6 +55,25 @@ export const speakText = (
 
     utterance.onend = () => {
         options?.onDone?.();
+    };
+
+    const retryTimeoutId = setTimeout(() => {
+        if (options?.voice === `story`) return;
+
+        console.error(`speakText retry`, { text });
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+    }, 1000);
+    const failTimeoutId = setTimeout(() => {
+        if (options?.voice === `story`) return;
+
+        console.error(`speakText *fail*`, { text });
+        speechSynthesis.cancel();
+        options?.onDone?.();
+    }, 3000);
+    utterance.onstart = () => {
+        clearTimeout(retryTimeoutId);
+        clearTimeout(failTimeoutId);
     };
 
     utterance.onerror = (e) => {
