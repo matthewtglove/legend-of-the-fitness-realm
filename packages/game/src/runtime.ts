@@ -9,10 +9,25 @@ import {
     GameLocation,
     GameLocationId,
     GameLoreProvider,
+    GamePlayer,
+    GamePlayerId,
     GameQuestId,
     GameRuntime,
     GameState,
 } from './types';
+
+export const createEmptyGameState = (): GameState => {
+    const gameState: GameState = {
+        players: [],
+        characters: [],
+        locations: [],
+        campaigns: [],
+        quests: [],
+        keyItems: [],
+        items: [],
+    };
+    return gameState;
+};
 
 export const createGameRuntime = (
     initialGameState: GameState,
@@ -25,7 +40,8 @@ export const createGameRuntime = (
         return state.players.filter((x) => context.sessionPlayers.some((p) => p.player === x.id));
     };
     const getLocation = ({ context }: { context: CampaignContext }): GameLocation => {
-        const location = state.locations.find((x) => x.id === getSessionPlayers({ context })[0]?.location);
+        const locationId = getSessionPlayers({ context })[0]?.location;
+        const location = state.locations.findLast((x) => x.id === locationId);
         if (location) {
             return location;
         }
@@ -56,7 +72,7 @@ export const createGameRuntime = (
         locationId: GameLocationId;
         distance: number;
     }): GameLocation[] => {
-        const location = state.locations.find((x) => x.id === locationId);
+        const location = state.locations.findLast((x) => x.id === locationId);
         if (!location) {
             return [];
         }
@@ -134,7 +150,7 @@ export const createGameRuntime = (
     };
 
     const getKeyItemsAtLocation = ({ locationId }: { locationId: GameLocationId }): GameKeyItemId[] => {
-        const location = state.locations.find((x) => x.id === locationId);
+        const location = state.locations.findLast((x) => x.id === locationId);
         if (!location) {
             return [];
         }
@@ -158,7 +174,7 @@ export const createGameRuntime = (
         endLocationId: GameLocationId;
         obtainedKeyItemIds: GameKeyItemId[];
     }): undefined | GameLocationId[] => {
-        const startLocation = state.locations.find((x) => x.id === startLocationId);
+        const startLocation = state.locations.findLast((x) => x.id === startLocationId);
         if (!startLocation) {
             return undefined;
         }
@@ -182,7 +198,7 @@ export const createGameRuntime = (
                     continue;
                 }
 
-                const connectedLocation = state.locations.find((x) => x.id === connection.location);
+                const connectedLocation = state.locations.findLast((x) => x.id === connection.location);
                 if (!connectedLocation || visitedLocations.has(connectedLocation.id)) {
                     continue;
                 }
@@ -195,11 +211,11 @@ export const createGameRuntime = (
     };
 
     const getCampaignFromQuest = ({ questId }: { questId: GameQuestId }) => {
-        return state.campaigns.find((x) => x.quests.some((q) => q === questId));
+        return state.campaigns.findLast((x) => x.quests.some((q) => q === questId));
     };
 
     const ensureCampaignExists = ({ context }: { context: CampaignContext }) => {
-        const currentCampaign = state.campaigns.find((x) => !x.isComplete);
+        const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
         if (currentCampaign) {
             return currentCampaign;
         }
@@ -220,7 +236,7 @@ export const createGameRuntime = (
     };
 
     const ensureQuestExists = ({ context }: { context: CampaignContext }) => {
-        const nextIncompleteQuest = state.quests.find((x) => !x.isComplete);
+        const nextIncompleteQuest = state.quests.findLast((x) => !x.isComplete);
         if (nextIncompleteQuest) {
             return nextIncompleteQuest;
         }
@@ -318,8 +334,6 @@ export const createGameRuntime = (
                 name: newEnemyInfo.name,
                 role: { ...newEnemyInfo.role, alignment: `enemy` },
                 stats: { ...newEnemyStats.stats },
-                equipment: {},
-                inventory: [],
                 location: unreachedLocation.id,
                 keyItem: keyItem.id,
             };
@@ -343,13 +357,12 @@ export const createGameRuntime = (
                 });
             }
 
-            const newPlayer: GameCharacter = {
-                id: `player-${state.players.length}` as GameCharacterId,
+            const newPlayer: GamePlayer = {
+                id: `player-${state.players.length}` as GamePlayerId,
                 name: characterName,
                 role: {
                     race: characterRace,
                     class: characterClass,
-                    alignment: `friend`,
                 },
                 ...battle.generatePlayerStats({
                     state,

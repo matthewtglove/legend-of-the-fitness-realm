@@ -1,8 +1,8 @@
 // MARK: GameState
 export type GameState = {
-    players: GameCharacter[];
-    locations: GameLocation[];
+    players: GamePlayer[];
     characters: GameCharacter[];
+    locations: GameLocation[];
     keyItems: GameKeyItem[];
     items: GameItem[];
     campaigns: GameCampaign[];
@@ -121,6 +121,27 @@ export type GameLocation = {
     keyItem?: GameKeyItemId;
 };
 
+// MARK: GamePlayer
+export type GamePlayerId = string & { __type: `GamePlayerId` };
+export type GamePlayer = {
+    id: GamePlayerId;
+    name: string;
+    location: GameLocationId;
+    role: {
+        race: string;
+        class: string;
+    };
+    stats: GameCharacterStats;
+    equipment: {
+        weapon?: GameItemId;
+        armor?: GameItemId;
+    };
+    inventory: {
+        item: GameItemId;
+        quantity: number;
+    }[];
+};
+
 // MARK: GameCharacter
 export type GameCharacterId = string & { __type: `GameCharacterId` };
 export type GameCharacter = {
@@ -137,30 +158,23 @@ export type GameCharacter = {
         alignment: `friend` | `enemy`;
         enemyDifficulty?: GameEnemyDifficulty;
     };
-    stats: {
-        level: number;
-
-        health: number;
-        healthMax: number;
-        mana: number;
-        manaMax: number;
-
-        strength: number;
-        endurance: number;
-        agility: number;
-        intelligence: number;
-    };
-    equipment: {
-        weapon?: GameItemId;
-        armor?: GameItemId;
-    };
-    inventory: {
-        item: GameItemId;
-        quantity: number;
-    }[];
+    stats: GameCharacterStats;
 };
 
 export type GameEnemyDifficulty = `normal` | `minor-boss` | `major-boss` | `final-boss`;
+export type GameCharacterStats = {
+    level: number;
+
+    health: number;
+    healthMax: number;
+    mana: number;
+    manaMax: number;
+
+    strength: number;
+    endurance: number;
+    agility: number;
+    intelligence: number;
+};
 
 // MARK: GameKeyItem
 export type GameKeyItemId = string & { __type: `GameKeyItemId` };
@@ -233,7 +247,7 @@ export type GameRuntime = {
 };
 
 type PlayerWorkResult = {
-    player: GameCharacterId;
+    player: GamePlayerId;
     sessionPeriodIndex: number;
     /** The player's success level for the work period:
      *
@@ -249,7 +263,7 @@ type PlayerWorkResult = {
 // MARK: CampaignContext
 export type CampaignContext = {
     sessionPlayers: {
-        player: GameCharacterId;
+        player: GamePlayerId;
         /** Local players should report success at beginning of rest period */
         isLocal: boolean;
     }[];
