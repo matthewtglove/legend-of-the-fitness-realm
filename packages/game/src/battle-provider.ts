@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { GameBattleProvider } from './types';
 
-export const createBattleProvider = (): GameBattleProvider => {
+export const createGameBattleProvider = (): GameBattleProvider => {
     return {
         generatePlayerStats: (options) => {
             // Generate random player stats

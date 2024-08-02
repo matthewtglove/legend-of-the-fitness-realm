@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-    CampaignContext,
+    GameRuntimeContext,
     GameBattleProvider,
     GameCampaignId,
     GameCharacter,
@@ -14,6 +14,7 @@ import {
     GameQuestId,
     GameRuntime,
     GameState,
+    GameCampaign,
 } from './types';
 
 export const createEmptyGameState = (): GameState => {
@@ -36,10 +37,10 @@ export const createGameRuntime = (
 ): GameRuntime => {
     const state: GameState = JSON.parse(JSON.stringify(initialGameState));
 
-    const getSessionPlayers = ({ context }: { context: CampaignContext }) => {
+    const getSessionPlayers = ({ context }: { context: GameRuntimeContext }) => {
         return state.players.filter((x) => context.sessionPlayers.some((p) => p.player === x.id));
     };
-    const getLocation = ({ context }: { context: CampaignContext }): GameLocation => {
+    const getLocation = ({ context }: { context: GameRuntimeContext }): GameLocation => {
         const locationId = getSessionPlayers({ context })[0]?.location;
         const location = state.locations.findLast((x) => x.id === locationId);
         if (location) {
@@ -68,10 +69,16 @@ export const createGameRuntime = (
     const getLocationsNearby = ({
         locationId,
         distance,
+        visited = new Set<GameLocationId>(),
     }: {
         locationId: GameLocationId;
         distance: number;
+        visited?: Set<GameLocationId>;
     }): GameLocation[] => {
+        if (visited.has(locationId)) {
+            return [];
+        }
+        visited.add(locationId);
         const location = state.locations.findLast((x) => x.id === locationId);
         if (!location) {
             return [];
@@ -79,7 +86,9 @@ export const createGameRuntime = (
         const connectedLocations = state.locations.filter((x) => location.connections.some((c) => c.location === x.id));
         return [
             location,
-            ...connectedLocations.flatMap((x) => getLocationsNearby({ locationId: x.id, distance: distance - 1 })),
+            ...connectedLocations.flatMap((x) =>
+                getLocationsNearby({ locationId: x.id, distance: distance - 1, visited }),
+            ),
         ];
     };
     const addLocation = ({
@@ -214,7 +223,7 @@ export const createGameRuntime = (
         return state.campaigns.findLast((x) => x.quests.some((q) => q === questId));
     };
 
-    const ensureCampaignExists = ({ context }: { context: CampaignContext }) => {
+    const ensureCampaignExists = ({ context }: { context: GameRuntimeContext }): GameCampaign => {
         const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
         if (currentCampaign) {
             return currentCampaign;
@@ -235,7 +244,7 @@ export const createGameRuntime = (
         return newCampaign;
     };
 
-    const ensureQuestExists = ({ context }: { context: CampaignContext }) => {
+    const ensureQuestExists = ({ context }: { context: GameRuntimeContext }) => {
         const nextIncompleteQuest = state.quests.findLast((x) => !x.isComplete);
         if (nextIncompleteQuest) {
             return nextIncompleteQuest;
@@ -260,6 +269,7 @@ export const createGameRuntime = (
             })),
         };
         state.quests.push(newQuest);
+        campaign.quests.push(newQuest.id);
 
         const keyItems = newQuestInfo.objectives.map((x) => x.completionKeyItem);
         state.keyItems.push(...keyItems);

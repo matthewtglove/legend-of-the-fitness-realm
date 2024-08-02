@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { GameCampaignId, GameCharacterId, GameKeyItemId, GameLocationId, GameLoreProvider, GameQuestId } from './types';
 
-export const createGameLore = (): GameLoreProvider => {
+export const createGameLoreProvider = (): GameLoreProvider => {
     return {
         generateEnemyInfo: ({ state, playerLevels, locationId, enemyDifficulty, campaignId, questId }) => {
             // Generate a random fantasy enemy name and role.

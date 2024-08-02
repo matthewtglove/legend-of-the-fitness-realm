@@ -19,7 +19,7 @@ const formatPlural = (countOrItems: number | string[], wordPlural: string, wordS
 //     return formatPlural(countOrItems, `are`, `is`);
 // };
 
-export const formatMessage = (event: GameEvent) => {
+export const formatGameEventMessage = (event: GameEvent) => {
     if (event.kind === `story-review`) {
         const {
             //
@@ -37,7 +37,7 @@ export const formatMessage = (event: GameEvent) => {
         return `In ${location}, ${formatNameList(playerNames.map((x) => `"${x}"`))} ${formatPlural(
             playerNames,
             `continue`,
-        )} their quest to "${quest}" as part of their "${campaign}" campaign.`;
+        )} their quest to "${quest}" as part of their campaign: "${campaign}".`;
     }
 
     return `I don't know what's going on. I'm just a simple function. I don't know what to do. To-do: Add the other event messages.`;

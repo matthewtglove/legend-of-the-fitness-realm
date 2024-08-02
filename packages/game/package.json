@@ -1,5 +1,5 @@
 {
-    "name": "@lofr/workout-parser",
+    "name": "@lofr/game",
     "version": "1.0.0",
     "type": "module",
     "exports": {

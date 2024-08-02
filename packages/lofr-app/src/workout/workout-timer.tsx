@@ -1,7 +1,7 @@
 import { WorkoutSession, WorkoutStep, WorkoutStep_Rest, WorkoutStep_Timed } from '@lofr/workout-parser';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { speakText } from './workout-announce';
-import { StoryRuntime } from '../story/story-runtime';
+import { GameStoryRuntime } from '../story/game-story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
 import clickSoundUrl from '../assets/wooden-click.mp3';
@@ -35,7 +35,7 @@ export const WorkoutSessionTimer = ({
     storyRuntime,
 }: {
     workoutSession: WorkoutSession;
-    storyRuntime: StoryRuntime;
+    storyRuntime: GameStoryRuntime;
 }) => {
     const [hasStarted, setHasStarted] = useState(false);
     const [isStarting, setIsStarting] = useState(false);
@@ -54,8 +54,11 @@ export const WorkoutSessionTimer = ({
 
         speakText(`Start Workout!`, {
             onDone: () => {
-                setHasStarted(true);
-                storyRuntime.startWorkout();
+                storyRuntime.startWorkout(workoutSession, {
+                    onDone: () => {
+                        setHasStarted(true);
+                    },
+                });
             },
         });
     };
@@ -220,7 +223,7 @@ const RestTimer = ({
 }: {
     step: WorkoutStep_Rest;
     onDone: () => void;
-    storyRuntime: StoryRuntime;
+    storyRuntime: GameStoryRuntime;
     soundManager: SoundManager;
 }) => {
     const timeTotal = step.durationSec;
@@ -310,7 +313,7 @@ const TimedTimer = ({
 }: {
     step: WorkoutStep_Timed;
     onDone: () => void;
-    storyRuntime: StoryRuntime;
+    storyRuntime: GameStoryRuntime;
     soundManager: SoundManager;
 }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,5 +1,6 @@
 import './polyfills';
 export type * from './types';
-export { createGameRuntime } from './runtime';
-export { createGameLore } from './lore-provider';
-export { createBattleProvider } from './battle-provider';
+export { createGameRuntime, createEmptyGameState } from './runtime';
+export { createGameLoreProvider } from './lore-provider';
+export { createGameBattleProvider } from './battle-provider';
+export { formatGameEventMessage } from './event-messages';

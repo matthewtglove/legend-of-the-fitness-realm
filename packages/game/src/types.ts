@@ -203,14 +203,14 @@ export type GameRuntime = {
     state: GameState;
 
     /** Recap and offer player decision */
-    triggerSessionStart: (options: { context: CampaignContext }) => GameEventResponse;
+    triggerSessionStart: (options: { context: GameRuntimeContext }) => GameEventResponse;
     /** Provide cliffhanger for next session */
-    triggerSessionEnd: (options: { context: CampaignContext }) => GameEventResponse;
+    triggerSessionEnd: (options: { context: GameRuntimeContext }) => GameEventResponse;
     /** For long work periods provide periodic game events */
-    triggerWorkPeriod: (options: { context: CampaignContext }) => GameEventResponse;
+    triggerWorkPeriod: (options: { context: GameRuntimeContext }) => GameEventResponse;
     /** Provide game event and for long rest periods offer player decision */
     triggerRestPeriod: (options: {
-        context: CampaignContext;
+        context: GameRuntimeContext;
 
         /** This assumes work results are entered immediately, but it might take time:
          *
@@ -232,7 +232,7 @@ export type GameRuntime = {
     }) => GameEventResponse;
 
     /** Handle player decision */
-    enterPlayerDecision: (options: { decisionId: GameDecisionId; context: CampaignContext }) => GameEventResponse;
+    enterPlayerDecision: (options: { decisionId: GameDecisionId; context: GameRuntimeContext }) => GameEventResponse;
 
     /** Allow remote player success data to collect asynchonously, this will likely be silent but used later in future events
      *
@@ -241,7 +241,7 @@ export type GameRuntime = {
      * Remote players may be following a different workout program and have different work periods, etc.
      */
     enterRemotePlayersWorkResult: (options: {
-        remoteSessionPeriods: { kind: `work` | `rest`; durationSec: number }[];
+        remoteSessionPeriods: GameSessionPeriod[];
         workResults: PlayerWorkResult[];
     }) => GameEventResponse;
 };
@@ -260,8 +260,10 @@ type PlayerWorkResult = {
     successKind: `weak` | `normal` | `strong`;
 };
 
-// MARK: CampaignContext
-export type CampaignContext = {
+export type GameSessionPeriod = { kind: `work` | `rest`; durationSec: number };
+
+// MARK: GameRuntimeContext
+export type GameRuntimeContext = {
     sessionPlayers: {
         player: GamePlayerId;
         /** Local players should report success at beginning of rest period */
@@ -271,8 +273,8 @@ export type CampaignContext = {
         index: number;
         remainingSec: number;
     };
-    sessionPeriods: { kind: `work` | `rest`; durationSec: number }[];
-    sessionPeriodsRemaining: { kind: `work` | `rest`; durationSec: number }[];
+    sessionPeriods: GameSessionPeriod[];
+    sessionPeriodsRemaining: GameSessionPeriod[];
     campaignSessionsTotal: number;
     campaignSessionsRemaining: number;
 };
