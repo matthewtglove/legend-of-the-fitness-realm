@@ -280,7 +280,21 @@ export type GameEventResponse = {
  * - level up
  * - equip a new weapon
  */
-export type GameEvent = MoveEvent | AttackEnemyEvent | TalkToNPCEvent | LevelUpEvent | EquipWeaponEvent;
+export type GameEvent =
+    | StoryReviewEvent
+    | MoveEvent
+    | AttackEnemyEvent
+    | TalkToNPCEvent
+    | LevelUpEvent
+    | EquipWeaponEvent;
+
+type StoryReviewEvent = {
+    kind: `story-review`;
+    campaign?: string;
+    quest: string;
+    location: string;
+    playerNames: string[];
+};
 
 type MoveEvent = {
     kind: `move`;

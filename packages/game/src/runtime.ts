@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
     CampaignContext,
     GameBattleProvider,
@@ -193,6 +194,10 @@ export const createGameRuntime = (
         return undefined;
     };
 
+    const getCampaignFromQuest = ({ questId }: { questId: GameQuestId }) => {
+        return state.campaigns.find((x) => x.quests.some((q) => q === questId));
+    };
+
     const ensureCampaignExists = ({ context }: { context: CampaignContext }) => {
         const currentCampaign = state.campaigns.find((x) => !x.isComplete);
         if (currentCampaign) {
@@ -362,13 +367,41 @@ export const createGameRuntime = (
             };
         },
         triggerSessionStart: ({ context }) => {
-            ensureQuestExists({ context });
+            const quest = ensureQuestExists({ context });
+            const campaign = getCampaignFromQuest({ questId: quest.id });
+            // Ensure all players are in the same location
+            const currentPlayers = getSessionPlayers({ context });
+            const location = getLocation({ context });
+            currentPlayers.forEach((player) => {
+                player.location = location.id;
+            });
 
-            // TODO: Ensure all players are in the same location
-
-            // TODO: Communicate quest to players
-
-            return [];
+            return {
+                events: [
+                    {
+                        kind: `story-review`,
+                        campaign: campaign?.name,
+                        quest: quest.name,
+                        location: location.name,
+                        playerNames: currentPlayers.map((x) => x.name),
+                    },
+                ],
+            };
+        },
+        triggerSessionEnd: ({ context }) => {
+            throw new Error(`Not implemented`);
+        },
+        triggerWorkPeriod: ({ context }) => {
+            throw new Error(`Not implemented`);
+        },
+        triggerRestPeriod: ({ context }) => {
+            throw new Error(`Not implemented`);
+        },
+        enterPlayerDecision: ({ context }) => {
+            throw new Error(`Not implemented`);
+        },
+        enterRemotePlayersWorkResult: (options) => {
+            throw new Error(`Not implemented`);
         },
     };
 };
