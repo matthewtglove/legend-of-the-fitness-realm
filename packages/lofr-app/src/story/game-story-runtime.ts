@@ -10,7 +10,7 @@ import {
 } from '@lofr/game';
 import { QuestEventStorySuccessLevel } from './prompts/story-prompt';
 import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
-import { speakTextAsync } from '../workout/workout-announce';
+import { speakText } from '../workout/workout-announce';
 
 export const createGameStoryRuntime = () => {
     const gameRuntime = createGameRuntime(createEmptyGameState(), createGameLoreProvider(), createGameBattleProvider());
@@ -60,7 +60,7 @@ export const createGameStoryRuntime = () => {
             console.log(`startWorkout: gameEvent: ${event.kind}`, event);
             // console.log(formatted);
 
-            await speakTextAsync(formatted, { voice: `story` });
+            await speakText(formatted, { voice: `story` });
         }
     };
 

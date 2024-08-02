@@ -2,21 +2,21 @@ const voiceState = {
     storyVoice: undefined as undefined | null | SpeechSynthesisVoice,
 };
 
-export const speakTextAsync = async (
+export const speakText = async (
     text: string,
     options?: {
         voice?: `workout` | `story`;
     },
 ): Promise<void> => {
     return new Promise((resolve) => {
-        speakText(text, {
+        speakTextSync(text, {
             ...options,
             onDone: resolve,
         });
     });
 };
 
-const speakText = (
+const speakTextSync = (
     text: string,
     options?: {
         voice?: `workout` | `story`;

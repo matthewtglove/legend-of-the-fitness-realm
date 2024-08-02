@@ -1,6 +1,6 @@
 import { WorkoutSession, WorkoutStep, WorkoutStep_Rest, WorkoutStep_Timed } from '@lofr/workout-parser';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { speakTextAsync } from './workout-announce';
+import { speakText } from './workout-announce';
 import { GameStoryRuntime } from '../story/game-story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
@@ -52,7 +52,7 @@ export const WorkoutSessionTimer = ({
         //     storyRuntime: storyRuntime,
         // });
 
-        await speakTextAsync(`Start Workout!`, {});
+        await speakText(`Start Workout!`, {});
         await storyRuntime.startWorkout(workoutSession);
         setHasStarted(true);
     };
@@ -232,7 +232,7 @@ const RestTimer = ({
                 return;
             }
             if (timeRemainingRef.current === timeTotal) {
-                await speakTextAsync(`Rest for ${timeTotal} seconds`);
+                await speakText(`Rest for ${timeTotal} seconds`);
                 storyRuntime.workoutTransition();
             }
             // Play clicking sound at 3, 2, 1 seconds
@@ -247,7 +247,7 @@ const RestTimer = ({
                 return;
             }
             if (timeRemainingRef.current === 30 && timeTotal >= 60) {
-                await speakTextAsync(`30 seconds remaining.`);
+                await speakText(`30 seconds remaining.`);
             }
             setTimeRemaining(timeRemainingRef.current - 1);
         }, 1000);
@@ -331,7 +331,7 @@ const TimedTimer = ({
                 timerData.isPending = true;
                 setRenderId((id) => id + 1);
 
-                await speakTextAsync(`Start of ${step.setCount} timed sets. ${exercisePhrase} Exercise!`, {});
+                await speakText(`Start of ${step.setCount} timed sets. ${exercisePhrase} Exercise!`, {});
                 timerData.isPending = false;
                 timerData.hasStarted = true;
                 setRenderId((id) => id + 1);
@@ -358,7 +358,7 @@ const TimedTimer = ({
                 timerData.timeRemaining = step.restDurationSec;
                 setRenderId((id) => id + 1);
 
-                await speakTextAsync(`Rest`, {});
+                await speakText(`Rest`, {});
                 storyRuntime.finishWorkoutSet(exercisePhrase, 0, `success`);
                 return;
             }
@@ -371,7 +371,7 @@ const TimedTimer = ({
                 timerData.timeRemaining = step.workDurationSec;
                 setRenderId((id) => id + 1);
 
-                await speakTextAsync(`${exercisePhrase}`, {});
+                await speakText(`${exercisePhrase}`, {});
                 storyRuntime.startWorkoutSet(exercisePhrase);
                 return;
             }
@@ -379,7 +379,7 @@ const TimedTimer = ({
             // Done
             clearInterval(interval);
             onDone();
-            await speakTextAsync(`Done with step`);
+            await speakText(`Done with step`);
             return;
         }, 1000);
         return () => clearInterval(interval);
