@@ -1,4 +1,4 @@
-import { speakText } from '../workout/workout-announce';
+import { speakTextAsync } from '../workout/workout-announce';
 import { sendOpenRouterAiRequest } from './call-llm';
 import { prompt_questEventList } from './prompts/quest-prompts';
 import { QuestEventStorySuccessLevel, WorkoutStoryKind, prompt_questEventStory } from './prompts/story-prompt';
@@ -81,9 +81,8 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
             }
         }, 60 * 1000);
 
-        await new Promise<void>((resolve) => {
-            speakText(text, { voice: `story`, onDone: () => resolve() });
-        });
+        await speakTextAsync(text, { voice: `story` });
+
         if (speakIndex === _speakIndex_speaking) {
             _speakIndex_speaking = undefined;
         }

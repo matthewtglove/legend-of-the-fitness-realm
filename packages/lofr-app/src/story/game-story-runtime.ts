@@ -10,7 +10,7 @@ import {
 } from '@lofr/game';
 import { QuestEventStorySuccessLevel } from './prompts/story-prompt';
 import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
-import { speakText } from '../workout/workout-announce';
+import { speakTextAsync } from '../workout/workout-announce';
 
 export const createGameStoryRuntime = () => {
     const gameRuntime = createGameRuntime(createEmptyGameState(), createGameLoreProvider(), createGameBattleProvider());
@@ -52,19 +52,20 @@ export const createGameStoryRuntime = () => {
         };
     };
 
-    const announceGameEvents = (gameEvents: GameEventResponse, onDone: () => void) => {
+    const announceGameEvents = async (gameEvents: GameEventResponse) => {
         console.log(`accountGameEvents`, { gameRuntimeState: JSON.parse(JSON.stringify(gameRuntime.state)), state });
-        gameEvents.events.forEach((event) => {
+
+        for (const event of gameEvents.events) {
             const formatted = formatGameEventMessage(event);
             console.log(`startWorkout: gameEvent: ${event.kind}`, event);
             // console.log(formatted);
 
-            speakText(formatted, { voice: `story`, onDone });
-        });
+            await speakTextAsync(formatted, { voice: `story` });
+        }
     };
 
     return {
-        startWorkout: (workoutSession: WorkoutSession, { onDone }: { onDone: () => void }) => {
+        startWorkout: async (workoutSession: WorkoutSession) => {
             state.workoutSession = workoutSession;
             state.stepIndex = 0;
             state.stepSessionPeriods = workoutSession.steps.map(getGameSessionPeriodsFromWorkoutStep);
@@ -72,11 +73,11 @@ export const createGameStoryRuntime = () => {
             state.sessionPeriodRemainingSec = state.stepSessionPeriods[0]?.[0]?.durationSec ?? 0;
 
             const gameEvents = gameRuntime.triggerSessionStart({ context: getGameContext() });
-            announceGameEvents(gameEvents, onDone);
+            await announceGameEvents(gameEvents);
         },
-        finishWorkout: ({ onDone }: { onDone: () => void }) => {
+        finishWorkout: async () => {
             const gameEvents = gameRuntime.triggerSessionEnd({ context: getGameContext() });
-            announceGameEvents(gameEvents, onDone);
+            await announceGameEvents(gameEvents);
         },
         // TODO: Implement game story runtime methods
         workoutTransition: () => {},
