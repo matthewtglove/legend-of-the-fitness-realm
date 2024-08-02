@@ -16,6 +16,8 @@ export type GameLoreProvider = {
         playerLevels: number[];
         locationId: GameLocationId;
         enemyDifficulty: GameEnemyDifficulty;
+        campaignId?: GameCampaignId;
+        questId?: GameQuestId;
     }): {
         id: GameCharacterId;
         name: string;
@@ -37,6 +39,7 @@ export type GameLoreProvider = {
         locationId?: GameLocationId;
         campaignId?: GameCampaignId;
         previousQuestIds: GameQuestId[];
+        maxObjectiveCount: number;
     }) => {
         id: GameQuestId;
         name: string;
@@ -63,7 +66,16 @@ export type GameLoreProvider = {
 
 // MARK: GameBattleProvider
 export type GameBattleProvider = {
-    generateEnemyStats: (props: { state: GameState; playerLevels: number[]; enemyDifficulty: GameEnemyDifficulty }) => {
+    generatePlayerStats: (props: { state: GameState; playerLevel: number; race: string; class: string }) => {
+        stats: GameCharacter[`stats`];
+    };
+    generateEnemyStats: (props: {
+        state: GameState;
+        playerLevels: number[];
+        race: string;
+        class: string;
+        enemyDifficulty: GameEnemyDifficulty;
+    }) => {
         stats: GameCharacter[`stats`];
     };
 };
@@ -200,8 +212,9 @@ export type GameRuntime = {
     /** Add new player */
     createPlayer: (options: {
         characterName: string;
-        characterRole: string;
+        characterRace: string;
         characterClass: string;
+        level: number;
     }) => GameEventResponse;
 
     /** Handle player decision */

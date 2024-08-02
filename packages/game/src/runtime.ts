@@ -3,6 +3,7 @@ import {
     GameBattleProvider,
     GameCampaignId,
     GameCharacter,
+    GameCharacterId,
     GameKeyItemId,
     GameLocation,
     GameLocationId,
@@ -220,12 +221,14 @@ export const createGameRuntime = (
         }
 
         const campaign = ensureCampaignExists({ context });
+        const maxDistance = context.campaignSessionsRemaining <= 0 ? context.sessionPeriodsRemaining.length : 9;
         const newQuestInfo = lore.generateQuestInfo({
             state,
             playerLevels: getSessionPlayers({ context }).map((x) => x.stats.level),
             locationId: getLocation({ context }).id,
             campaignId: campaign?.id,
             previousQuestIds: state.quests.map((x) => x.id),
+            maxObjectiveCount: maxDistance,
         });
         const newQuest = {
             id: newQuestInfo.id,
@@ -245,6 +248,7 @@ export const createGameRuntime = (
         const location = getLocation({ context });
         const reachedLocationIdsSet = new Set(state.locations.filter((x) => x.isDiscovered).map((x) => x.id));
         const obtainedKeyItemIdsSet = new Set(state.keyItems.filter((x) => x.isObtained).map((x) => x.id));
+        let remainingDistance = maxDistance;
 
         for (const keyItem of keyItems) {
             // place key item in a nearby location (or enemy in location)
@@ -252,8 +256,7 @@ export const createGameRuntime = (
             // choose unreached nearby location
             const { acceptableLocations: unreachedLocations } = ensureLocationsExits({
                 location,
-                distance:
-                    context.campaignSessionsRemaining <= 0 ? Math.min(3, context.sessionPeriodsRemaining.length) : 3,
+                distance: Math.min(3, remainingDistance),
                 isAcceptableLocation: (x) =>
                     !reachedLocationIdsSet.has(x.id) && (keyItem.placement !== `location` || !x.keyItem),
                 campaignId: campaign.id,
@@ -268,7 +271,13 @@ export const createGameRuntime = (
                 startLocationId: location.id,
                 endLocationId: unreachedLocation.id,
                 obtainedKeyItemIds: [...obtainedKeyItemIdsSet],
-            })!;
+            });
+            if (!pathToLocation) {
+                // this is bad, we should have been able to find a path to the location
+                throw new Error(`Unable to find path to location that I just made, somebody broke the code!`);
+            }
+
+            remainingDistance -= pathToLocation.length;
             pathToLocation.forEach((locationId) => {
                 reachedLocationIdsSet.add(locationId);
                 const keyItems = getKeyItemsAtLocation({ locationId });
@@ -289,10 +298,14 @@ export const createGameRuntime = (
                 playerLevels,
                 locationId: unreachedLocation.id,
                 enemyDifficulty: `normal`,
+                campaignId: campaign.id,
+                questId: newQuest.id,
             });
             const newEnemyStats = battle.generateEnemyStats({
                 state,
                 playerLevels,
+                race: newEnemyInfo.role.race,
+                class: newEnemyInfo.role.class,
                 enemyDifficulty: newEnemyInfo.role.enemyDifficulty,
             });
             const newEnemy: GameCharacter = {
@@ -313,8 +326,45 @@ export const createGameRuntime = (
 
     return {
         state,
+        createPlayer: ({ characterName, characterRace, characterClass, level }) => {
+            if (!state.locations.length) {
+                // create initial location
+                state.locations.push({
+                    ...lore.generateLocationInfo({
+                        state,
+                        nearbyLocationIds: [],
+                    }),
+                    connections: [],
+                });
+            }
+
+            const newPlayer: GameCharacter = {
+                id: `player-${state.players.length}` as GameCharacterId,
+                name: characterName,
+                role: {
+                    race: characterRace,
+                    class: characterClass,
+                    alignment: `friend`,
+                },
+                ...battle.generatePlayerStats({
+                    state,
+                    playerLevel: level,
+                    race: characterRace,
+                    class: characterClass,
+                }),
+                equipment: {},
+                inventory: [],
+                location: state.locations[0]!.id,
+            };
+            state.players.push(newPlayer);
+            return {
+                events: [],
+            };
+        },
         triggerSessionStart: ({ context }) => {
             ensureQuestExists({ context });
+
+            // TODO: Ensure all players are in the same location
 
             // TODO: Communicate quest to players
 
