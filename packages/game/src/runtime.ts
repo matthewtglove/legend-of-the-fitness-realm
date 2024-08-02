@@ -15,6 +15,8 @@ import {
     GameRuntime,
     GameState,
     GameCampaign,
+    GameEvent,
+    GameEventResponse,
 } from './types';
 
 export const createEmptyGameState = (): GameState => {
@@ -26,6 +28,7 @@ export const createEmptyGameState = (): GameState => {
         quests: [],
         keyItems: [],
         items: [],
+        _nextId: 1,
     };
     return gameState;
 };
@@ -353,6 +356,12 @@ export const createGameRuntime = (
         return newQuest;
     };
 
+    const response = (...events: (false | undefined | GameEvent)[]): GameEventResponse => {
+        return {
+            events: events.filter((x) => !!x).map((x) => x!),
+        };
+    };
+
     return {
         state,
         createPlayer: ({ characterName, characterRace, characterClass, level }) => {
@@ -368,7 +377,9 @@ export const createGameRuntime = (
             }
 
             const newPlayer: GamePlayer = {
-                id: `player-${state.players.length}` as GamePlayerId,
+                ...lore.generatePlayerInfo({
+                    state,
+                }),
                 name: characterName,
                 role: {
                     race: characterRace,
@@ -399,17 +410,29 @@ export const createGameRuntime = (
                 player.location = location.id;
             });
 
-            return {
-                events: [
-                    {
-                        kind: `story-review`,
-                        campaign: campaign?.name,
-                        quest: quest.name,
-                        location: location.name,
-                        playerNames: currentPlayers.map((x) => x.name),
-                    },
-                ],
-            };
+            const nextObjective = quest.objectives.find(
+                (x) => !state.keyItems.find((k) => k.id === x.completionKeyItem)?.isObtained,
+            );
+
+            if (!nextObjective) {
+                console.error(`No next objective found`, { quest, state });
+            }
+
+            return response(
+                {
+                    kind: `story-review`,
+                    campaign: campaign?.name,
+                    quest: quest.name,
+                    location: location.name,
+                    playerNames: currentPlayers.map((x) => x.name),
+                },
+                nextObjective && {
+                    kind: `quest-objective`,
+                    campaign: campaign?.name,
+                    quest: quest.name,
+                    objective: nextObjective.name,
+                },
+            );
         },
         triggerSessionEnd: ({ context }) => {
             throw new Error(`Not implemented`);

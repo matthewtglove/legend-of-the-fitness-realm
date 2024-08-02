@@ -7,10 +7,12 @@ export type GameState = {
     items: GameItem[];
     campaigns: GameCampaign[];
     quests: GameQuest[];
+    _nextId: number;
 };
 
 // MARK: GameLoreProvider
 export type GameLoreProvider = {
+    generatePlayerInfo: (props: { state: GameState }) => { id: GamePlayerId };
     generateEnemyInfo(props: {
         state: GameState;
         playerLevels: number[];
@@ -298,6 +300,7 @@ export type GameEventResponse = {
  */
 export type GameEvent =
     | StoryReviewEvent
+    | QuestObjectiveEvent
     | MoveEvent
     | AttackEnemyEvent
     | TalkToNPCEvent
@@ -310,6 +313,13 @@ type StoryReviewEvent = {
     quest: string;
     location: string;
     playerNames: string[];
+};
+
+type QuestObjectiveEvent = {
+    kind: `quest-objective`;
+    campaign?: string;
+    quest: string;
+    objective: string;
 };
 
 type MoveEvent = {

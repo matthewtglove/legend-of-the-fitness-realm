@@ -39,6 +39,10 @@ export const formatGameEventMessage = (event: GameEvent) => {
             `continue`,
         )} their quest to "${quest}" as part of their campaign: "${campaign}".`;
     }
+    if (event.kind === `quest-objective`) {
+        const { objective } = event;
+        return `The party must "${objective}".`;
+    }
 
     return `I don't know what's going on. I'm just a simple function. I don't know what to do. To-do: Add the other event messages.`;
 };
