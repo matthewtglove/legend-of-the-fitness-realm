@@ -601,10 +601,19 @@ export const createGameRuntime = (
             throw new Error(`Unable to find next location`);
         }
 
-        events.push({
+        const players = getSessionPlayers({ context });
+        const moveLocation: GamePendingActionEvent = {
             kind: `move-location`,
             location: nextLocation.name,
+            locationId: nextLocation.id,
             connection: location.connections.find((x) => x.location === nextLocation.id)?.name,
+            playerNames: players.map((x) => x.name),
+        };
+        events.push(moveLocation);
+        players.forEach((x) => {
+            // x.location = nextLocation.id;
+            // nextLocation.isDiscovered = true;
+            x.pendingActions = [moveLocation];
         });
 
         return {
@@ -680,6 +689,10 @@ export const createGameRuntime = (
                         .filter((x) => !!x)
                         .map((x) => x!);
 
+                    if (!result.length) {
+                        return;
+                    }
+
                     events.push({
                         kind: `attack-enemy-outcome`,
                         player: player.name,
@@ -692,6 +705,47 @@ export const createGameRuntime = (
                             healthStatus: calculateHealthState(x.enemy.stats),
                             isDefeated: x.isDefeated ?? false,
                         })),
+                    });
+
+                    result
+                        .filter((x) => x.isDefeated && x.enemy.keyItem)
+                        .forEach((x) => {
+                            const keyItem = state.keyItems.find((k) => k.id === x.enemy.keyItem);
+                            if (!keyItem) {
+                                throw new Error(`Key item not found`);
+                            }
+                            keyItem.isObtained = true;
+                            x.enemy.keyItem = undefined;
+
+                            events.push({
+                                kind: `loot-enemy-key-item`,
+                                player: player.name,
+                                enemy: x.enemy.name,
+                                keyItem: keyItem.name,
+                            });
+                        });
+
+                    return;
+                }
+
+                if (action.kind === `move-location`) {
+                    const players = state.players.filter((x) => action.playerNames.includes(x.name));
+                    const newLocation = state.locations.findLast((x) => x.id === action.locationId);
+                    if (!newLocation) {
+                        throw new Error(`Location not found`);
+                    }
+
+                    if (players[0]?.location === newLocation.id) {
+                        return;
+                    }
+
+                    players.forEach((x) => {
+                        x.location = newLocation.id;
+                    });
+                    newLocation.isDiscovered = true;
+                    events.push({
+                        kind: `describe-location`,
+                        location: newLocation.name,
                     });
                     return;
                 }
@@ -743,6 +797,7 @@ export const createGameRuntime = (
                         nearbyLocationIds: [],
                     }),
                     connections: [],
+                    isDiscovered: true,
                 });
             }
 

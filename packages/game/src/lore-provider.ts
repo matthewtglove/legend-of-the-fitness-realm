@@ -86,9 +86,11 @@ export const createGameLoreProvider = (): GameLoreProvider => {
                     name: `The Shire`,
                 };
             }
+
+            const id = getNextId(state);
             return {
-                id: `location-mount-doom-${getNextId(state)}` as GameLocationId,
-                name: `Mount Doom`,
+                id: `location-mount-doom-${id}` as GameLocationId,
+                name: `Mount Doom ${id}`,
             };
         },
     };

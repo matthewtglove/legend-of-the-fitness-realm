@@ -1,6 +1,9 @@
 import { GameEvent } from './types';
 
 const formatNameList = (names: string[]) => {
+    if (names.length <= 0) {
+        return `no one`;
+    }
     if (names.length === 1) {
         return names[0];
     }
@@ -50,10 +53,6 @@ export const formatGameEventMessage = (event: GameEvent) => {
     if (event.kind === `attack-enemy`) {
         const { player, enemies } = event;
 
-        if (player.toLowerCase().includes(`matthew`) && Math.random() > 0.25) {
-            return `${player} is crying in the corner and refuses to attack.`;
-        }
-
         return `${player} attacks ${formatNameList(
             enemies.map((x) => `${x.healthStatus === `ok` ? `` : `${x.healthStatus}`} ${x.name}`),
         )}.`;
@@ -64,6 +63,109 @@ export const formatGameEventMessage = (event: GameEvent) => {
         return `${player} hits ${formatNameList(enemies.map((x) => `${x.name} for ${x.damageSeverity} damage`))} ${
             !defeatedEnemies.length ? `` : ` and defeats ${formatNameList(defeatedEnemies.map((x) => x.name))}`
         }.`;
+    }
+    if (event.kind === `search-location-key-item`) {
+        const { location, keyItem } = event;
+        return `You search ${location} and find a ${keyItem}.`;
+    }
+    if (event.kind === `loot-enemy-key-item`) {
+        const { player, enemy, keyItem } = event;
+        return `${player} searches ${enemy} and finds a ${keyItem}.`;
+    }
+    if (event.kind === `move-location`) {
+        const { playerNames, location, connection } = event;
+        return `${formatNameList(playerNames)} ${
+            !connection
+                ? ` ${formatPlural(playerNames, `go`, `goes`)} `
+                : `${formatPlural(playerNames, `enter`)} ${connection}`
+        } to ${location}.`;
+    }
+    if (event.kind === `describe-location`) {
+        const { location } = event;
+
+        // random adjectives
+        const getRandomAdjective = () => {
+            const adjectives = [
+                `spooky`,
+                `dark`,
+                `dank`,
+                `mysterious`,
+                `foggy`,
+                `enchanted`,
+                `haunted`,
+                `creepy`,
+                `eerie`,
+                `gloomy`,
+                `grim`,
+                `horrible`,
+                `macabre`,
+                `morbid`,
+                `shadowy`,
+                `sinister`,
+                `weird`,
+                `abandoned`,
+                `ancient`,
+                `broken`,
+                `crumbling`,
+                `decayed`,
+                `desolate`,
+                `forgotten`,
+                `ruined`,
+                `shattered`,
+                `silent`,
+                `empty`,
+                `hollow`,
+                `lifeless`,
+                `quiet`,
+                `still`,
+                `calm`,
+                `peaceful`,
+                `serene`,
+                `tranquil`,
+                `unspoiled`,
+                `beautiful`,
+                `charming`,
+                `delightful`,
+                `enchanting`,
+                `exquisite`,
+                `gorgeous`,
+                `lovely`,
+                `picturesque`,
+                `scenic`,
+                `splendid`,
+                `attractive`,
+                `elegant`,
+                `fashionable`,
+                `glamorous`,
+                `handsome`,
+                `luxurious`,
+                `opulent`,
+                `refined`,
+                `stylish`,
+                `trendy`,
+                `comfortable`,
+                `cozy`,
+                `homely`,
+                `intimate`,
+                `relaxed`,
+                `warm`,
+                `welcoming`,
+                `clean`,
+                `fresh`,
+                `neat`,
+            ];
+            return adjectives[Math.floor(Math.random() * adjectives.length)] ?? `dark`;
+        };
+
+        const adjectives = [
+            ...new Set(
+                [getRandomAdjective(), getRandomAdjective(), getRandomAdjective()].slice(
+                    0,
+                    Math.floor(Math.random() * 3) + 1,
+                ),
+            ),
+        ];
+        return `${location} is ${formatNameList(adjectives)}.`;
     }
 
     return `I don't know what's going on. I'm just a simple function. I don't know what to do. To-do: Add the other event messages.`;

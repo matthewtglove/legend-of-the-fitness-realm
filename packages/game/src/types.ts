@@ -304,7 +304,9 @@ export type GameEvent =
     | StoryReviewEvent
     | QuestObjectiveEvent
     | MoveLocationEvent
+    | DescribeLocationEvent
     | SearchLocationKeyItemEvent
+    | LootEnemyKeyItemEvent
     | RevealEnemyEvent
     | AttackEnemyEvent
     | AttackEnemyOutcomeEvent
@@ -312,7 +314,7 @@ export type GameEvent =
     | LevelUpEvent
     | EquipWeaponEvent;
 
-export type GamePendingActionEvent = AttackEnemyEvent;
+export type GamePendingActionEvent = AttackEnemyEvent | MoveLocationEvent;
 
 export type GameCharacterHealthStatus = `ok` | `hurt` | `wounded` | `bleeding` | `defeated`;
 
@@ -333,13 +335,27 @@ type QuestObjectiveEvent = {
 
 type MoveLocationEvent = {
     kind: `move-location`;
+    playerNames: string[];
     location: string;
+    locationId: GameLocationId;
     connection?: string;
+};
+
+type DescribeLocationEvent = {
+    kind: `describe-location`;
+    location: string;
 };
 
 type SearchLocationKeyItemEvent = {
     kind: `search-location-key-item`;
     location: string;
+    keyItem: string;
+};
+
+type LootEnemyKeyItemEvent = {
+    kind: `loot-enemy-key-item`;
+    player: string;
+    enemy: string;
     keyItem: string;
 };
 
