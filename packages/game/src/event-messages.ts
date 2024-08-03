@@ -66,11 +66,11 @@ export const formatGameEventMessage = (event: GameEvent) => {
     }
     if (event.kind === `search-location-key-item`) {
         const { location, keyItem } = event;
-        return `You search ${location} and find a ${keyItem}.`;
+        return `You search ${location} and find the ${keyItem}.`;
     }
     if (event.kind === `loot-enemy-key-item`) {
         const { player, enemy, keyItem } = event;
-        return `${player} searches ${enemy} and finds a ${keyItem}.`;
+        return `${player} searches ${enemy} and finds the ${keyItem}.`;
     }
     if (event.kind === `move-location`) {
         const { playerNames, location, connection } = event;

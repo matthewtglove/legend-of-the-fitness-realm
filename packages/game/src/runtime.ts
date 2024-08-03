@@ -743,6 +743,8 @@ export const createGameRuntime = (
                         x.location = newLocation.id;
                     });
                     newLocation.isDiscovered = true;
+                    // TODO: add enemies randomly to location
+
                     events.push({
                         kind: `describe-location`,
                         location: newLocation.name,
