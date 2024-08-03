@@ -10,7 +10,7 @@ export const createGameBattleProvider = (): GameBattleProvider => {
             const health = healthMax;
             const manaMax = level * 5;
             const mana = manaMax;
-            const strength = Math.floor(Math.random() * 10) + 1;
+            const strength = 5 + Math.floor(Math.random() * 10) + 1;
             const endurance = Math.floor(Math.random() * 10) + 1;
             const agility = Math.floor(Math.random() * 10) + 1;
             const intelligence = Math.floor(Math.random() * 10) + 1;

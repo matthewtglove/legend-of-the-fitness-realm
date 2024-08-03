@@ -314,7 +314,7 @@ export type GameEvent =
 
 export type GamePendingActionEvent = AttackEnemyEvent;
 
-export type GameCharacterHealthStatus = `ok` | `hurt` | `wounded` | `critical` | `defeated`;
+export type GameCharacterHealthStatus = `ok` | `hurt` | `wounded` | `bleeding` | `defeated`;
 
 type StoryReviewEvent = {
     kind: `story-review`;
@@ -367,8 +367,9 @@ type AttackEnemyEvent = {
     }[];
 };
 
-type AttackEnemyOutcomeEvent = {
+export type AttackEnemyOutcomeEvent = {
     kind: `attack-enemy-outcome`;
+    player: string;
     enemies: {
         id: GameCharacterId;
         name: string;
@@ -377,7 +378,7 @@ type AttackEnemyOutcomeEvent = {
         healthStatus: GameCharacterHealthStatus;
         attackKind: `melee` | `ranged` | `magic`;
         attackWeapon?: string;
-        damageSeverity: `miss` | `graze` | `hit` | `critical`;
+        damageSeverity: `light` | `moderate` | `severe`;
         damage: number;
         isDefeated: boolean;
     }[];

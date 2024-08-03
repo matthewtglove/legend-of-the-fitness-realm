@@ -43,6 +43,23 @@ export const formatGameEventMessage = (event: GameEvent) => {
         const { objective } = event;
         return `The party must "${objective}".`;
     }
+    if (event.kind === `reveal-enemy`) {
+        const { enemies } = event;
+        return `You are surprised by ${formatNameList(enemies.map((x) => `${x.name} the ${x.race} ${x.class}`))}.`;
+    }
+    if (event.kind === `attack-enemy`) {
+        const { player, enemies } = event;
+        return `${player} attacks ${formatNameList(
+            enemies.map((x) => `${x.healthStatus === `ok` ? `` : `${x.healthStatus}`} ${x.name}`),
+        )}.`;
+    }
+    if (event.kind === `attack-enemy-outcome`) {
+        const { player, enemies } = event;
+        const defeatedEnemies = enemies.filter((x) => x.healthStatus === `defeated`);
+        return `${player} hits ${formatNameList(enemies.map((x) => `${x.name} for ${x.damageSeverity} damage`))} ${
+            !defeatedEnemies.length ? `` : ` and defeats ${formatNameList(defeatedEnemies.map((x) => x.name))}`
+        }.`;
+    }
 
     return `I don't know what's going on. I'm just a simple function. I don't know what to do. To-do: Add the other event messages.`;
 };

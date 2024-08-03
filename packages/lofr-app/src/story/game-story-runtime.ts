@@ -8,7 +8,6 @@ import {
     formatGameEventMessage,
     GameSessionPeriod,
 } from '@lofr/game';
-import { QuestEventStorySuccessLevel } from './prompts/story-prompt';
 import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
 import { speakText } from '../workout/workout-announce';
 
@@ -93,12 +92,19 @@ export const createGameStoryRuntime = () => {
             const gameEvents = gameRuntime.triggerWorkPeriod({ context: getGameContext() });
             await announceGameEvents(gameEvents);
         },
-        finishWorkoutSet: (
-            finishedSet: string,
-            workoutSessionProgress: number,
-            successLevel?: QuestEventStorySuccessLevel,
-        ) => {
-            console.log(`finishWorkoutSet`, { finishedSet, workoutSessionProgress, successLevel });
+        finishWorkoutSet: async (options: {
+            setPhrase: string;
+            remainingSec: number;
+            stepIndex: number;
+            stepPeriodIndex: number;
+        }) => {
+            state.stepIndex = options.stepIndex;
+            state.sessionPeriodIndex = options.stepPeriodIndex;
+            state.sessionPeriodRemainingSec = options.remainingSec;
+
+            // TODO: add workout results
+            const gameEvents = gameRuntime.triggerRestPeriod({ context: getGameContext(), workResults: [] });
+            await announceGameEvents(gameEvents);
         },
 
         // TODO: Implement game story runtime methods

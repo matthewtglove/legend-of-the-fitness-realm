@@ -21,6 +21,7 @@ import {
     GamePendingActionEvent,
     GameCharacterHealthStatus,
     GameQuest,
+    AttackEnemyOutcomeEvent,
 } from './types';
 
 export const createEmptyGameState = (): GameState => {
@@ -378,7 +379,7 @@ export const createGameRuntime = (
             return `defeated`;
         }
         if (healthPercent <= 0.25) {
-            return `critical`;
+            return `bleeding`;
         }
         if (healthPercent <= 0.5) {
             return `wounded`;
@@ -475,7 +476,6 @@ export const createGameRuntime = (
         return {
             events,
             estimateRemainingSec,
-            canCompleteImmediately: false,
             revealedEnemies,
         };
     };
@@ -494,7 +494,6 @@ export const createGameRuntime = (
             return {
                 events,
                 estimateRemainingSec,
-                canCompleteImmediately: true,
             };
         }
 
@@ -547,7 +546,7 @@ export const createGameRuntime = (
         // if undiscovered enemy present, start battle
         if (enemiesAtlocation.length) {
             const revealResult = playerAction_revealEnemies({ context, estimateRemainingSec, enemiesAtlocation });
-            if (!revealResult.canCompleteImmediately || revealResult.estimateRemainingSec < 15) {
+            if (revealResult.estimateRemainingSec < 15) {
                 return revealResult;
             }
 
@@ -634,15 +633,77 @@ export const createGameRuntime = (
         // if unsearched location, search location
         // - if key item, obtain key item
 
+        const location = getLocation({ context });
+
         // handle pending player actions
-        // if()
+        const pendingActions = state.players.flatMap((x) => x.pendingActions ?? []);
+        if (pendingActions.length) {
+            const events: GameEvent[] = [];
 
-        // const location = getLocation({ context });
-        // const enemiesAtlocation = state.characters.filter(
-        //     (c) => c.location === location.id && c.role.alignment === `enemy` && !c.isDefeated,
-        // );
+            pendingActions.forEach((action) => {
+                if (action.kind === `attack-enemy`) {
+                    const player = state.players.findLast((x) => x.name === action.player);
+                    if (!player) {
+                        throw new Error(`Player not found`);
+                    }
+                    const result = action.enemies
+                        .map((x) => {
+                            const enemy = state.characters.findLast((c) => c.id === x.id);
+                            if (!enemy) {
+                                throw new Error(`Enemy not found`);
+                            }
 
-        // const revealedEnemies = enemiesAtlocation.filter((x) => x.isDiscovered);
+                            if (enemy.isDefeated) {
+                                return undefined;
+                            }
+
+                            // damage enemy
+                            const damage = 1 + Math.floor((0.25 + Math.random()) * player.stats.strength);
+                            enemy.stats.health -= damage;
+
+                            if (enemy.stats.health < 0) {
+                                enemy.stats.health = 0;
+                                enemy.isDefeated = true;
+                            }
+
+                            const damageRatio = damage / enemy.stats.healthMax;
+                            const damageSeverity: AttackEnemyOutcomeEvent[`enemies`][number][`damageSeverity`] =
+                                damageRatio < 0.1 ? `light` : damageRatio < 0.5 ? `moderate` : `severe`;
+
+                            return {
+                                enemy,
+                                damage,
+                                damageSeverity,
+                                isDefeated: enemy.isDefeated,
+                            };
+                        })
+                        .filter((x) => !!x)
+                        .map((x) => x!);
+
+                    events.push({
+                        kind: `attack-enemy-outcome`,
+                        player: player.name,
+                        enemies: result.map((x) => ({
+                            id: x.enemy.id,
+                            name: x.enemy.name,
+                            damage: x.damage,
+                            damageSeverity: x.damageSeverity,
+                            attackKind: `melee` as const,
+                            healthStatus: calculateHealthState(x.enemy.stats),
+                            isDefeated: x.isDefeated ?? false,
+                        })),
+                    });
+                    return;
+                }
+
+                console.error(`resolvePlayerAction - PENDING ACTION`, { action });
+            });
+
+            return {
+                events,
+            };
+        }
+
         // if (revealedEnemies.length) {
         //     // already in battle
         //     return playerAction_attackEnemy({ context, estimateRemainingSec, revealedEnemies });

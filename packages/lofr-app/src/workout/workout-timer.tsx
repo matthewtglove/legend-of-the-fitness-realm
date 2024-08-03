@@ -367,7 +367,13 @@ const TimedTimer = ({
                 setRenderId((id) => id + 1);
 
                 await speakText(`Rest`, {});
-                storyRuntime.finishWorkoutSet(exercisePhrase, 0, `success`);
+                void storyRuntime.finishWorkoutSet({
+                    setPhrase: exercisePhrase,
+                    remainingSec: timerData.timeRemaining,
+                    stepIndex,
+                    stepPeriodIndex: 1,
+                });
+                // await storyRuntime.finishWorkoutSet(exercisePhrase, 0, `success`);
                 return;
             }
 
