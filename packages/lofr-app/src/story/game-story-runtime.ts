@@ -67,8 +67,9 @@ export const createGameStoryRuntime = () => {
     return {
         startWorkout: async (workoutSession: WorkoutSession) => {
             state.workoutSession = workoutSession;
-            state.stepIndex = 0;
             state.stepSessionPeriods = workoutSession.steps.map(getGameSessionPeriodsFromWorkoutStep);
+
+            state.stepIndex = 0;
             state.sessionPeriodIndex = 0;
             state.sessionPeriodRemainingSec = state.stepSessionPeriods[0]?.[0]?.durationSec ?? 0;
 
@@ -79,10 +80,18 @@ export const createGameStoryRuntime = () => {
             const gameEvents = gameRuntime.triggerSessionEnd({ context: getGameContext() });
             await announceGameEvents(gameEvents);
         },
-        // TODO: Implement game story runtime methods
-        workoutTransition: () => {},
-        startWorkoutSet: (nextSet: string) => {
-            console.log(`startWorkoutSet`, { nextSet });
+        startWorkoutSet: async (options: {
+            setPhrase: string;
+            remainingSec: number;
+            stepIndex: number;
+            stepPeriodIndex: number;
+        }) => {
+            state.stepIndex = options.stepIndex;
+            state.sessionPeriodIndex = options.stepPeriodIndex;
+            state.sessionPeriodRemainingSec = options.remainingSec;
+
+            const gameEvents = gameRuntime.triggerWorkPeriod({ context: getGameContext() });
+            await announceGameEvents(gameEvents);
         },
         finishWorkoutSet: (
             finishedSet: string,
@@ -91,6 +100,9 @@ export const createGameStoryRuntime = () => {
         ) => {
             console.log(`finishWorkoutSet`, { finishedSet, workoutSessionProgress, successLevel });
         },
+
+        // TODO: Implement game story runtime methods
+        workoutTransition: () => {},
     };
 };
 

@@ -118,6 +118,7 @@ export const WorkoutSessionTimer = ({
                                 <TimedTimer
                                     key={stepIndex}
                                     step={step}
+                                    stepIndex={stepIndex}
                                     onDone={nextStep}
                                     storyRuntime={storyRuntime}
                                     soundManager={soundManager}
@@ -294,11 +295,13 @@ const RestTimer = ({
 
 const TimedTimer = ({
     step,
+    stepIndex,
     onDone,
     storyRuntime,
     soundManager,
 }: {
     step: WorkoutStep_Timed;
+    stepIndex: number;
     onDone: () => void;
     storyRuntime: GameStoryRuntime;
     soundManager: SoundManager;
@@ -335,7 +338,12 @@ const TimedTimer = ({
                 timerData.isPending = false;
                 timerData.hasStarted = true;
                 setRenderId((id) => id + 1);
-                storyRuntime.startWorkoutSet(exercisePhrase);
+                void storyRuntime.startWorkoutSet({
+                    setPhrase: exercisePhrase,
+                    remainingSec: timerData.timeRemaining,
+                    stepIndex,
+                    stepPeriodIndex: 0,
+                });
 
                 return;
             }
@@ -372,7 +380,12 @@ const TimedTimer = ({
                 setRenderId((id) => id + 1);
 
                 await speakText(`${exercisePhrase}`, {});
-                storyRuntime.startWorkoutSet(exercisePhrase);
+                void storyRuntime.startWorkoutSet({
+                    setPhrase: exercisePhrase,
+                    remainingSec: timerData.timeRemaining,
+                    stepIndex,
+                    stepPeriodIndex: 0,
+                });
                 return;
             }
 

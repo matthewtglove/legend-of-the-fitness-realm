@@ -142,6 +142,7 @@ export type GamePlayer = {
         item: GameItemId;
         quantity: number;
     }[];
+    pendingActions?: GamePendingActionEvent[];
 };
 
 // MARK: GameCharacter
@@ -161,6 +162,7 @@ export type GameCharacter = {
         enemyDifficulty?: GameEnemyDifficulty;
     };
     stats: GameCharacterStats;
+    isDefeated?: boolean;
 };
 
 export type GameEnemyDifficulty = `normal` | `minor-boss` | `major-boss` | `final-boss`;
@@ -222,7 +224,7 @@ export type GameRuntime = {
          * - [no] Should this be called immediately and have a short response while players enter their results?
          *   - [no] Is the game logic able to do anything without the results?
          */
-        workResults: PlayerWorkResult[];
+        workResults: GamePlayerWorkResult[];
     }) => GameEventResponse;
 
     /** Add new player */
@@ -244,11 +246,11 @@ export type GameRuntime = {
      */
     enterRemotePlayersWorkResult: (options: {
         remoteSessionPeriods: GameSessionPeriod[];
-        workResults: PlayerWorkResult[];
+        workResults: GamePlayerWorkResult[];
     }) => GameEventResponse;
 };
 
-type PlayerWorkResult = {
+export type GamePlayerWorkResult = {
     player: GamePlayerId;
     sessionPeriodIndex: number;
     /** The player's success level for the work period:
@@ -301,11 +303,18 @@ export type GameEventResponse = {
 export type GameEvent =
     | StoryReviewEvent
     | QuestObjectiveEvent
-    | MoveEvent
+    | MoveLocationEvent
+    | SearchLocationKeyItemEvent
+    | RevealEnemyEvent
     | AttackEnemyEvent
+    | AttackEnemyOutcomeEvent
     | TalkToNPCEvent
     | LevelUpEvent
     | EquipWeaponEvent;
+
+export type GamePendingActionEvent = AttackEnemyEvent;
+
+export type GameCharacterHealthStatus = `ok` | `hurt` | `wounded` | `critical` | `defeated`;
 
 type StoryReviewEvent = {
     kind: `story-review`;
@@ -322,20 +331,52 @@ type QuestObjectiveEvent = {
     objective: string;
 };
 
-type MoveEvent = {
-    kind: `move`;
-    location: GameLocationId;
+type MoveLocationEvent = {
+    kind: `move-location`;
+    location: string;
+    connection?: string;
+};
+
+type SearchLocationKeyItemEvent = {
+    kind: `search-location-key-item`;
+    location: string;
+    keyItem: string;
+};
+
+type RevealEnemyEvent = {
+    kind: `reveal-enemy`;
+    enemies: {
+        name: string;
+        race: string;
+        class: string;
+        healthStatus: GameCharacterHealthStatus;
+    }[];
 };
 
 type AttackEnemyEvent = {
     kind: `attack-enemy`;
+    player: string;
     enemies: {
-        enemy: GameCharacterId;
+        id: GameCharacterId;
+        name: string;
         health?: number;
         healthMax?: number;
-        healthStatus: `ok` | `hurt` | `wounded` | `critical` | `defeated`;
+        healthStatus: GameCharacterHealthStatus;
         attackKind: `melee` | `ranged` | `magic`;
-        attackWeapon?: GameItemId;
+        attackWeapon?: string;
+    }[];
+};
+
+type AttackEnemyOutcomeEvent = {
+    kind: `attack-enemy-outcome`;
+    enemies: {
+        id: GameCharacterId;
+        name: string;
+        health?: number;
+        healthMax?: number;
+        healthStatus: GameCharacterHealthStatus;
+        attackKind: `melee` | `ranged` | `magic`;
+        attackWeapon?: string;
         damageSeverity: `miss` | `graze` | `hit` | `critical`;
         damage: number;
         isDefeated: boolean;

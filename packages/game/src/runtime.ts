@@ -17,6 +17,10 @@ import {
     GameCampaign,
     GameEvent,
     GameEventResponse,
+    GamePlayerWorkResult,
+    GamePendingActionEvent,
+    GameCharacterHealthStatus,
+    GameQuest,
 } from './types';
 
 export const createEmptyGameState = (): GameState => {
@@ -247,7 +251,7 @@ export const createGameRuntime = (
         return newCampaign;
     };
 
-    const ensureQuestExists = ({ context }: { context: GameRuntimeContext }) => {
+    const ensureQuestExists = ({ context }: { context: GameRuntimeContext }): GameQuest => {
         const nextIncompleteQuest = state.quests.findLast((x) => !x.isComplete);
         if (nextIncompleteQuest) {
             return nextIncompleteQuest;
@@ -356,9 +360,314 @@ export const createGameRuntime = (
         return newQuest;
     };
 
+    const ensureQuestObjectiveExists = ({ context }: { context: GameRuntimeContext }) => {
+        const quest = ensureQuestExists({ context });
+        const objective = quest.objectives.find(
+            (x) => !state.keyItems.find((k) => k.id === x.completionKeyItem)?.isObtained,
+        );
+        if (!objective) {
+            quest.isComplete = true;
+            return ensureQuestObjectiveExists({ context });
+        }
+        return objective;
+    };
+
+    const calculateHealthState = (stats: { health: number; healthMax: number }): GameCharacterHealthStatus => {
+        const healthPercent = stats.health / stats.healthMax;
+        if (healthPercent <= 0) {
+            return `defeated`;
+        }
+        if (healthPercent <= 0.25) {
+            return `critical`;
+        }
+        if (healthPercent <= 0.5) {
+            return `wounded`;
+        }
+        if (healthPercent <= 0.75) {
+            return `hurt`;
+        }
+        return `ok`;
+    };
+
     const response = (...events: (false | undefined | GameEvent)[]): GameEventResponse => {
         return {
             events: events.filter((x) => !!x).map((x) => x!),
+        };
+    };
+
+    const playerAction_attackEnemy = ({
+        context,
+        estimateRemainingSec,
+        revealedEnemies,
+    }: {
+        context: GameRuntimeContext;
+        estimateRemainingSec: number;
+        revealedEnemies: GameCharacter[];
+    }) => {
+        const sessionPlayers = getSessionPlayers({ context });
+
+        const events: GameEvent[] = [];
+        estimateRemainingSec = 0;
+
+        // each player attacks an enemy
+        sessionPlayers.forEach((player) => {
+            // randomly select enemy
+            const targetEnemy =
+                revealedEnemies[Math.floor(Math.random() * revealedEnemies.length)] ?? revealedEnemies[0]!;
+            const attackEnemy = {
+                kind: `attack-enemy`,
+                player: player.name,
+                enemies: [
+                    {
+                        id: targetEnemy.id,
+                        name: targetEnemy.name,
+                        attackKind: `melee`,
+                        healthStatus: calculateHealthState(targetEnemy.stats),
+                    },
+                ],
+            } satisfies GamePendingActionEvent;
+            events.push(attackEnemy);
+            player.pendingActions = [attackEnemy];
+        });
+
+        return {
+            events,
+            estimateRemainingSec,
+            canCompleteImmediately: false,
+        };
+    };
+
+    const playerAction_revealEnemies = ({
+        context,
+        estimateRemainingSec,
+        enemiesAtlocation,
+    }: {
+        context: GameRuntimeContext;
+        estimateRemainingSec: number;
+        enemiesAtlocation: GameCharacter[];
+    }) => {
+        const events: GameEvent[] = [];
+
+        // reveal random number of enemies
+        const TIME_TO_REVEAL_ENEMY = 10;
+        const revealCount = Math.floor(
+            Math.max(
+                1,
+                Math.min(estimateRemainingSec / TIME_TO_REVEAL_ENEMY, Math.random() * enemiesAtlocation.length),
+            ),
+        );
+        const revealedEnemies = enemiesAtlocation.slice(0, revealCount);
+        revealedEnemies.forEach((x) => {
+            estimateRemainingSec -= TIME_TO_REVEAL_ENEMY;
+            x.isDiscovered = true;
+        });
+
+        events.push({
+            kind: `reveal-enemy`,
+            enemies: revealedEnemies.map((x) => ({
+                name: x.name,
+                race: x.role.race,
+                class: x.role.class,
+                healthStatus: calculateHealthState(x.stats),
+            })),
+        });
+
+        return {
+            events,
+            estimateRemainingSec,
+            canCompleteImmediately: false,
+            revealedEnemies,
+        };
+    };
+
+    const playerAction_searchLocation = ({
+        context,
+        estimateRemainingSec,
+    }: {
+        context: GameRuntimeContext;
+        estimateRemainingSec: number;
+    }) => {
+        const events: GameEvent[] = [];
+        const location = getLocation({ context });
+
+        if (!location.keyItem) {
+            return {
+                events,
+                estimateRemainingSec,
+                canCompleteImmediately: true,
+            };
+        }
+
+        const keyItem = state.keyItems.find((x) => x.id === location.keyItem);
+        if (!keyItem) {
+            throw new Error(`Key item not found`);
+        }
+        keyItem.isObtained = true;
+        estimateRemainingSec -= 20;
+
+        events.push({
+            kind: `search-location-key-item`,
+            location: location.name,
+            keyItem: keyItem.name,
+        });
+
+        return {
+            events,
+            estimateRemainingSec,
+            canCompleteImmediately: false,
+        };
+    };
+
+    const startPlayerAction = ({
+        context,
+        estimateRemainingSec,
+    }: {
+        context: GameRuntimeContext;
+        estimateRemainingSec: number;
+    }): { events: GameEvent[] } => {
+        if (estimateRemainingSec <= 15) {
+            // skip start action
+            return {
+                events: [],
+            };
+        }
+
+        const location = getLocation({ context });
+        const enemiesAtlocation = state.characters.filter(
+            (c) => c.location === location.id && c.role.alignment === `enemy` && !c.isDefeated,
+        );
+
+        // if revealed enemy in location, attack enemy
+        const revealedEnemies = enemiesAtlocation.filter((x) => x.isDiscovered);
+        if (revealedEnemies.length) {
+            // already in battle
+            return playerAction_attackEnemy({ context, estimateRemainingSec, revealedEnemies });
+        }
+
+        // if undiscovered enemy present, start battle
+        if (enemiesAtlocation.length) {
+            const revealResult = playerAction_revealEnemies({ context, estimateRemainingSec, enemiesAtlocation });
+            if (!revealResult.canCompleteImmediately || revealResult.estimateRemainingSec < 15) {
+                return revealResult;
+            }
+
+            const attackResult = playerAction_attackEnemy({
+                context,
+                estimateRemainingSec: revealResult.estimateRemainingSec,
+                revealedEnemies: revealResult.revealedEnemies,
+            });
+
+            return {
+                events: [...revealResult.events, ...attackResult.events],
+            };
+        }
+
+        const events: GameEvent[] = [];
+
+        // if unsearched location, search location
+        if (location.keyItem) {
+            // key item found
+            const searchResult = playerAction_searchLocation({ context, estimateRemainingSec });
+            estimateRemainingSec = searchResult.estimateRemainingSec;
+            events.push(...searchResult.events);
+
+            if (estimateRemainingSec < 15) {
+                return {
+                    events,
+                };
+            }
+
+            // continue to next action
+        }
+
+        // move to next location (where next key item is)
+        const objective = ensureQuestObjectiveExists({ context });
+        const targetLocation = state.locations.findLast((x) =>
+            getKeyItemsAtLocation({ locationId: x.id }).some((y) => y === objective.completionKeyItem),
+        );
+        if (!targetLocation) {
+            throw new Error(`Unable to find target location for key item`);
+        }
+
+        const pathToLocation = getPathToLocation({
+            startLocationId: location.id,
+            endLocationId: targetLocation.id,
+            obtainedKeyItemIds: state.keyItems.filter((x) => x.isObtained).map((x) => x.id),
+        });
+        if (!pathToLocation) {
+            throw new Error(`Unable to find path to location`);
+        }
+        const nextLocation = state.locations.findLast((x) => x.id === pathToLocation[0]);
+        if (!nextLocation) {
+            throw new Error(`Unable to find next location`);
+        }
+
+        events.push({
+            kind: `move-location`,
+            location: nextLocation.name,
+            connection: location.connections.find((x) => x.location === nextLocation.id)?.name,
+        });
+
+        return {
+            events,
+        };
+    };
+    const resolvePlayerAction = ({
+        context,
+        workResults,
+        estimateRemainingSec,
+    }: {
+        context: GameRuntimeContext;
+        workResults: GamePlayerWorkResult[];
+        estimateRemainingSec: number;
+    }): { events: GameEvent[] } => {
+        if (estimateRemainingSec <= 15) {
+            // short response
+            return {
+                events: [],
+            };
+        }
+        // if attack enemy, attack outcome (damage, death, etc)
+        // - if battle victory, loot key item
+        // - continue if time allows
+        // if undiscovered enemy present, start battle
+        // if unsearched location, search location
+        // - if key item, obtain key item
+
+        // handle pending player actions
+        // if()
+
+        // const location = getLocation({ context });
+        // const enemiesAtlocation = state.characters.filter(
+        //     (c) => c.location === location.id && c.role.alignment === `enemy` && !c.isDefeated,
+        // );
+
+        // const revealedEnemies = enemiesAtlocation.filter((x) => x.isDiscovered);
+        // if (revealedEnemies.length) {
+        //     // already in battle
+        //     return playerAction_attackEnemy({ context, estimateRemainingSec, revealedEnemies });
+        // }
+
+        // if (enemiesAtlocation.length) {
+        //     const revealResult = playerAction_revealEnemies({ context, estimateRemainingSec, enemiesAtlocation });
+        //     if (!revealResult.canCompleteImmediately || revealResult.estimateRemainingSec < 15) {
+        //         return revealResult;
+        //     }
+
+        //     const attackResult = playerAction_attackEnemy({
+        //         context,
+        //         estimateRemainingSec: revealResult.estimateRemainingSec,
+        //         revealedEnemies: revealResult.revealedEnemies,
+        //     });
+
+        //     return {
+        //         events: [...revealResult.events, ...attackResult.events],
+        //     };
+        // }
+
+        console.error(`resolvePlayerAction - NO EVENTS`, { context, estimateRemainingSec, workResults });
+        return {
+            events: [],
         };
     };
 
@@ -438,10 +747,19 @@ export const createGameRuntime = (
             throw new Error(`Not implemented`);
         },
         triggerWorkPeriod: ({ context }) => {
-            throw new Error(`Not implemented`);
+            return response(
+                ...startPlayerAction({ context, estimateRemainingSec: context.currentSessionPeriod.remainingSec })
+                    .events,
+            );
         },
-        triggerRestPeriod: ({ context }) => {
-            throw new Error(`Not implemented`);
+        triggerRestPeriod: ({ context, workResults }) => {
+            return response(
+                ...resolvePlayerAction({
+                    context,
+                    workResults,
+                    estimateRemainingSec: context.currentSessionPeriod.remainingSec,
+                }).events,
+            );
         },
         enterPlayerDecision: ({ context }) => {
             throw new Error(`Not implemented`);
