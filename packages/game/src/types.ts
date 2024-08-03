@@ -63,6 +63,7 @@ export type GameLoreProvider = {
     }) => {
         id: GameLocationId;
         name: string;
+        entrances: string[];
     };
 };
 

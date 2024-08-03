@@ -111,18 +111,19 @@ export const createGameRuntime = (
         distance: number;
     }) => {
         const nearbyLocations = getLocationsNearby({ locationId: location.id, distance: 3 });
-        const { id, name } = lore.generateLocationInfo({
+        const { id, name, entrances } = lore.generateLocationInfo({
             state,
             campaignId: campaignId,
             questId: questId,
             nearbyLocationIds: nearbyLocations.map((x) => x.id),
         });
+        const entrance = entrances[Math.floor(Math.random() * entrances.length)];
         const newLocation: GameLocation = {
             id,
             name,
-            connections: [{ location: location.id }],
+            connections: [{ location: location.id, name: entrance }],
         };
-        location.connections.push({ location: newLocation.id });
+        location.connections.push({ location: newLocation.id, name: entrance });
         state.locations.push(newLocation);
 
         if (distance > 1) {
@@ -295,7 +296,7 @@ export const createGameRuntime = (
             // choose unreached nearby location
             const { acceptableLocations: unreachedLocations } = ensureLocationsExits({
                 location,
-                distance: Math.min(3, remainingDistance),
+                distance: Math.min(2, remainingDistance),
                 isAcceptableLocation: (x) =>
                     !reachedLocationIdsSet.has(x.id) && (keyItem.placement !== `location` || !x.keyItem),
                 campaignId: campaign.id,
