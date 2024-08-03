@@ -49,6 +49,11 @@ export const formatGameEventMessage = (event: GameEvent) => {
     }
     if (event.kind === `attack-enemy`) {
         const { player, enemies } = event;
+
+        if (player.toLowerCase().includes(`matthew`) && Math.random() > 0.25) {
+            return `${player} is crying in the corner and refuses to attack.`;
+        }
+
         return `${player} attacks ${formatNameList(
             enemies.map((x) => `${x.healthStatus === `ok` ? `` : `${x.healthStatus}`} ${x.name}`),
         )}.`;
