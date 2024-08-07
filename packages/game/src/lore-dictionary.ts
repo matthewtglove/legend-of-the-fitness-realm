@@ -219,7 +219,7 @@ export type LoreDictionaryGenerator = {
             parentBodyPart?: string;
             protectsOtherBodyParts: string[];
         }[];
-    }[];
+    };
     generateEnemyEquipment: (options: {
         world: {
             title: string;
