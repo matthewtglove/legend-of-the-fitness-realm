@@ -32,6 +32,7 @@ export const generateOutput = (loreGenerator: LoreDictionaryGenerator) => {
             name: string;
             defense: `weak` | `normal` | `strong`;
             attachedToBodyPart: string | `CORE`;
+            weakToAttackType: `piercing` | `cutting` | `impact` | `cruishing` | `NONE`;
         }[];
     };
 
