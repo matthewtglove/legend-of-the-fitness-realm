@@ -28,6 +28,8 @@ show the output, be accurate, no explanation
 
 Great job! You always follow my instructions perfectly!
 
+Output:
+
 ---
 
 ```ts
