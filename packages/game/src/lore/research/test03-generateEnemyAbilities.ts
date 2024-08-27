@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { LoreDictionaryGenerator } from '../lore-dictionary';
+import { LoreDictionaryGenerator } from '../../lore-dictionary';
 
 export const generateOutput = (loreGenerator: LoreDictionaryGenerator) => {
     const enemyAbilities = loreGenerator.generateEnemyAbilities({

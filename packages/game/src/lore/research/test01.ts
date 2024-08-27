@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { LoreDictionary } from '../lore-dictionary';
+import { LoreDictionary } from '../../lore-dictionary';
 
 const loreDictionary: LoreDictionary = {
     worlds: [
