@@ -1,8 +1,9 @@
-import { Fragment, useRef, useState } from 'react';
-import { createLoreBuilder, type LoreBuilder } from '@lofr/game';
+import { Fragment, ReactNode, useRef, useState } from 'react';
+import { createLoreBuilder } from '@lofr/game';
 import { sendOpenRouterAiRequest } from './call-llm';
-import { useStableCallback } from '../components/use-stable-callback';
 import { useAsyncWorker } from '../components/use-async-worker';
+import { cn } from '../components/tailwind-utils';
+import { ExpandableView } from '../components/expandable-view';
 
 export const LoreBuilderView = () => {
     const loreBuilder = useRef(
@@ -22,54 +23,75 @@ export const LoreBuilderView = () => {
         }),
     );
 
-    type CallNames = keyof Omit<LoreBuilder, `exercises`>;
-    const loreBuilderCalls = Object.keys(loreBuilder.current) as CallNames[];
-
-    const [builderCall, setBuilderCall] = useState(`getExerciseInfo` as CallNames);
     const [builderCallResult, setBuilderCallResult] = useState(undefined as undefined | Record<string, unknown>);
     const [execiseName, setExerciseName] = useState(``);
 
-    const runBuilderCall = useStableCallback(() => loreBuilder.current[builderCall](execiseName, true));
-
-    const exercises = loreBuilder.current.exercises;
+    const exercises = loreBuilder.current.exercises.sort((a, b) => a.name.localeCompare(b.name));
     console.log(`LoreBuilderView RENDER`, { loreBuilder: loreBuilder.current, exercises });
 
     return (
-        <div className="flex flex-col justify-start items-start gap-2">
-            {exercises.map((x) => (
-                <Fragment key={x.name}>
-                    <h4>{x.name}</h4>
-                    <div>{JSON.stringify(x)}</div>
-                </Fragment>
-            ))}
+        <div className="flex flex-col gap-2 py-2">
+            <ExpandableView title="Exercises">
+                <div className="flex flex-col gap-2">
+                    <div className="mt-2">
+                        <input
+                            className="w-full p-2 border-2"
+                            type="text"
+                            placeholder='Exercise Name (e.g. "Push Ups")'
+                            value={execiseName}
+                            onChange={(e) => setExerciseName(e.target.value)}
+                        />
+                    </div>
 
-            <select
-                onSelect={(e) =>
-                    setBuilderCall(loreBuilderCalls[e.currentTarget.selectedIndex] ?? loreBuilderCalls[0]!)
-                }
-            >
-                {loreBuilderCalls.map((call) => (
-                    <option key={call}>{call}</option>
-                ))}
-            </select>
-            <input
-                className="w-full p-2 border-2"
-                type="text"
-                value={execiseName}
-                onChange={(e) => setExerciseName(e.target.value)}
-            />
+                    <AsyncButton
+                        text={`Add Exercise`}
+                        className="self-end"
+                        action={() => loreBuilder.current.getExerciseInfo(execiseName, true)}
+                        onDone={setBuilderCallResult}
+                    />
 
-            <AsyncButton text={`Run`} action={runBuilderCall} onDone={setBuilderCallResult} />
+                    {builderCallResult && (
+                        <div className="whitespace-pre-wrap text-sm text-gray-600">
+                            {JSON.stringify(builderCallResult, null, 2)}
+                        </div>
+                    )}
 
-            <h4>Result</h4>
-            <div>{builderCallResult && <pre>{JSON.stringify(builderCallResult, null, 2)}</pre>}</div>
+                    {exercises.map((x) => (
+                        <Fragment key={x.name}>
+                            <ExpandableView title={x.name}>
+                                <h4>{x.name}</h4>
+                                <div className="whitespace-pre-wrap text-sm text-gray-600">
+                                    {JSON.stringify(x, null, 2)}
+                                </div>
+                                <div className="flex flex-row justify-end gap-2">
+                                    <Button
+                                        text={`Delete`}
+                                        className="bg-red-500"
+                                        onClick={() =>
+                                            (loreBuilder.current.exercises = loreBuilder.current.exercises.filter(
+                                                (y) => y.name !== x.name,
+                                            ))
+                                        }
+                                    />
+                                    <AsyncButton
+                                        text={`Rebuild`}
+                                        action={() => loreBuilder.current.getExerciseInfo(x.name, true)}
+                                        onDone={setBuilderCallResult}
+                                    />
+                                </div>
+                            </ExpandableView>
+                        </Fragment>
+                    ))}
+                </div>
+            </ExpandableView>
         </div>
     );
 };
 
 export const AsyncButton = <TValue,>(props: {
     text: string;
-    action: () => Promise<TValue>;
+    className?: string;
+    action: () => PromiseLike<TValue>;
     onDone: (value: TValue) => void;
 }) => {
     const { doWork, loading, error } = useAsyncWorker();
@@ -87,17 +109,37 @@ export const AsyncButton = <TValue,>(props: {
     console.log(`AsyncButton RENDER`, { loading, error });
     return (
         <>
-            <button
-                className="p-2 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
-                onClick={doAction}
-                disabled={loading}
-            >
+            <Button className={props.className} onClick={doAction} disabled={loading}>
                 <div className="flex flex-row gap-1 items-center">
                     {props.text}
                     {loading ? <div className="animate-spin">⌛️</div> : undefined}
                 </div>
-            </button>
+            </Button>
             {error && <div className="text-red-500">{error.message}</div>}
         </>
+    );
+};
+
+export const Button = ({
+    text,
+    children,
+    className,
+    onClick,
+    disabled,
+}: {
+    text?: string;
+    children?: ReactNode;
+    className?: string;
+    onClick: () => void;
+    disabled?: boolean;
+}) => {
+    return (
+        <button
+            className={cn(`p-2 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70`, className)}
+            onClick={onClick}
+            disabled={disabled}
+        >
+            {children ?? text}
+        </button>
     );
 };

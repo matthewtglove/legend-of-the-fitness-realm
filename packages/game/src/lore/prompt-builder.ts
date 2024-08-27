@@ -42,18 +42,23 @@ export const promptResponseParser_findJson = <
     transform: (value: TResult) => undefined | TOutput,
 ): PromptResponseParser<TOutput> => {
     return {
-        parse: (prompt: string) => {
+        parse: (text: string) => {
             try {
-                console.log(`promptResponseParser_findJson: parse`, { prompt });
-                const iFieldStart = prompt.indexOf(`"${fieldName}"`);
-                const iValueStart = prompt.indexOf(`:`, iFieldStart);
-                const iValueEnd = prompt.indexOf(`"${fieldAfterName}"`, iValueStart);
-                const valueWithComma = prompt.slice(iValueStart + 1, iValueEnd).trim();
-                const value = valueWithComma.slice(0, valueWithComma.length - 1);
+                const iFieldStart = text.indexOf(`${fieldName}`);
+                const iValueStart = text.indexOf(`:`, iFieldStart);
+                const iValueEnd = text.indexOf(`${fieldAfterName}`, iValueStart);
+                const valueWithExtras = text.slice(iValueStart + 1, iValueEnd).trim();
+                const value = valueWithExtras
+                    .trim()
+                    .replace(/^['"`]|['"`]$/g, ``)
+                    .trim()
+                    .replace(/,$/g, ``);
+
+                console.log(`promptResponseParser_findJson: parsing`, { value, text });
                 const result = JSON.parse(value) as TResult;
                 return transform(result);
             } catch (err) {
-                console.error(`promptResponseParser_findJson: parse - failed to parse`, { prompt, err });
+                console.error(`promptResponseParser_findJson: parse - failed to parse`, { text, err });
                 return undefined;
             }
         },

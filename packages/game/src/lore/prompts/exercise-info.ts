@@ -9,7 +9,7 @@ export type ExerciseInfo = {
     name: string;
     usedMuscleGroups: MuscleGroup[];
     motionSpeed: MotionSpeed;
-    describeActualExerciseToUser: string;
+    describeActualExerciseToUser?: string;
 };
 
 export const promptExerciseInfo = definePrompt<{ exerciseName: string }, ExerciseInfo>({
@@ -31,6 +31,41 @@ export const promptExerciseInfo = definePrompt<{ exerciseName: string }, Exercis
                     : undefined,
         ),
     getPrompt: ({ exerciseName }, attempt) => {
+        if (attempt === 0) {
+            console.log(`promptExerciseInfo: short prompt`, { exerciseName });
+            return {
+                systemPrompt: `You are a fitness expert. You answer each question with json only. No descriptions.`,
+                prompt: `
+\`\`\`typescript
+type MuscleGroup = 'core' | 'back' | 'chest' | 'shoulders' | 'arms' | 'legs' | 'glutes';
+type MotionSpeed = 'slow' | 'normal' | 'fast' | 'explosive';
+
+type ExerciseDescription = {
+    describeActualExerciseToUser: string;
+    usedMuscleGroups: MuscleGroup[];
+    motionSpeed: MotionSpeed;
+};
+
+export const generateOutput = () => {
+    return generateExerciseDescription({
+        exercise: '${exerciseName}',
+    }) as {
+        bestDescription: ExerciseDescription;
+        finalActivity: true;
+    };
+};
+\`\`\`
+
+show the output, be accurate, no explanation
+
+Great job! You always follow my instructions perfectly!
+
+Output:
+
+`,
+            };
+        }
+
         if (attempt > 1) {
             console.log(`promptExerciseInfo: short prompt`, { exerciseName });
             return {
