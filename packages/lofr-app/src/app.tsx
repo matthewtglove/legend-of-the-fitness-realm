@@ -5,6 +5,7 @@ import { WorkoutSessionTimer } from './workout/workout-timer';
 import { ExpandableView } from './components/expandable-view';
 import buildNumber from './build-version.json';
 import { createGameStoryRuntime } from './story/game-story-runtime';
+import { LoreBuilderView } from './story/lore-builder';
 
 const appVersion = `v1.0.${buildNumber}`;
 
@@ -46,6 +47,11 @@ export const App = () => {
                         onChange={(x) => (storyRuntimeRef.current.questContext = x)}
                     />
                 </div> */}
+            </div>
+            <div className="m-2">
+                <ExpandableView mode="hide" title="Lore Builder" expanded={true}>
+                    <LoreBuilderView />
+                </ExpandableView>
             </div>
             <div className="absolute pointer-events-none top-1 right-1 opacity-20">{appVersion}</div>
         </>
