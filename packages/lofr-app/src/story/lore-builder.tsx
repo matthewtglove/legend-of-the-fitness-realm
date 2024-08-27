@@ -4,8 +4,9 @@ import { sendOpenRouterAiRequest } from './call-llm';
 import { useAsyncWorker } from '../components/use-async-worker';
 import { cn } from '../components/tailwind-utils';
 import { ExpandableView } from '../components/expandable-view';
+import { WorkoutProgram } from '@lofr/workout-parser';
 
-export const LoreBuilderView = () => {
+export const LoreBuilderView = (props: { workoutProgram?: WorkoutProgram }) => {
     const loreBuilder = useRef(
         createLoreBuilder({
             storageProvider: {
@@ -29,10 +30,42 @@ export const LoreBuilderView = () => {
     const exercises = loreBuilder.current.exercises.sort((a, b) => a.name.localeCompare(b.name));
     console.log(`LoreBuilderView RENDER`, { loreBuilder: loreBuilder.current, exercises });
 
+    const addAllWorkoutExercises = async () => {
+        const workoutExercises =
+            props.workoutProgram?.segments.flatMap((x) =>
+                x.sessions.flatMap((s) =>
+                    s.steps.flatMap((step) => {
+                        if (`exercises` in step) {
+                            return step.exercises.map((e) => e.exerciseName);
+                        }
+                        if (`exercise` in step) {
+                            return [step.exercise.exerciseName];
+                        }
+                        return [];
+                    }),
+                ),
+            ) ?? [];
+
+        const infos = [] as Awaited<ReturnType<typeof loreBuilder.current.getExerciseInfo>>[];
+        for (const exercise of workoutExercises) {
+            infos.push(await loreBuilder.current.getExerciseInfo(exercise, false));
+        }
+        return { infos };
+    };
+
     return (
         <div className="flex flex-col gap-2 py-2">
             <ExpandableView title="Exercises">
                 <div className="flex flex-col gap-2">
+                    {props.workoutProgram && (
+                        <AsyncButton
+                            text={`Add All Workout Exercises`}
+                            className="self-end"
+                            action={addAllWorkoutExercises}
+                            onDone={setBuilderCallResult}
+                        />
+                    )}
+
                     <div className="mt-2">
                         <input
                             className="w-full p-2 border-2"
@@ -51,9 +84,11 @@ export const LoreBuilderView = () => {
                     />
 
                     {builderCallResult && (
-                        <div className="whitespace-pre-wrap text-sm text-gray-600">
-                            {JSON.stringify(builderCallResult, null, 2)}
-                        </div>
+                        <ExpandableView title="Result">
+                            <div className="whitespace-pre-wrap text-sm text-gray-600">
+                                {JSON.stringify(builderCallResult, null, 2)}
+                            </div>
+                        </ExpandableView>
                     )}
 
                     {exercises.map((x) => (

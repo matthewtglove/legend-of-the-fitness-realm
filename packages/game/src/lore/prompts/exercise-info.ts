@@ -10,22 +10,34 @@ export const MuscleGroups = [
     `legs`,
     `glutes`,
 ] as (keyof ExerciseInfo[`muscleGroups`])[];
-export const MotionSpeeds = [`slow`, `normal`, `fast`, `explosive`] as const;
+export const MotionSpeeds = [`slow`, `normal`, `fast`, `explosive`] as const satisfies MotionSpeed[];
+export const MuscleIntensities = [
+    `unused`,
+    `minor-flexing`,
+    `supports-exercise`,
+    `fully-engaged`,
+    `primary-target-muscle-group`,
+] as const satisfies MuscleIntensity[];
 
 export type MuscleGroup = `core` | `back` | `chest` | `shoulders` | `arms` | `legs` | `glutes`;
 export type MotionSpeed = `slow` | `normal` | `fast` | `explosive`;
-export type Intensity = 0 | 1 | 2 | 3 | 4 | 5;
+export type MuscleIntensity =
+    | `unused`
+    | `minor-flexing`
+    | `supports-exercise`
+    | `fully-engaged`
+    | `primary-target-muscle-group`;
 export type ExerciseInfo = {
     name: string;
     motionSpeed: MotionSpeed;
     muscleGroups: {
-        core: Intensity;
-        back: Intensity;
-        arms: Intensity;
-        chest: Intensity;
-        shoulders: Intensity;
-        legs: Intensity;
-        glutes: Intensity;
+        core: MuscleIntensity;
+        back: MuscleIntensity;
+        arms: MuscleIntensity;
+        chest: MuscleIntensity;
+        shoulders: MuscleIntensity;
+        legs: MuscleIntensity;
+        glutes: MuscleIntensity;
     };
     raw?: unknown;
 };
@@ -34,36 +46,31 @@ type ExerciseDescription = {
     describeActualExerciseToUser?: string;
     instructions?: string;
     motionSpeed: MotionSpeed;
-    usedMuscleGroups: MuscleGroup[];
-    muscleGroups: {
-        core?: Intensity;
-        back?: Intensity;
-        arms?: Intensity;
-        chest?: Intensity;
-        shoulders?: Intensity;
-        legs?: Intensity;
-        glutes?: Intensity;
+    usedMuscleGroups?: MuscleGroup[];
+    muscleGroupIntensities: {
+        core?: MuscleIntensity;
+        back?: MuscleIntensity;
+        arms?: MuscleIntensity;
+        chest?: MuscleIntensity;
+        shoulders?: MuscleIntensity;
+        legs?: MuscleIntensity;
+        glutes?: MuscleIntensity;
     };
 };
 
-const IntensitySchema = z
-    .number()
-    .int()
-    .min(0)
-    .max(5)
-    .transform((x) => x as Intensity);
+const MuscleIntensitySchema = z.enum(MuscleIntensities);
 const ExerciseInfoSchema = z
     .object({
         name: z.string(),
         motionSpeed: z.enum(MotionSpeeds),
         muscleGroups: z.object({
-            core: IntensitySchema,
-            back: IntensitySchema,
-            arms: IntensitySchema,
-            chest: IntensitySchema,
-            shoulders: IntensitySchema,
-            legs: IntensitySchema,
-            glutes: IntensitySchema,
+            core: MuscleIntensitySchema,
+            back: MuscleIntensitySchema,
+            arms: MuscleIntensitySchema,
+            chest: MuscleIntensitySchema,
+            shoulders: MuscleIntensitySchema,
+            legs: MuscleIntensitySchema,
+            glutes: MuscleIntensitySchema,
         }),
         raw: z.unknown().optional(),
     })
@@ -77,13 +84,13 @@ export const promptExerciseInfo = definePrompt<{ exerciseName: string }, Exercis
                 name: exerciseName,
                 motionSpeed: x.motionSpeed,
                 muscleGroups: {
-                    core: x.muscleGroups.core || 0,
-                    back: x.muscleGroups.back || 0,
-                    arms: x.muscleGroups.arms || 0,
-                    chest: x.muscleGroups.chest || 0,
-                    shoulders: x.muscleGroups.shoulders || 0,
-                    legs: x.muscleGroups.legs || 0,
-                    glutes: x.muscleGroups.glutes || 0,
+                    core: x.muscleGroupIntensities.core || `unused`,
+                    back: x.muscleGroupIntensities.back || `unused`,
+                    arms: x.muscleGroupIntensities.arms || `unused`,
+                    chest: x.muscleGroupIntensities.chest || `unused`,
+                    shoulders: x.muscleGroupIntensities.shoulders || `unused`,
+                    legs: x.muscleGroupIntensities.legs || `unused`,
+                    glutes: x.muscleGroupIntensities.glutes || `unused`,
                 },
                 raw: x,
             } satisfies ExerciseInfo);
@@ -98,19 +105,25 @@ export const promptExerciseInfo = definePrompt<{ exerciseName: string }, Exercis
 \`\`\`typescript
 type MuscleGroup = 'core' | 'back' | 'chest' | 'shoulders' | 'arms' | 'legs' | 'glutes';
 type MotionSpeed = 'slow' | 'normal' | 'fast' | 'explosive';
-type Intensity = 0 | 1 | 2 | 3 | 4 | 5;
+type MuscleIntensity =
+    | 'unused'
+    | 'minor-flexing'
+    | 'supports-exercise'
+    | 'fully-engaged'
+    | 'primary-target-muscle-group';
+
 type ExerciseDescription = {
-    instructions?: string;
+    instructions: string;
     motionSpeed: MotionSpeed;
     usedMuscleGroups: MuscleGroup[];
-    muscleGroups: {
-        core?: Intensity;
-        back?: Intensity;
-        arms?: Intensity;
-        chest?: Intensity;
-        shoulders?: Intensity;
-        legs?: Intensity;
-        glutes?: Intensity;
+    muscleGroupIntensities: {
+        core: MuscleIntensity;
+        back: MuscleIntensity;
+        arms: MuscleIntensity;
+        chest: MuscleIntensity;
+        shoulders: MuscleIntensity;
+        legs: MuscleIntensity;
+        glutes: MuscleIntensity;
     };
 };
 

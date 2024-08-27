@@ -50,7 +50,7 @@ export const App = () => {
             </div>
             <div className="m-2">
                 <ExpandableView mode="hide" title="Lore Builder" expanded={true}>
-                    <LoreBuilderView />
+                    <LoreBuilderView workoutProgram={workoutProgram} />
                 </ExpandableView>
             </div>
             <div className="absolute pointer-events-none top-1 right-1 opacity-20">{appVersion}</div>
