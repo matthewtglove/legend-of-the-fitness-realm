@@ -11,22 +11,44 @@ export const MuscleGroups = [
     `glutes`,
 ] as (keyof ExerciseInfo[`muscleGroups`])[];
 export const MotionSpeeds = [`slow`, `normal`, `fast`, `explosive`] as const satisfies MotionSpeed[];
-export const MuscleIntensities = [
-    `unused`,
-    `minor-flexing`,
-    `supports-exercise`,
-    `fully-engaged`,
-    `primary-target-muscle-group`,
-] as const satisfies MuscleIntensity[];
 
 export type MuscleGroup = `core` | `back` | `chest` | `shoulders` | `arms` | `legs` | `glutes`;
+
+export const normalizeMuscleGroup = (group: string): MuscleGroup => {
+    group = group.toLowerCase().trim();
+
+    if (MuscleGroups.includes(group as MuscleGroup)) {
+        return group as MuscleGroup;
+    }
+
+    switch (group) {
+        case `biceps`:
+        case `triceps`:
+        case `forearms`:
+            return `arms`;
+        case `traps`:
+        case `deltoids`:
+        case `neck`:
+            return `shoulders`;
+        case `quads`:
+        case `hamstrings`:
+        case `calves`:
+            return `legs`;
+        case `abs`:
+            return `core`;
+        case `pecs`:
+            return `chest`;
+    }
+
+    if (group.includes(`hip`)) {
+        return `glutes`;
+    }
+
+    return `core`;
+};
+
 export type MotionSpeed = `slow` | `normal` | `fast` | `explosive`;
-export type MuscleIntensity =
-    | `unused`
-    | `minor-flexing`
-    | `supports-exercise`
-    | `fully-engaged`
-    | `primary-target-muscle-group`;
+export type MuscleIntensity = 0 | 1 | 2 | 3 | 4 | 5;
 export type ExerciseInfo = {
     name: string;
     motionSpeed: MotionSpeed;
@@ -42,23 +64,79 @@ export type ExerciseInfo = {
     raw?: unknown;
 };
 
-type ExerciseDescription = {
+type MuscleIntensityLabel =
+    | `unused`
+    | `minor-flexing`
+    | `supports-exercise`
+    | `fully-engaged`
+    | `primary-target-muscle-group`;
+const parseMuscleIntesityLabel = (x: MuscleIntensityLabel): MuscleIntensity => {
+    switch (x) {
+        case `unused`:
+            return 0;
+        case `minor-flexing`:
+            return 2;
+        case `supports-exercise`:
+            return 3;
+        case `fully-engaged`:
+            return 4;
+        case `primary-target-muscle-group`:
+            return 5;
+        default:
+            return 0;
+    }
+};
+
+type ExerciseDescription_01 = {
     describeActualExerciseToUser?: string;
     instructions?: string;
     motionSpeed: MotionSpeed;
     usedMuscleGroups?: MuscleGroup[];
     muscleGroupIntensities: {
-        core?: MuscleIntensity;
-        back?: MuscleIntensity;
-        arms?: MuscleIntensity;
-        chest?: MuscleIntensity;
-        shoulders?: MuscleIntensity;
-        legs?: MuscleIntensity;
-        glutes?: MuscleIntensity;
+        core?: MuscleIntensityLabel;
+        back?: MuscleIntensityLabel;
+        arms?: MuscleIntensityLabel;
+        chest?: MuscleIntensityLabel;
+        shoulders?: MuscleIntensityLabel;
+        legs?: MuscleIntensityLabel;
+        glutes?: MuscleIntensityLabel;
     };
 };
 
-const MuscleIntensitySchema = z.enum(MuscleIntensities);
+type ExerciseDescription_02 = {
+    instructions: string;
+    motionSpeed: MotionSpeed;
+    primaryMuscleGroups: MuscleGroup[];
+    supportingMuscleGroups: MuscleGroup[];
+};
+
+const parseMuscleGroups02 = (description: ExerciseDescription_02): ExerciseInfo[`muscleGroups`] => {
+    const muscleGroups = {
+        core: 0,
+        back: 0,
+        arms: 0,
+        chest: 0,
+        shoulders: 0,
+        legs: 0,
+        glutes: 0,
+    } as ExerciseInfo[`muscleGroups`];
+
+    const primaryMuscleGroups = description.primaryMuscleGroups.map(normalizeMuscleGroup);
+    const supportingMuscleGroups = description.supportingMuscleGroups.map(normalizeMuscleGroup);
+
+    for (const group of MuscleGroups) {
+        muscleGroups[group] = primaryMuscleGroups.includes(group) ? 5 : supportingMuscleGroups.includes(group) ? 3 : 0;
+    }
+
+    return muscleGroups;
+};
+
+const MuscleIntensitySchema = z
+    .number()
+    .int()
+    .min(0)
+    .max(5)
+    .transform((x) => x as MuscleIntensity);
 const ExerciseInfoSchema = z
     .object({
         name: z.string(),
@@ -79,52 +157,44 @@ const ExerciseInfoSchema = z
 export const promptExerciseInfo = definePrompt<{ exerciseName: string }, ExerciseInfo>({
     maxPromptResponseLength: 500,
     parsePromptResponse: ({ exerciseName }) =>
-        promptResponseParser_findJson<ExerciseInfo, ExerciseDescription>(`bestDescription`, `finalActivity`, (x) => {
-            return ExerciseInfoSchema.parse({
-                name: exerciseName,
-                motionSpeed: x.motionSpeed,
-                muscleGroups: {
-                    core: x.muscleGroupIntensities.core || `unused`,
-                    back: x.muscleGroupIntensities.back || `unused`,
-                    arms: x.muscleGroupIntensities.arms || `unused`,
-                    chest: x.muscleGroupIntensities.chest || `unused`,
-                    shoulders: x.muscleGroupIntensities.shoulders || `unused`,
-                    legs: x.muscleGroupIntensities.legs || `unused`,
-                    glutes: x.muscleGroupIntensities.glutes || `unused`,
-                },
-                raw: x,
-            } satisfies ExerciseInfo);
-        }),
+        promptResponseParser_findJson<ExerciseInfo, ExerciseDescription_01 | ExerciseDescription_02>(
+            `bestDescription`,
+            `finalActivity`,
+            (x) => {
+                return ExerciseInfoSchema.parse({
+                    name: exerciseName,
+                    motionSpeed: x.motionSpeed,
+                    muscleGroups:
+                        `muscleGroupIntensities` in x
+                            ? {
+                                  core: parseMuscleIntesityLabel(x.muscleGroupIntensities.core || `unused`),
+                                  back: parseMuscleIntesityLabel(x.muscleGroupIntensities.back || `unused`),
+                                  arms: parseMuscleIntesityLabel(x.muscleGroupIntensities.arms || `unused`),
+                                  chest: parseMuscleIntesityLabel(x.muscleGroupIntensities.chest || `unused`),
+                                  shoulders: parseMuscleIntesityLabel(x.muscleGroupIntensities.shoulders || `unused`),
+                                  legs: parseMuscleIntesityLabel(x.muscleGroupIntensities.legs || `unused`),
+                                  glutes: parseMuscleIntesityLabel(x.muscleGroupIntensities.glutes || `unused`),
+                              }
+                            : parseMuscleGroups02(x),
+                    raw: x,
+                } satisfies ExerciseInfo);
+            },
+        ),
     getPrompt: ({ exerciseName }, attempt) => {
         console.log(`promptExerciseInfo`, { exerciseName, attempt });
 
-        // if (attempt === 0) {
         return {
             systemPrompt: `You are a fitness expert. You answer each question with json only. No descriptions.`,
             prompt: `
 \`\`\`typescript
 type MuscleGroup = 'core' | 'back' | 'chest' | 'shoulders' | 'arms' | 'legs' | 'glutes';
 type MotionSpeed = 'slow' | 'normal' | 'fast' | 'explosive';
-type MuscleIntensity =
-    | 'unused'
-    | 'minor-flexing'
-    | 'supports-exercise'
-    | 'fully-engaged'
-    | 'primary-target-muscle-group';
 
 type ExerciseDescription = {
     instructions: string;
     motionSpeed: MotionSpeed;
-    usedMuscleGroups: MuscleGroup[];
-    muscleGroupIntensities: {
-        core: MuscleIntensity;
-        back: MuscleIntensity;
-        arms: MuscleIntensity;
-        chest: MuscleIntensity;
-        shoulders: MuscleIntensity;
-        legs: MuscleIntensity;
-        glutes: MuscleIntensity;
-    };
+    primaryMuscleGroups: MuscleGroup[];
+    supportingMuscleGroups: MuscleGroup[];
 };
 
 export const generateOutput = () => {
@@ -145,6 +215,54 @@ Output:
 
 `,
         };
+
+        // if (attempt === 0) {
+        //         return {
+        //             systemPrompt: `You are a fitness expert. You answer each question with json only. No descriptions.`,
+        //             prompt: `
+        // \`\`\`typescript
+        // type MuscleGroup = 'core' | 'back' | 'chest' | 'shoulders' | 'arms' | 'legs' | 'glutes';
+        // type MotionSpeed = 'slow' | 'normal' | 'fast' | 'explosive';
+        // type MuscleIntensity =
+        //     | 'unused'
+        //     | 'minor-flexing'
+        //     | 'supports-exercise'
+        //     | 'fully-engaged'
+        //     | 'primary-target-muscle-group';
+
+        // type ExerciseDescription = {
+        //     instructions: string;
+        //     motionSpeed: MotionSpeed;
+        //     usedMuscleGroups: MuscleGroup[];
+        //     muscleGroupIntensities: {
+        //         core: MuscleIntensity;
+        //         back: MuscleIntensity;
+        //         arms: MuscleIntensity;
+        //         chest: MuscleIntensity;
+        //         shoulders: MuscleIntensity;
+        //         legs: MuscleIntensity;
+        //         glutes: MuscleIntensity;
+        //     };
+        // };
+
+        // export const generateOutput = () => {
+        //     return generateExerciseDescription({
+        //         exercise: '${exerciseName}',
+        //     }) as {
+        //         bestDescription: ExerciseDescription;
+        //         finalActivity: true;
+        //     };
+        // };
+        // \`\`\`
+
+        // show the output, be accurate, no explanation
+
+        // Great job! You always follow my instructions perfectly!
+
+        // Output:
+
+        // `,
+        //         };
         // }
 
         //         if (attempt > 1) {
