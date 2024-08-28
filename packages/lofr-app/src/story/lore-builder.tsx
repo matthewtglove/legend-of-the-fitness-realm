@@ -1,5 +1,5 @@
 import { Fragment, ReactNode, useRef, useState } from 'react';
-import { createLoreBuilder } from '@lofr/game';
+import { createLoreBuilder, MuscleGroups } from '@lofr/game';
 import { sendOpenRouterAiRequest } from './call-llm';
 import { useAsyncWorker } from '../components/use-async-worker';
 import { cn } from '../components/tailwind-utils';
@@ -93,7 +93,15 @@ export const LoreBuilderView = (props: { workoutProgram?: WorkoutProgram }) => {
 
                     {exercises.map((x) => (
                         <Fragment key={x.name}>
-                            <ExpandableView title={x.name}>
+                            <ExpandableView
+                                title={`${x.name}`}
+                                titleRight={`${x.motionSpeed} - ${MuscleGroups.map(
+                                    (m) => `${x.muscleGroups[m]}${m.substring(0, 0)}`,
+                                ).join(`:`)}`}
+                                tooltipRight={`${x.motionSpeed} - ${MuscleGroups.map(
+                                    (m) => `${x.muscleGroups[m]} ${m}`,
+                                ).join(` : `)}`}
+                            >
                                 <h4>{x.name}</h4>
                                 <div className="whitespace-pre-wrap text-sm text-gray-600">
                                     {JSON.stringify(x, null, 2)}
