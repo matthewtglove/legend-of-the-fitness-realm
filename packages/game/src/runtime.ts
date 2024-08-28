@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { MuscleGroups } from './lore/lore-types';
 import {
     GameRuntimeContext,
     GameBattleProvider,
@@ -408,6 +409,17 @@ export const createGameRuntime = (
     }) => {
         const sessionPlayers = getSessionPlayers({ context });
 
+        const exerciseNames =
+            context.sessionPeriods[context.currentSessionPeriod.index]?.exercises.map((x) => x.exerciseName) ?? [];
+        const exerciseMuscleGroups = exerciseNames.map((x) => lore.getExerciseInfo(x)?.muscleGroups).filter((x) => !!x);
+        const muscleGroupsUsed = MuscleGroups.map((m) => ({
+            name: m,
+            intensity: Math.max(...exerciseMuscleGroups.map((x) => x[m] || 0)),
+        }))
+            .sort((a, b) => -(a.intensity - b.intensity))
+            .filter((x) => x.intensity > 2)
+            .map((x) => x.name);
+
         const events: GameEvent[] = [];
         estimateRemainingSec = 0;
 
@@ -416,14 +428,22 @@ export const createGameRuntime = (
             // randomly select enemy
             const targetEnemy =
                 revealedEnemies[Math.floor(Math.random() * revealedEnemies.length)] ?? revealedEnemies[0]!;
+            const attackInfo = lore.generateAttack({
+                state,
+                player,
+                muscleGroupsUsed,
+            });
             const attackEnemy = {
                 kind: `attack-enemy`,
                 player: player.name,
+                muscleGroupsUsed,
                 enemies: [
                     {
                         id: targetEnemy.id,
                         name: targetEnemy.name,
-                        attackKind: `melee`,
+                        attackKind: attackInfo.attackKind,
+                        attackName: attackInfo.attackName,
+                        attackWeapon: attackInfo.attackWeapon,
                         healthStatus: calculateHealthState(targetEnemy.stats),
                     },
                 ],
@@ -697,6 +717,7 @@ export const createGameRuntime = (
                     events.push({
                         kind: `attack-enemy-outcome`,
                         player: player.name,
+                        muscleGroupsUsed: action.muscleGroupsUsed,
                         enemies: result.map((x) => ({
                             id: x.enemy.id,
                             name: x.enemy.name,

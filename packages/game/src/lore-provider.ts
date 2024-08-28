@@ -23,6 +23,65 @@ export const createGameLoreProvider = (loreBuilder: LoreBuilder): GameLoreProvid
         getExerciseInfo: (exerciseName: string) => {
             return loreBuilder.getExerciseInfo_cached(exerciseName);
         },
+        generateAttack: ({ state, player, muscleGroupsUsed }) => {
+            // prettier-ignore
+            const attacks = [
+                { battleClass: `Barbarian`, primaryMuscleGroup: `arms`, attackKind: `melee`, weaponKind: undefined, name: `Mighty Punch` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: undefined, name: `Leg Sweep` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: undefined, name: `Rock Throw` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `back`, attackKind: `melee`, weaponKind: undefined, name: `Backstab` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `chest`, attackKind: `melee`, weaponKind: undefined, name: `Chest Slam` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `glutes`, attackKind: `melee`, weaponKind: undefined, name: `Butt Slam` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: undefined, name: `Leg Sweep` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `melee`, weaponKind: undefined, name: `Shoulder Slam` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: `sword`, name: `Piercing Lunge` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `melee`, weaponKind: `axe`, name: `Axe Swing` },
+                { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: `sword`, name: `Sword Slash` },
+
+                { battleClass: `Archer`, primaryMuscleGroup: `arms`, attackKind: `ranged`, weaponKind: `bow`, name: `Arrow Strike` },
+                { battleClass: `Archer`, primaryMuscleGroup: `core`, attackKind: `ranged`, weaponKind: `bow`, name: `Arrow Volley` },
+                { battleClass: `Archer`, primaryMuscleGroup: `back`, attackKind: `ranged`, weaponKind: `bow`, name: `Snipe Shot` },
+                { battleClass: `Archer`, primaryMuscleGroup: `chest`, attackKind: `ranged`, weaponKind: `bow`, name: `Piercing Shot` },
+                { battleClass: `Archer`, primaryMuscleGroup: `glutes`, attackKind: `ranged`, weaponKind: `bow`, name: `Booty Blast` },
+                { battleClass: `Archer`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `bow`, name: `Kick` },
+                { battleClass: `Archer`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: `bow`, name: `Shoulder Shot` },
+                { battleClass: `Archer`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `bow`, name: `Jump Flip Shot` },
+                { battleClass: `Archer`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: `bow`, name: `Arrow Rain` },
+                { battleClass: `Archer`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `bow`, name: `Arrow Barrage` },
+
+                { battleClass: `Mage`, primaryMuscleGroup: `arms`, attackKind: `magic`, weaponKind: `staff`, name: `Fireball` },
+                { battleClass: `Mage`, primaryMuscleGroup: `back`, attackKind: `magic`, weaponKind: `staff`, name: `Shadow Bolt` },
+                { battleClass: `Mage`, primaryMuscleGroup: `core`, attackKind: `magic`, weaponKind: undefined, name: `Heal` },
+                { battleClass: `Mage`, primaryMuscleGroup: `chest`, attackKind: `magic`, weaponKind: `staff`, name: `Ice Shard` },
+                { battleClass: `Mage`, primaryMuscleGroup: `glutes`, attackKind: `magic`, weaponKind: `staff`, name: `Fart of Doom` },
+                { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: `staff`, name: `Lightning Bolt` },
+                { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: `staff`, name: `Mind Blast` },
+                { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: `staff`, name: `You Shall Not Pass` },
+                { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: `staff`, name: `Mind Control` },
+                { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: `staff`, name: `Mind Crush` },
+
+                { battleClass: `Bard`, primaryMuscleGroup: `arms`, attackKind: `ranged`, weaponKind: `lute`, name: `Sonic Blast` },
+                { battleClass: `Bard`, primaryMuscleGroup: `back`, attackKind: `ranged`, weaponKind: `lute`, name: `Soothing Melody` },
+                { battleClass: `Bard`, primaryMuscleGroup: `core`, attackKind: `ranged`, weaponKind: `lute`, name: `Inspiring Tune` },
+                { battleClass: `Bard`, primaryMuscleGroup: `chest`, attackKind: `ranged`, weaponKind: `lute`, name: `Enchanting Song` },
+                { battleClass: `Bard`, primaryMuscleGroup: `glutes`, attackKind: `ranged`, weaponKind: `lute`, name: `Booty Bounce` },
+                { battleClass: `Bard`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `lute`, name: `Dance of Death` },
+                { battleClass: `Bard`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: `lute`, name: `Song of Silence` },
+                { battleClass: `Bard`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `lute`, name: `Dance of Doom` },
+                { battleClass: `Bard`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: `lute`, name: `Song of Sorrow` },
+                { battleClass: `Bard`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `lute`, name: `Dance of Despair` },
+            ] as const;
+
+            const attacksForPlayer = attacks.filter(
+                (x) => x.battleClass === player.role.class && x.primaryMuscleGroup === muscleGroupsUsed[0],
+            );
+            const attack = attacksForPlayer[Math.floor(Math.random() * attacksForPlayer.length)] ?? attacks[0]!;
+            return {
+                attackWeapon: attack.weaponKind,
+                attackKind: attack.attackKind,
+                attackName: attack.name,
+            };
+        },
         generatePlayerInfo: ({ state }) => {
             // Generate a random fantasy enemy name and role.
             return {

@@ -54,7 +54,12 @@ export const formatGameEventMessage = (event: GameEvent) => {
         const { player, enemies } = event;
 
         return `${player} attacks ${formatNameList(
-            enemies.map((x) => `${x.healthStatus === `ok` ? `` : `${x.healthStatus}`} ${x.name}`),
+            enemies.map(
+                (x) =>
+                    `${x.healthStatus === `ok` ? `` : `${x.healthStatus}`} ${x.name} with ${x.attackName}${
+                        x.attackWeapon ? ` using ${x.attackWeapon}` : ``
+                    }`,
+            ),
         )}.`;
     }
     if (event.kind === `attack-enemy-outcome`) {

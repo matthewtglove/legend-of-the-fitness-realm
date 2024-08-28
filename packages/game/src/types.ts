@@ -15,6 +15,11 @@ export type GameState = {
 // MARK: GameLoreProvider
 export type GameLoreProvider = {
     getExerciseInfo: (exerciseName: string) => undefined | LoreTypes.ExerciseInfo;
+    generateAttack: (props: { state: GameState; player: GamePlayer; muscleGroupsUsed: LoreTypes.MuscleGroup[] }) => {
+        attackName: string;
+        attackKind: `melee` | `ranged` | `magic`;
+        attackWeapon?: string;
+    };
     generatePlayerInfo: (props: { state: GameState }) => { id: GamePlayerId };
     generateEnemyInfo(props: {
         state: GameState;
@@ -381,6 +386,7 @@ type RevealEnemyEvent = {
 type AttackEnemyEvent = {
     kind: `attack-enemy`;
     player: string;
+    muscleGroupsUsed: LoreTypes.MuscleGroup[];
     enemies: {
         id: GameCharacterId;
         name: string;
@@ -389,12 +395,14 @@ type AttackEnemyEvent = {
         healthStatus: GameCharacterHealthStatus;
         attackKind: `melee` | `ranged` | `magic`;
         attackWeapon?: string;
+        attackName: string;
     }[];
 };
 
 export type AttackEnemyOutcomeEvent = {
     kind: `attack-enemy-outcome`;
     player: string;
+    muscleGroupsUsed: LoreTypes.MuscleGroup[];
     enemies: {
         id: GameCharacterId;
         name: string;
