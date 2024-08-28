@@ -65,9 +65,14 @@ export const formatGameEventMessage = (event: GameEvent) => {
     if (event.kind === `attack-enemy-outcome`) {
         const { player, enemies } = event;
         const defeatedEnemies = enemies.filter((x) => x.healthStatus === `defeated`);
-        return `${player} hits ${formatNameList(enemies.map((x) => `${x.name} for ${x.damageSeverity} damage`))} ${
-            !defeatedEnemies.length ? `` : ` and defeats ${formatNameList(defeatedEnemies.map((x) => x.name))}`
-        }.`;
+        return `${player} hits ${formatNameList(
+            enemies.map(
+                (x) =>
+                    `${x.name} for ${x.damageSeverity} damage with ${x.attackName}${
+                        x.attackWeapon ? ` using ${x.attackWeapon}` : ``
+                    }`,
+            ),
+        )}  ${!defeatedEnemies.length ? `` : ` and defeats ${formatNameList(defeatedEnemies.map((x) => x.name))}`}.`;
     }
     if (event.kind === `search-location-key-item`) {
         const { location, keyItem } = event;

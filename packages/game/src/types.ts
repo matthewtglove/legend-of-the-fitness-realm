@@ -411,6 +411,7 @@ export type AttackEnemyOutcomeEvent = {
         healthStatus: GameCharacterHealthStatus;
         attackKind: `melee` | `ranged` | `magic`;
         attackWeapon?: string;
+        attackName: string;
         damageSeverity: `light` | `moderate` | `severe`;
         damage: number;
         isDefeated: boolean;

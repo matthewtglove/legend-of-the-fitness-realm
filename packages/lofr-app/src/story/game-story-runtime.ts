@@ -41,9 +41,9 @@ export const createGameStoryRuntime = () => {
         level: 1,
     });
     gameRuntime.createPlayer({
-        characterName: `Matthew the Musical`,
+        characterName: `Matthew the Musical Mage`,
         characterRace: `Elf`,
-        characterClass: `Bard`,
+        characterClass: `Mage`,
         level: 1,
     });
 

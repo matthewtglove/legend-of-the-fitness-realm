@@ -702,6 +702,11 @@ export const createGameRuntime = (
 
                             return {
                                 enemy,
+                                attack: {
+                                    attackKind: x.attackKind,
+                                    attackName: x.attackName,
+                                    attackWeapon: x.attackWeapon,
+                                },
                                 damage,
                                 damageSeverity,
                                 isDefeated: enemy.isDefeated,
@@ -723,7 +728,7 @@ export const createGameRuntime = (
                             name: x.enemy.name,
                             damage: x.damage,
                             damageSeverity: x.damageSeverity,
-                            attackKind: `melee` as const,
+                            ...x.attack,
                             healthStatus: calculateHealthState(x.enemy.stats),
                             isDefeated: x.isDefeated ?? false,
                         })),
@@ -765,12 +770,72 @@ export const createGameRuntime = (
                         x.location = newLocation.id;
                     });
                     newLocation.isDiscovered = true;
-                    // TODO: add enemies randomly to location
 
                     events.push({
                         kind: `describe-location`,
                         location: newLocation.name,
                     });
+
+                    // reveal enemies
+                    const enemiesAtlocation = state.characters.filter(
+                        (c) => c.location === location.id && c.role.alignment === `enemy` && !c.isDefeated,
+                    );
+
+                    // add basic enemies to location if none present
+                    if (!enemiesAtlocation.length) {
+                        const playerLevels = getSessionPlayers({ context }).map((x) => x.stats.level);
+                        const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
+                        const currentQuest = state.quests.findLast((x) => !x.isComplete);
+
+                        const newEnemyInfo = lore.generateEnemyInfo({
+                            state,
+                            playerLevels,
+                            locationId: location.id,
+                            enemyDifficulty: `normal`,
+                            campaignId: currentCampaign?.id,
+                            questId: currentQuest?.id,
+                        });
+                        const newEnemyStats = battle.generateEnemyStats({
+                            state,
+                            playerLevels,
+                            race: newEnemyInfo.role.race,
+                            class: newEnemyInfo.role.class,
+                            enemyDifficulty: newEnemyInfo.role.enemyDifficulty,
+                        });
+                        const newEnemy: GameCharacter = {
+                            id: newEnemyInfo.id,
+                            name: newEnemyInfo.name,
+                            role: { ...newEnemyInfo.role, alignment: `enemy` },
+                            stats: { ...newEnemyStats.stats },
+                            location: location.id,
+                        };
+                        state.characters.push(newEnemy);
+                        enemiesAtlocation.push(newEnemy);
+                    }
+
+                    if (enemiesAtlocation.length) {
+                        const revealResult = playerAction_revealEnemies({
+                            context,
+                            estimateRemainingSec,
+                            enemiesAtlocation,
+                        });
+                        estimateRemainingSec = revealResult.estimateRemainingSec;
+                        events.push(...revealResult.events);
+                        return;
+                    }
+                    console.log(`resolvePlayerAction - MOVE LOCATION - no enemies at new location`, { action });
+
+                    // search location
+                    if (location.keyItem) {
+                        // key item found
+                        const searchResult = playerAction_searchLocation({ context, estimateRemainingSec });
+                        estimateRemainingSec = searchResult.estimateRemainingSec;
+                        events.push(...searchResult.events);
+                        return;
+                    }
+
+                    console.log(`resolvePlayerAction - MOVE LOCATION - no key items at new location`, { action });
+
                     return;
                 }
 
