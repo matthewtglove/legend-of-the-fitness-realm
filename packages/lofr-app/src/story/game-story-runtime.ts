@@ -2,6 +2,7 @@ import {
     createEmptyGameState,
     createGameBattleProvider,
     createGameLoreProvider,
+    createLoreBuilder,
     createGameRuntime,
     GameEventResponse,
     GameRuntimeContext,
@@ -10,9 +11,29 @@ import {
 } from '@lofr/game';
 import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
 import { speakText } from '../workout/workout-announce';
+import { sendOpenRouterAiRequest } from './call-llm';
 
 export const createGameStoryRuntime = () => {
-    const gameRuntime = createGameRuntime(createEmptyGameState(), createGameLoreProvider(), createGameBattleProvider());
+    const loreBuilder = createLoreBuilder({
+        storageProvider: {
+            get: (key: string) => localStorage.getItem(key) || undefined,
+            set: (key: string, value: string) => localStorage.setItem(key, value),
+            remove: (key: string) => localStorage.removeItem(key),
+        },
+        aiProvider: {
+            sendPrompt: async (systemPrompt: string, prompt: string, options) => {
+                return await sendOpenRouterAiRequest(systemPrompt, prompt, {
+                    maxTokens: options?.maxPromptResponseLength,
+                });
+            },
+        },
+    });
+
+    const gameRuntime = createGameRuntime(
+        createEmptyGameState(),
+        createGameLoreProvider(loreBuilder),
+        createGameBattleProvider(),
+    );
     gameRuntime.createPlayer({
         characterName: `Rick the Rock Breaker`,
         characterRace: `Human`,
@@ -64,6 +85,9 @@ export const createGameStoryRuntime = () => {
     };
 
     return {
+        get loreBuilder() {
+            return loreBuilder;
+        },
         startWorkout: async (workoutSession: WorkoutSession) => {
             state.workoutSession = workoutSession;
             state.stepSessionPeriods = workoutSession.steps.map(getGameSessionPeriodsFromWorkoutStep);
@@ -117,12 +141,12 @@ export type GameStoryRuntime = ReturnType<typeof createGameStoryRuntime>;
 const getGameSessionPeriodsFromWorkoutStep = (step: WorkoutStep): GameSessionPeriod[] => {
     if (step.kind === `timed`) {
         return [
-            { kind: `work`, durationSec: step.workDurationSec },
-            { kind: `rest`, durationSec: step.restDurationSec },
+            { kind: `work`, durationSec: step.workDurationSec, exercises: step.exercises },
+            { kind: `rest`, durationSec: step.restDurationSec, exercises: [] },
         ];
     }
     if (step.kind === `rest`) {
-        return [{ kind: `rest`, durationSec: step.durationSec }];
+        return [{ kind: `rest`, durationSec: step.durationSec, exercises: [] }];
     }
 
     console.error(`getGameSessionPeriodsFromStep: NOT IMPLEMENTED for ${step.kind}`, { step });

@@ -1,18 +1,6 @@
+import { MuscleGroup, MuscleGroups, MuscleIntensity, MotionSpeed, ExerciseInfo, MotionSpeeds } from '../lore-types';
 import { definePrompt, promptResponseParser_findJson } from '../prompt-builder';
 import { z } from 'zod';
-
-export const MuscleGroups = [
-    `core`,
-    `back`,
-    `chest`,
-    `shoulders`,
-    `arms`,
-    `legs`,
-    `glutes`,
-] as (keyof ExerciseInfo[`muscleGroups`])[];
-export const MotionSpeeds = [`slow`, `normal`, `fast`, `explosive`] as const satisfies MotionSpeed[];
-
-export type MuscleGroup = `core` | `back` | `chest` | `shoulders` | `arms` | `legs` | `glutes`;
 
 export const normalizeMuscleGroup = (group: string): MuscleGroup => {
     group = group.toLowerCase().trim();
@@ -45,23 +33,6 @@ export const normalizeMuscleGroup = (group: string): MuscleGroup => {
     }
 
     return `core`;
-};
-
-export type MotionSpeed = `slow` | `normal` | `fast` | `explosive`;
-export type MuscleIntensity = 0 | 1 | 2 | 3 | 4 | 5;
-export type ExerciseInfo = {
-    name: string;
-    motionSpeed: MotionSpeed;
-    muscleGroups: {
-        core: MuscleIntensity;
-        back: MuscleIntensity;
-        arms: MuscleIntensity;
-        chest: MuscleIntensity;
-        shoulders: MuscleIntensity;
-        legs: MuscleIntensity;
-        glutes: MuscleIntensity;
-    };
-    raw?: unknown;
 };
 
 type MuscleIntensityLabel =

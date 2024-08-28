@@ -1,5 +1,5 @@
-import { LoreBuilderDependencies } from './lore-builder-types';
-import { ExerciseInfo, promptExerciseInfo } from './prompts/exercise-info';
+import { ExerciseInfo, LoreBuilderDependencies } from './lore-types';
+import { promptExerciseInfo } from './prompts/exercise-info';
 
 export const createLoreBuilder = (dependencies: LoreBuilderDependencies) => {
     // const getExerciseInfo = async (exerciseName: string): ExcersiceInfo => {}
@@ -39,6 +39,9 @@ export const createLoreBuilder = (dependencies: LoreBuilderDependencies) => {
         },
         set exercises(value: ExerciseInfo[]) {
             storageAccess.set(`exercises`, value);
+        },
+        getExerciseInfo_cached: (exerciseName: string) => {
+            return builder.exercises.find((e) => normalizeName(e.name) === normalizeName(exerciseName));
         },
         getExerciseInfo: async (exerciseName: string, shouldReplace = false) => {
             if (!exerciseName) {

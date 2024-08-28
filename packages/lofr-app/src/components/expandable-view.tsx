@@ -23,11 +23,16 @@ export const ExpandableView = ({
 
     return (
         <div className="p-2 border-2 rounded border-slate-200">
-            <div className="flex flex-row items-center justify-between">
-                <button onClick={() => setExpanded(!expanded)}>
+            <div className="flex flex-row items-center">
+                <button className="text-left" onClick={() => setExpanded(!expanded)}>
                     {expanded ? `⬇️` : `➡️`} {title}
                 </button>
-                {titleRight && <div title={tooltipRight}>{titleRight}</div>}
+                <div className="flex-grow" />
+                {titleRight && (
+                    <div title={tooltipRight} className="text-right">
+                        {titleRight}
+                    </div>
+                )}
             </div>
             {mode === `exclude` && expanded && children}
             {mode === `hide` && <div className={expanded ? `` : `hidden`}>{children}</div>}

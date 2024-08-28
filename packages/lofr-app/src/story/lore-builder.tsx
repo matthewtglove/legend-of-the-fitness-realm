@@ -1,28 +1,13 @@
 import { Fragment, ReactNode, useRef, useState } from 'react';
-import { createLoreBuilder, MuscleGroups } from '@lofr/game';
-import { sendOpenRouterAiRequest } from './call-llm';
+import { MuscleGroups } from '@lofr/game';
 import { useAsyncWorker } from '../components/use-async-worker';
 import { cn } from '../components/tailwind-utils';
 import { ExpandableView } from '../components/expandable-view';
 import { WorkoutProgram } from '@lofr/workout-parser';
+import { GameStoryRuntime } from './game-story-runtime';
 
-export const LoreBuilderView = (props: { workoutProgram?: WorkoutProgram }) => {
-    const loreBuilder = useRef(
-        createLoreBuilder({
-            storageProvider: {
-                get: (key: string) => localStorage.getItem(key) || undefined,
-                set: (key: string, value: string) => localStorage.setItem(key, value),
-                remove: (key: string) => localStorage.removeItem(key),
-            },
-            aiProvider: {
-                sendPrompt: async (systemPrompt: string, prompt: string, options) => {
-                    return await sendOpenRouterAiRequest(systemPrompt, prompt, {
-                        maxTokens: options?.maxPromptResponseLength,
-                    });
-                },
-            },
-        }),
-    );
+export const LoreBuilderView = (props: { workoutProgram?: WorkoutProgram; storyRuntime: GameStoryRuntime }) => {
+    const loreBuilder = useRef(props.storyRuntime.loreBuilder);
 
     const [builderCallResult, setBuilderCallResult] = useState(undefined as undefined | Record<string, unknown>);
     const [execiseName, setExerciseName] = useState(``);
@@ -95,12 +80,12 @@ export const LoreBuilderView = (props: { workoutProgram?: WorkoutProgram }) => {
                         <Fragment key={x.name}>
                             <ExpandableView
                                 title={`${x.name}`}
-                                titleRight={`${x.motionSpeed} - ${MuscleGroups.map(
-                                    (m) => `${x.muscleGroups[m]}${m.substring(0, 0)}`,
-                                ).join(`:`)}`}
-                                tooltipRight={`${x.motionSpeed} - ${MuscleGroups.map(
-                                    (m) => `${x.muscleGroups[m]} ${m}`,
-                                ).join(` : `)}`}
+                                titleRight={`${x.motionSpeed} ${MuscleGroups.map((m) => `${x.muscleGroups[m]}`).join(
+                                    `:`,
+                                )}`}
+                                tooltipRight={`(Speed) ${x.motionSpeed} - (Intensity) ${MuscleGroups.map(
+                                    (m) => `${m}: ${x.muscleGroups[m]}`,
+                                ).join(`, `)}`}
                             >
                                 <h4>{x.name}</h4>
                                 <div className="whitespace-pre-wrap text-sm text-gray-600">

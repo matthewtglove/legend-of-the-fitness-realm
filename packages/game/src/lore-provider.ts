@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { LoreBuilder } from './lore/lore-builder';
 import {
     GameCampaignId,
     GameCharacterId,
@@ -11,7 +12,7 @@ import {
     GameState,
 } from './types';
 
-export const createGameLoreProvider = (): GameLoreProvider => {
+export const createGameLoreProvider = (loreBuilder: LoreBuilder): GameLoreProvider => {
     const getNextId = (state: GameState) => {
         const id = state._nextId;
         state._nextId++;
@@ -19,6 +20,9 @@ export const createGameLoreProvider = (): GameLoreProvider => {
     };
 
     return {
+        getExerciseInfo: (exerciseName: string) => {
+            return loreBuilder.getExerciseInfo_cached(exerciseName);
+        },
         generatePlayerInfo: ({ state }) => {
             // Generate a random fantasy enemy name and role.
             return {

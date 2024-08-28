@@ -1,3 +1,5 @@
+import * as LoreTypes from './lore/lore-types';
+
 // MARK: GameState
 export type GameState = {
     players: GamePlayer[];
@@ -12,6 +14,7 @@ export type GameState = {
 
 // MARK: GameLoreProvider
 export type GameLoreProvider = {
+    getExerciseInfo: (exerciseName: string) => undefined | LoreTypes.ExerciseInfo;
     generatePlayerInfo: (props: { state: GameState }) => { id: GamePlayerId };
     generateEnemyInfo(props: {
         state: GameState;
@@ -265,7 +268,12 @@ export type GamePlayerWorkResult = {
     successKind: `weak` | `normal` | `strong`;
 };
 
-export type GameSessionPeriod = { kind: `work` | `rest`; durationSec: number };
+export type GameSessionPeriod = {
+    kind: `work` | `rest`;
+    durationSec: number;
+    /** The exercise names will provide the body parts involved */
+    exercises: { exerciseName: string }[];
+};
 
 // MARK: GameRuntimeContext
 export type GameRuntimeContext = {

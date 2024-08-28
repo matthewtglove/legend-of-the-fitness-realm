@@ -1,4 +1,4 @@
-import { LoreBuilderDependencies } from './lore-builder-types';
+import { LoreBuilderDependencies } from './lore-types';
 
 type PromptPair = { systemPrompt: string; prompt: string };
 export const definePrompt = <TInput, TOutput extends Record<string, unknown>>(props: {
