@@ -16,6 +16,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "cd scripts && npm run dev",
     "prepublish": "cd packages/lofr-app && npm run prepublish",
     "prepublish-ci": "cd packages/lofr-app && npm run prepublish-ci",
     "build": "cd packages/lofr-app && npm run build",
@@ -27,6 +28,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
+    "nodemon": "^3.1.4",
     "typescript": "^5.2.2"
   }
 }
