@@ -72,10 +72,22 @@ export const createGameLoreProvider = (loreBuilder: LoreBuilder): GameLoreProvid
                 { battleClass: `Bard`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `lute`, name: `Dance of Despair` },
             ] as const;
 
+            const mainMuscleGroups = muscleGroupsUsed.slice(0, 2);
             const attacksForPlayer = attacks.filter(
-                (x) => x.battleClass === player.role.class && x.primaryMuscleGroup === muscleGroupsUsed[0],
+                (x) =>
+                    x.battleClass.toLowerCase() === player.role.class.toLowerCase() &&
+                    mainMuscleGroups.includes(x.primaryMuscleGroup),
             );
             const attack = attacksForPlayer[Math.floor(Math.random() * attacksForPlayer.length)] ?? attacks[0]!;
+
+            console.log(`generateAttack`, {
+                role: player.role,
+                mainMuscleGroups,
+                player,
+                muscleGroupsUsed,
+                attack,
+                attacksForPlayer,
+            });
             return {
                 attackWeapon: attack.weaponKind,
                 attackKind: attack.attackKind,

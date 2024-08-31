@@ -5,7 +5,7 @@ import { WorkoutSessionTimer } from './workout/workout-timer';
 import { ExpandableView } from './components/expandable-view';
 import buildNumber from './build-version.json';
 import { createGameStoryRuntime } from './story/game-story-runtime';
-import { LoreBuilderView } from './story/lore-builder';
+import { LoreBuilderView } from './story/lore-builder-view';
 
 const appVersion = `v1.0.${buildNumber}`;
 

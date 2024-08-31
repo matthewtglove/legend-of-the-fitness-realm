@@ -776,12 +776,11 @@ export const createGameRuntime = (
                         location: newLocation.name,
                     });
 
-                    // reveal enemies
+                    // add basic enemies to location if none present
                     const enemiesAtlocation = state.characters.filter(
                         (c) => c.location === location.id && c.role.alignment === `enemy` && !c.isDefeated,
                     );
 
-                    // add basic enemies to location if none present
                     if (!enemiesAtlocation.length) {
                         const playerLevels = getSessionPlayers({ context }).map((x) => x.stats.level);
                         const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
@@ -813,29 +812,8 @@ export const createGameRuntime = (
                         enemiesAtlocation.push(newEnemy);
                     }
 
-                    if (enemiesAtlocation.length) {
-                        const revealResult = playerAction_revealEnemies({
-                            context,
-                            estimateRemainingSec,
-                            enemiesAtlocation,
-                        });
-                        estimateRemainingSec = revealResult.estimateRemainingSec;
-                        events.push(...revealResult.events);
-                        return;
-                    }
-                    console.log(`resolvePlayerAction - MOVE LOCATION - no enemies at new location`, { action });
-
-                    // search location
-                    if (location.keyItem) {
-                        // key item found
-                        const searchResult = playerAction_searchLocation({ context, estimateRemainingSec });
-                        estimateRemainingSec = searchResult.estimateRemainingSec;
-                        events.push(...searchResult.events);
-                        return;
-                    }
-
-                    console.log(`resolvePlayerAction - MOVE LOCATION - no key items at new location`, { action });
-
+                    const actionEvents = startPlayerAction({ context, estimateRemainingSec });
+                    events.push(...actionEvents.events);
                     return;
                 }
 
