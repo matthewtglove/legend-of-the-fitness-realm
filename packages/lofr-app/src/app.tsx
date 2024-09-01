@@ -6,6 +6,7 @@ import { ExpandableView } from './components/expandable-view';
 import buildNumber from './build-version.json';
 import { createGameStoryRuntime } from './story/game-story-runtime';
 import { LoreBuilderView } from './story/lore-builder-view';
+import { GameDebugger } from './story/game-debugger';
 
 const appVersion = `v1.0.${buildNumber}`;
 
@@ -49,8 +50,13 @@ export const App = () => {
                 </div> */}
             </div>
             <div className="m-2">
-                <ExpandableView mode="hide" title="Lore Builder" expanded={true}>
+                <ExpandableView mode="hide" title="Lore Builder" expanded={false}>
                     <LoreBuilderView workoutProgram={workoutProgram} storyRuntime={storyRuntimeRef.current} />
+                </ExpandableView>
+            </div>
+            <div className="m-2">
+                <ExpandableView mode="exclude" title="Game Debugger" expanded={false}>
+                    <GameDebugger workoutProgram={workoutProgram} storyRuntime={storyRuntimeRef.current} />
                 </ExpandableView>
             </div>
             <div className="absolute pointer-events-none top-1 right-1 opacity-20">{appVersion}</div>

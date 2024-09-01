@@ -85,8 +85,14 @@ export const createGameStoryRuntime = () => {
     };
 
     return {
+        get gameRuntime() {
+            return gameRuntime;
+        },
         get loreBuilder() {
             return loreBuilder;
+        },
+        get gameContext() {
+            return getGameContext();
         },
         startWorkout: async (workoutSession: WorkoutSession) => {
             state.workoutSession = workoutSession;
