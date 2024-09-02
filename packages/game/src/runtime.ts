@@ -919,40 +919,43 @@ export const createGameRuntime = (
                         location: newLocation.name,
                     });
 
-                    // // add basic enemies to location if none present
-                    // const enemiesAtlocation = state.characters.filter(
-                    //     (c) => c.location === newLocation.id && c.role.alignment === `enemy` && !c.isDefeated,
-                    // );
-                    // if (!enemiesAtlocation.length) {
-                    //     const playerLevels = getSessionPlayers({ context }).map((x) => x.stats.level);
-                    //     const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
-                    //     const currentQuest = state.quests.findLast((x) => !x.isComplete);
+                    // add basic enemies to location if none present
+                    const enemiesAtlocation = state.characters.filter(
+                        (c) => c.location === newLocation.id && c.role.alignment === `enemy` && !c.isDefeated,
+                    );
 
-                    //     const newEnemyInfo = lore.generateEnemyInfo({
-                    //         state,
-                    //         playerLevels,
-                    //         locationId: newLocation.id,
-                    //         enemyDifficulty: `normal`,
-                    //         campaignId: currentCampaign?.id,
-                    //         questId: currentQuest?.id,
-                    //     });
-                    //     const newEnemyStats = battle.generateEnemyStats({
-                    //         state,
-                    //         playerLevels,
-                    //         race: newEnemyInfo.role.race,
-                    //         class: newEnemyInfo.role.class,
-                    //         enemyDifficulty: newEnemyInfo.role.enemyDifficulty,
-                    //     });
-                    //     const newEnemy: GameCharacter = {
-                    //         id: newEnemyInfo.id,
-                    //         name: newEnemyInfo.name,
-                    //         role: { ...newEnemyInfo.role, alignment: `enemy` },
-                    //         stats: { ...newEnemyStats.stats },
-                    //         location: newLocation.id,
-                    //     };
-                    //     state.characters.push(newEnemy);
-                    //     enemiesAtlocation.push(newEnemy);
-                    // }
+                    const SPAWN_ENEMY_CHANCE = 0.5;
+
+                    if (!enemiesAtlocation.length && Math.random() < SPAWN_ENEMY_CHANCE) {
+                        const playerLevels = getSessionPlayers({ context }).map((x) => x.stats.level);
+                        const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
+                        const currentQuest = state.quests.findLast((x) => !x.isComplete);
+
+                        const newEnemyInfo = lore.generateEnemyInfo({
+                            state,
+                            playerLevels,
+                            locationId: newLocation.id,
+                            enemyDifficulty: `normal`,
+                            campaignId: currentCampaign?.id,
+                            questId: currentQuest?.id,
+                        });
+                        const newEnemyStats = battle.generateEnemyStats({
+                            state,
+                            playerLevels,
+                            race: newEnemyInfo.role.race,
+                            class: newEnemyInfo.role.class,
+                            enemyDifficulty: newEnemyInfo.role.enemyDifficulty,
+                        });
+                        const newEnemy: GameCharacter = {
+                            id: newEnemyInfo.id,
+                            name: newEnemyInfo.name,
+                            role: { ...newEnemyInfo.role, alignment: `enemy` },
+                            stats: { ...newEnemyStats.stats },
+                            location: newLocation.id,
+                        };
+                        state.characters.push(newEnemy);
+                        enemiesAtlocation.push(newEnemy);
+                    }
 
                     if (!disablePlanAhead) {
                         const actionEvents = startPlayerAction({ context, estimateRemainingSec, disableAttack: true });
