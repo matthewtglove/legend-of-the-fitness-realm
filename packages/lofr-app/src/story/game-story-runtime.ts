@@ -146,10 +146,14 @@ export type GameStoryRuntime = ReturnType<typeof createGameStoryRuntime>;
 
 const getGameSessionPeriodsFromWorkoutStep = (step: WorkoutStep): GameSessionPeriod[] => {
     if (step.kind === `timed`) {
-        return [
+        const set = [
             { kind: `work`, durationSec: step.workDurationSec, exercises: step.exercises },
             { kind: `rest`, durationSec: step.restDurationSec, exercises: [] },
-        ];
+        ] as GameSessionPeriod[];
+
+        // repeat sets
+        const { setCount } = step;
+        return Array.from({ length: setCount }).flatMap(() => set);
     }
     if (step.kind === `rest`) {
         return [{ kind: `rest`, durationSec: step.durationSec, exercises: [] }];

@@ -24,7 +24,7 @@ export const ExpandableView = ({
     return (
         <div className="p-2 border-2 rounded border-slate-200">
             <div className="flex flex-row items-center">
-                <button className="text-left" onClick={() => setExpanded(!expanded)}>
+                <button className="text-left whitespace-pre-wrap" onClick={() => setExpanded(!expanded)}>
                     {expanded ? `⬇️` : `➡️`} {title}
                 </button>
                 <div className="flex-grow" />

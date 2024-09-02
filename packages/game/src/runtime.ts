@@ -780,10 +780,12 @@ export const createGameRuntime = (
         context,
         workResults,
         estimateRemainingSec,
+        disablePlanAhead,
     }: {
         context: GameRuntimeContext;
         workResults: GamePlayerWorkResult[];
         estimateRemainingSec: number;
+        disablePlanAhead?: boolean;
     }): { events: GameEvent[] } => {
         if (estimateRemainingSec <= 15) {
             // short response
@@ -950,8 +952,10 @@ export const createGameRuntime = (
                     //     enemiesAtlocation.push(newEnemy);
                     // }
 
-                    const actionEvents = startPlayerAction({ context, estimateRemainingSec, disableAttack: true });
-                    events.push(...actionEvents.events);
+                    if (!disablePlanAhead) {
+                        const actionEvents = startPlayerAction({ context, estimateRemainingSec, disableAttack: true });
+                        events.push(...actionEvents.events);
+                    }
                     return;
                 }
 
@@ -1072,6 +1076,7 @@ export const createGameRuntime = (
                 context,
                 workResults: [],
                 estimateRemainingSec: context.currentSessionPeriod.remainingSec,
+                disablePlanAhead: true,
             });
 
             if (state.players.some((x) => x.pendingActions?.length)) {

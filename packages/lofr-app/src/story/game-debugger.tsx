@@ -15,7 +15,7 @@ import {
     GameSessionPeriod,
 } from '@lofr/game';
 import { sendOpenRouterAiRequest } from './call-llm';
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { useStableCallback } from '../components/use-stable-callback';
 import { ExpandableView } from '../components/expandable-view';
 import { Button } from '../components/buttons';
@@ -138,6 +138,21 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
         });
         pushGameState(gameRuntime.state, event);
     };
+
+    const triggerExtraWorkPeriod = () => {
+        const event = gameRuntime.triggerWorkPeriod({
+            context: gameContextRef.current,
+        });
+        pushGameState(gameRuntime.state, event);
+    };
+    const triggerExtraRestPeriod = () => {
+        const event = gameRuntime.triggerRestPeriod({
+            context: gameContextRef.current,
+            workResults: [],
+        });
+        pushGameState(gameRuntime.state, event);
+    };
+
     const triggerNextPeriod = () => {
         const currentPeriod = gameContextRef.current.sessionPeriods[gameContextRef.current.currentSessionPeriod.index];
         if (!currentPeriod) {
@@ -173,9 +188,15 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
             <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
                 <Button onClick={triggerSessionStart}>Start Workout Session</Button>
                 <Button onClick={triggerSessionEnd}>End Workout Session</Button>
+            </div>
+            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
                 {hasNextPeriod && <Button onClick={triggerNextPeriod}>Trigger Next Period</Button>}
-                {/* <Button onClick={triggerWorkPeriod}>Trigger Work Period</Button>
-                <Button onClick={triggerRestPeriod}>Trigger Rest Period</Button> */}
+                <Button className="bg-yellow-600" onClick={triggerExtraWorkPeriod}>
+                    Trigger Extra Work Period
+                </Button>
+                <Button className="bg-yellow-600" onClick={triggerExtraRestPeriod}>
+                    Trigger Extra Rest Period
+                </Button>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -185,11 +206,20 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                             title={`GameState ${i} - Event ${
                                 !state.period
                                     ? `(no session period)`
-                                    : `${state.period.kind} ${state.period.durationSec}sec ${state.period.exercises
-                                          .map((ex) => ex.exerciseName)
-                                          .join(`, `)}`
+                                    : `${state.period.kind === `work` ? `💪` : `🛌`}${state.period.kind} ${
+                                          state.period.durationSec
+                                      }sec ${state.period.exercises.map((ex) => ex.exerciseName).join(`, `)}`
+                            } \n${
+                                // events
+                                `${state.event?.events.map((x) => `▪ ${x.kind}`).join(`, `) ?? ``}`
+                            } \n${
+                                // players
+                                `${state.state.players
+                                    .map((p) => `${p.pendingActions?.map((a) => `⏱ ${a.kind}`).join(`, `) ?? ``}`)
+                                    .filter((x) => x)
+                                    .join(`\n`)}`
                             }`}
-                            expanded={true}
+                            expanded={false}
                             mode={`exclude`}
                         >
                             <pre className="whitespace-pre-wrap my-2">{summarizeGameEvent(state.event)}</pre>
@@ -220,9 +250,15 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
             <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
                 <Button onClick={triggerSessionStart}>Start Workout Session</Button>
                 <Button onClick={triggerSessionEnd}>End Workout Session</Button>
+            </div>
+            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
                 {hasNextPeriod && <Button onClick={triggerNextPeriod}>Trigger Next Period</Button>}
-                {/* <Button onClick={triggerWorkPeriod}>Trigger Work Period</Button>
-                <Button onClick={triggerRestPeriod}>Trigger Rest Period</Button> */}
+                <Button className="bg-yellow-600" onClick={triggerExtraWorkPeriod}>
+                    Trigger Extra Work Period
+                </Button>
+                <Button className="bg-yellow-600" onClick={triggerExtraRestPeriod}>
+                    Trigger Extra Rest Period
+                </Button>
             </div>
 
             <GameContextEditor
@@ -417,23 +453,37 @@ export const GameContextEditor = ({
     onReload: () => void;
 }) => {
     return (
-        <JsonEditor
-            label="Game Context"
-            value={value}
-            onChange={onChange}
-            onReload={onReload}
-            parseJson={(x) => {
-                const obj = JSON.parse(x) as GameRuntimeContext;
-                return obj;
-                // return {
-                //     sessionPeriods: obj.sessionPeriods.map((sp) => ({
-                //         kind: sp.kind,
-                //         exercises: sp.exercises.map((ex) => ({ exercisename: ex.exerciseName })),
-                //         durationSec: sp.durationSec,
-                //     })),
-                // } satisfies GameRuntimeContext;
-            }}
-        />
+        <>
+            <div className="flex flex-col gap-0">
+                <h1>Session Periods</h1>
+                {value.sessionPeriods.map((sp, i) => (
+                    <Fragment key={i}>
+                        <div className="">
+                            {`Session Period ${i}: ${sp.kind} ${sp.durationSec}sec ${sp.exercises
+                                .map((ex) => ex.exerciseName)
+                                .join(`, `)}`}
+                        </div>
+                    </Fragment>
+                ))}
+            </div>
+            <JsonEditor
+                label="Game Context"
+                value={value}
+                onChange={onChange}
+                onReload={onReload}
+                parseJson={(x) => {
+                    const obj = JSON.parse(x) as GameRuntimeContext;
+                    return obj;
+                    // return {
+                    //     sessionPeriods: obj.sessionPeriods.map((sp) => ({
+                    //         kind: sp.kind,
+                    //         exercises: sp.exercises.map((ex) => ({ exercisename: ex.exerciseName })),
+                    //         durationSec: sp.durationSec,
+                    //     })),
+                    // } satisfies GameRuntimeContext;
+                }}
+            />
+        </>
     );
 };
 
