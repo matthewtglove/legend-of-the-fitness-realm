@@ -1,7 +1,5 @@
-import { exec, execSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { exec } from 'child_process';
 import { readdir, readFile } from 'fs/promises';
-import nodemon from 'nodemon';
 import { resolve } from 'path';
 
 export const run_watchAll = async () => {
@@ -39,73 +37,6 @@ const loadPackageJson = async (packagePath: string) => {
 const packageJsonHasScript = async (packagePath: string, scriptName: string) => {
     const packageJson = await loadPackageJson(packagePath);
     return packageJson.scripts && packageJson.scripts[scriptName];
-};
-
-export const run_singleNodemon = async () => {
-    const root = resolve(`../`);
-    const watch = [
-        // watch packages
-        resolve(`../packages/`),
-        // resolve(`../packages/**/*.ts`),
-        // resolve(`../packages/**/*.tsx`),
-    ];
-    console.log(`watching: `, watch);
-
-    nodemon({
-        watch,
-        ignoreRoot: [`**/node_modules`, `**/dist`],
-        script: `empty.js`,
-        ext: `js json ts tsx css scss md`,
-    })
-        .on(`start`, function () {
-            console.log(`dev started`);
-        })
-        .on(`quit`, function () {
-            console.log(`dev has quit`);
-            process.exit();
-        })
-        .on(`restart`, function (files) {
-            console.log(`dev restarted due to: `, files);
-
-            const fileNames = Array.isArray(files) ? (files as unknown as string[]) : undefined;
-            if (!fileNames) {
-                return;
-            }
-
-            const packagePathsAll = fileNames.map((x) => {
-                x = x.replace(/\\/g, `/`);
-                const iPackage = x.indexOf(`packages/`, root.length);
-                const iPackageEnd = x.indexOf(`/`, iPackage + `packages/`.length);
-                const packageName = x.substring(iPackage + `packages/`.length, iPackageEnd);
-                const packagePath = x.substring(0, iPackageEnd);
-                return { packageName, packagePath };
-            });
-            const packagePaths = [...new Map(packagePathsAll.map((x) => [x.packagePath, x])).values()];
-
-            // console.log(`packagePaths: `, { packagePaths, packagePathsAll });
-
-            // run dev scripts
-            const scriptNames = [`build:types`];
-
-            for (const { packagePath, packageName } of packagePaths) {
-                const packageJsonPath = resolve(packagePath, `package.json`);
-                try {
-                    const packageJsonContents = readFileSync(packageJsonPath, { encoding: `utf8` });
-                    const packageJson = JSON.parse(packageJsonContents) as { scripts?: Record<string, string> };
-
-                    for (const scriptName of scriptNames) {
-                        if (packageJson.scripts && packageJson.scripts[scriptName]) {
-                            console.log(`${packageName}: ${scriptName}`);
-                            execSync(`npm run ${scriptName}`, { cwd: packagePath, stdio: `inherit` });
-                        }
-                    }
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-        });
-
-    // return `Hello, World!`;
 };
 
 run_watchAll()

@@ -13,7 +13,8 @@
   "homepage": "https://github.com/matthewtglove/legend-of-the-fitness-realm#readme",
   "description": "",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "scripts"
   ],
   "scripts": {
     "dev": "cd scripts && npm run dev",

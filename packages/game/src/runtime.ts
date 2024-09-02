@@ -411,7 +411,7 @@ export const createGameRuntime = (
 
         // get next exercise period
         const exercisePeriodDistance =
-            context.sessionPeriodsRemaining.findIndex((x) => x.exercises, context.currentSessionPeriod.index) -
+            context.sessionPeriodsRemaining.findIndex((x) => !!x.exercises, context.currentSessionPeriod.index) -
             context.currentSessionPeriod.index;
 
         if (exercisePeriodDistance > 1) {
