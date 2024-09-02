@@ -338,7 +338,7 @@ export const createGameRuntime = (
                 state,
                 playerLevels,
                 locationId: unreachedLocation.id,
-                enemyDifficulty: `normal`,
+                enemyDifficulty: `minor-boss`,
                 campaignId: campaign.id,
                 questId: newQuest.id,
             });
@@ -449,7 +449,7 @@ export const createGameRuntime = (
                 ],
             } satisfies GamePendingActionEvent;
             events.push(attackEnemy);
-            player.pendingActions = [attackEnemy];
+            (player.pendingActions ??= []).push(attackEnemy);
         });
 
         return {
@@ -501,6 +501,23 @@ export const createGameRuntime = (
         };
     };
 
+    const updateKeyItemCompletions = () => {
+        for (const q of state.quests) {
+            const objectives = q.objectives;
+            if (objectives.every((o) => state.keyItems.find((k) => k.id === o.completionKeyItem)?.isObtained)) {
+                q.isComplete = true;
+                // TODO: complete quest
+            }
+        }
+
+        for (const c of state.campaigns) {
+            if (c.quests.every((q) => state.quests.find((x) => x.id === q)?.isComplete)) {
+                c.isComplete = true;
+                // TODO: complete campaign
+            }
+        }
+    };
+
     const playerAction_searchLocation = ({
         context,
         estimateRemainingSec,
@@ -530,6 +547,8 @@ export const createGameRuntime = (
             location: location.name,
             keyItem: keyItem.name,
         });
+
+        updateKeyItemCompletions();
 
         return {
             events,
@@ -623,19 +642,24 @@ export const createGameRuntime = (
         }
 
         const players = getSessionPlayers({ context });
+        const connection = location.connections.find((x) => x.location === nextLocation.id);
         const moveLocation: GamePendingActionEvent = {
             kind: `move-location`,
             location: nextLocation.name,
             locationId: nextLocation.id,
-            connection: location.connections.find((x) => x.location === nextLocation.id)?.name,
+            connection: connection?.name,
             playerNames: players.map((x) => x.name),
         };
         events.push(moveLocation);
         players.forEach((x) => {
             // x.location = nextLocation.id;
             // nextLocation.isDiscovered = true;
-            x.pendingActions = [moveLocation];
+            (x.pendingActions ??= []).push(moveLocation);
         });
+
+        if (connection) {
+            connection.isDiscovered = true;
+        }
 
         return {
             events,
@@ -663,10 +687,12 @@ export const createGameRuntime = (
         // if unsearched location, search location
         // - if key item, obtain key item
 
-        const location = getLocation({ context });
-
         // handle pending player actions
         const pendingActions = state.players.flatMap((x) => x.pendingActions ?? []);
+        state.players.forEach((x) => {
+            x.pendingActions = [];
+        });
+
         if (pendingActions.length) {
             const events: GameEvent[] = [];
 
@@ -750,6 +776,8 @@ export const createGameRuntime = (
                                 enemy: x.enemy.name,
                                 keyItem: keyItem.name,
                             });
+
+                            updateKeyItemCompletions();
                         });
 
                     return;
@@ -776,41 +804,40 @@ export const createGameRuntime = (
                         location: newLocation.name,
                     });
 
-                    // add basic enemies to location if none present
-                    const enemiesAtlocation = state.characters.filter(
-                        (c) => c.location === location.id && c.role.alignment === `enemy` && !c.isDefeated,
-                    );
+                    // // add basic enemies to location if none present
+                    // const enemiesAtlocation = state.characters.filter(
+                    //     (c) => c.location === newLocation.id && c.role.alignment === `enemy` && !c.isDefeated,
+                    // );
+                    // if (!enemiesAtlocation.length) {
+                    //     const playerLevels = getSessionPlayers({ context }).map((x) => x.stats.level);
+                    //     const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
+                    //     const currentQuest = state.quests.findLast((x) => !x.isComplete);
 
-                    if (!enemiesAtlocation.length) {
-                        const playerLevels = getSessionPlayers({ context }).map((x) => x.stats.level);
-                        const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
-                        const currentQuest = state.quests.findLast((x) => !x.isComplete);
-
-                        const newEnemyInfo = lore.generateEnemyInfo({
-                            state,
-                            playerLevels,
-                            locationId: location.id,
-                            enemyDifficulty: `normal`,
-                            campaignId: currentCampaign?.id,
-                            questId: currentQuest?.id,
-                        });
-                        const newEnemyStats = battle.generateEnemyStats({
-                            state,
-                            playerLevels,
-                            race: newEnemyInfo.role.race,
-                            class: newEnemyInfo.role.class,
-                            enemyDifficulty: newEnemyInfo.role.enemyDifficulty,
-                        });
-                        const newEnemy: GameCharacter = {
-                            id: newEnemyInfo.id,
-                            name: newEnemyInfo.name,
-                            role: { ...newEnemyInfo.role, alignment: `enemy` },
-                            stats: { ...newEnemyStats.stats },
-                            location: location.id,
-                        };
-                        state.characters.push(newEnemy);
-                        enemiesAtlocation.push(newEnemy);
-                    }
+                    //     const newEnemyInfo = lore.generateEnemyInfo({
+                    //         state,
+                    //         playerLevels,
+                    //         locationId: newLocation.id,
+                    //         enemyDifficulty: `normal`,
+                    //         campaignId: currentCampaign?.id,
+                    //         questId: currentQuest?.id,
+                    //     });
+                    //     const newEnemyStats = battle.generateEnemyStats({
+                    //         state,
+                    //         playerLevels,
+                    //         race: newEnemyInfo.role.race,
+                    //         class: newEnemyInfo.role.class,
+                    //         enemyDifficulty: newEnemyInfo.role.enemyDifficulty,
+                    //     });
+                    //     const newEnemy: GameCharacter = {
+                    //         id: newEnemyInfo.id,
+                    //         name: newEnemyInfo.name,
+                    //         role: { ...newEnemyInfo.role, alignment: `enemy` },
+                    //         stats: { ...newEnemyStats.stats },
+                    //         location: newLocation.id,
+                    //     };
+                    //     state.characters.push(newEnemy);
+                    //     enemiesAtlocation.push(newEnemy);
+                    // }
 
                     const actionEvents = startPlayerAction({ context, estimateRemainingSec });
                     events.push(...actionEvents.events);
@@ -930,7 +957,19 @@ export const createGameRuntime = (
             throw new Error(`Not implemented`);
         },
         triggerWorkPeriod: ({ context }) => {
+            const resolvedAction = resolvePlayerAction({
+                context,
+                workResults: [],
+                estimateRemainingSec: context.currentSessionPeriod.remainingSec,
+            });
+
+            if (state.players.some((x) => x.pendingActions?.length)) {
+                // actions pending after resolve, don't start new action
+                return response(...resolvedAction.events);
+            }
+
             return response(
+                ...resolvedAction.events,
                 ...startPlayerAction({ context, estimateRemainingSec: context.currentSessionPeriod.remainingSec })
                     .events,
             );
