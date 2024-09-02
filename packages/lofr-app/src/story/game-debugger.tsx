@@ -12,6 +12,7 @@ import {
     GameEventResponse,
     formatGameEventMessage,
     GamePendingActionEvent,
+    GameSessionPeriod,
 } from '@lofr/game';
 import { sendOpenRouterAiRequest } from './call-llm';
 import { useRef, useState } from 'react';
@@ -43,7 +44,7 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
             ) as typeof props.storyRuntime.gameContext,
             state: JSON.parse(JSON.stringify(gameRuntime.state)) as typeof gameRuntime.state,
             delta: {} as unknown,
-            periodKind: undefined as undefined | `work` | `rest`,
+            period: undefined as undefined | GameSessionPeriod,
             event: undefined as undefined | GameEventResponse,
         },
     ]);
@@ -54,14 +55,14 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
 
     gameRuntime.triggerSessionStart;
 
-    const pushGameState = (state: GameState, event: GameEventResponse, periodKind?: `work` | `rest`) => {
+    const pushGameState = (state: GameState, event: GameEventResponse, period?: GameSessionPeriod) => {
         const lastState = stateHistory[stateHistory.length - 1];
         if (!lastState) {
             stateHistory.push({
                 context: JSON.parse(JSON.stringify(gameContextRef.current)),
                 state,
                 delta: state,
-                periodKind,
+                period,
                 event,
             });
             return;
@@ -101,7 +102,7 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
             context: JSON.parse(JSON.stringify(gameContextRef.current)),
             state: JSON.parse(JSON.stringify(state)),
             delta: findObjectDelta(state, lastState),
-            periodKind,
+            period,
             event,
         });
         setRenderId((s) => s + 1);
@@ -153,7 +154,7 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                       context: gameContextRef.current,
                       workResults: [],
                   });
-        pushGameState(gameRuntime.state, event, currentPeriod.kind);
+        pushGameState(gameRuntime.state, event, currentPeriod);
 
         // go to next period
         gameContextRef.current.currentSessionPeriod = {
@@ -181,7 +182,13 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                 {stateHistory.map((state, i) => (
                     <ExpandableView key={i} title={`GameState ${i}`} expanded={true} mode={`exclude`}>
                         <ExpandableView
-                            title={`GameState ${i} - Event ${state.periodKind}`}
+                            title={`GameState ${i} - Event ${
+                                !state.period
+                                    ? `(no session period)`
+                                    : `${state.period.kind} ${state.period.durationSec}sec ${state.period.exercises
+                                          .map((ex) => ex.exerciseName)
+                                          .join(`, `)}`
+                            }`}
                             expanded={true}
                             mode={`exclude`}
                         >
@@ -197,18 +204,6 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                                     )
                                     .join(`\n`)}
                             </pre>
-                            {state.periodKind && (
-                                <div>
-                                    Current Session:
-                                    <pre className="whitespace-pre-wrap my-2">
-                                        {JSON.stringify(
-                                            state.context.sessionPeriods[state.context.currentSessionPeriod.index],
-                                            null,
-                                            2,
-                                        )}
-                                    </pre>
-                                </div>
-                            )}
                         </ExpandableView>
                         <ExpandableView title={`GameState ${i} - Summary`} expanded={false} mode={`exclude`}>
                             <pre className="whitespace-pre-wrap">{summarizeGameState(state.state)}</pre>

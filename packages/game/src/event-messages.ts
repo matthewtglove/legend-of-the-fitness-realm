@@ -42,6 +42,26 @@ export const formatGameEventMessage = (event: GameEvent) => {
             `continue`,
         )} their quest to "${quest}" as part of their campaign: "${campaign}".`;
     }
+
+    if (event.kind === `rest`) {
+        const {
+            //
+            campaign,
+            quest,
+            location,
+            playerNames,
+        } = event;
+        if (!campaign) {
+            return `In ${location}, ${formatNameList(playerNames)} ${formatPlural(
+                playerNames,
+                `continue`,
+            )} their quest to "${quest}".`;
+        }
+        return `In ${location}, ${formatNameList(playerNames.map((x) => `"${x}"`))} ${formatPlural(
+            playerNames,
+            `continue`,
+        )} their quest to "${quest}" as part of their campaign: "${campaign}".`;
+    }
     if (event.kind === `quest-objective`) {
         const { objective } = event;
         return `The party must "${objective}".`;
@@ -49,6 +69,18 @@ export const formatGameEventMessage = (event: GameEvent) => {
     if (event.kind === `reveal-enemy`) {
         const { enemies } = event;
         return `You are surprised by ${formatNameList(enemies.map((x) => `${x.name} the ${x.race} ${x.class}`))}.`;
+    }
+    if (event.kind === `plan-attack-enemy`) {
+        const { player, enemies } = event;
+
+        return `${player} imagines attacking ${formatNameList(
+            enemies.map(
+                (x) =>
+                    `${x.healthStatus === `ok` ? `` : `${x.healthStatus}`} ${x.name} with ${x.attackName}${
+                        x.attackWeapon ? ` using ${x.attackWeapon}` : ``
+                    }`,
+            ),
+        )}.`;
     }
     if (event.kind === `attack-enemy`) {
         const { player, enemies } = event;

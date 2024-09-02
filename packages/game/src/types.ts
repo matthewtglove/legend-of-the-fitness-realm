@@ -316,12 +316,14 @@ export type GameEventResponse = {
  */
 export type GameEvent =
     | StoryReviewEvent
+    | RestEvent
     | QuestObjectiveEvent
     | MoveLocationEvent
     | DescribeLocationEvent
     | SearchLocationKeyItemEvent
     | LootEnemyKeyItemEvent
     | RevealEnemyEvent
+    | PlanAttackEnemyEvent
     | AttackEnemyEvent
     | AttackEnemyOutcomeEvent
     | TalkToNPCEvent
@@ -334,6 +336,14 @@ export type GameCharacterHealthStatus = `ok` | `hurt` | `wounded` | `bleeding` |
 
 type StoryReviewEvent = {
     kind: `story-review`;
+    campaign?: string;
+    quest: string;
+    location: string;
+    playerNames: string[];
+};
+
+type RestEvent = {
+    kind: `rest`;
     campaign?: string;
     quest: string;
     location: string;
@@ -380,6 +390,22 @@ type RevealEnemyEvent = {
         race: string;
         class: string;
         healthStatus: GameCharacterHealthStatus;
+    }[];
+};
+
+type PlanAttackEnemyEvent = {
+    kind: `plan-attack-enemy`;
+    player: string;
+    muscleGroupsUsed: LoreTypes.MuscleGroup[];
+    enemies: {
+        id: GameCharacterId;
+        name: string;
+        health?: number;
+        healthMax?: number;
+        healthStatus: GameCharacterHealthStatus;
+        attackKind: `melee` | `ranged` | `magic`;
+        attackWeapon?: string;
+        attackName: string;
     }[];
 };
 

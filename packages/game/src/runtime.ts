@@ -398,6 +398,100 @@ export const createGameRuntime = (
         };
     };
 
+    const playerAction_planAhead = ({
+        context,
+        estimateRemainingSec,
+        revealedEnemies,
+    }: {
+        context: GameRuntimeContext;
+        estimateRemainingSec: number;
+        revealedEnemies: GameCharacter[];
+    }) => {
+        const sessionPlayers = getSessionPlayers({ context });
+
+        // get next exercise period
+        const exercisePeriodDistance =
+            context.sessionPeriodsRemaining.findIndex((x) => x.exercises, context.currentSessionPeriod.index) -
+            context.currentSessionPeriod.index;
+
+        if (exercisePeriodDistance > 1) {
+            // rest, backstory, etc.
+            const quest = ensureQuestExists({ context });
+            const campaign = getCampaignFromQuest({ questId: quest.id });
+            // Ensure all players are in the same location
+            const currentPlayers = getSessionPlayers({ context });
+            const location = getLocation({ context });
+            currentPlayers.forEach((player) => {
+                player.location = location.id;
+            });
+
+            return {
+                events: [
+                    {
+                        kind: `rest`,
+                        campaign: campaign?.name,
+                        quest: quest.name,
+                        location: location.name,
+                        playerNames: currentPlayers.map((x) => x.name),
+                    } satisfies GameEvent,
+                ],
+                estimateRemainingSec,
+                canCompleteImmediately: false,
+            };
+        }
+
+        const exerciseNames =
+            context.sessionPeriods
+                .find((p, i) => i >= context.currentSessionPeriod.index && p.exercises)
+                ?.exercises.map((x) => x.exerciseName) ?? [];
+        const exerciseMuscleGroups = exerciseNames.map((x) => lore.getExerciseInfo(x)?.muscleGroups).filter((x) => !!x);
+        const muscleGroupsUsed = MuscleGroups.map((m) => ({
+            name: m,
+            intensity: Math.max(...exerciseMuscleGroups.map((x) => x[m] || 0)),
+        }))
+            .sort((a, b) => -(a.intensity - b.intensity))
+            .filter((x) => x.intensity > 2)
+            .map((x) => x.name);
+
+        const events: GameEvent[] = [];
+        estimateRemainingSec = 0;
+
+        // each player attacks an enemy
+        sessionPlayers.forEach((player) => {
+            // randomly select enemy
+            const targetEnemy =
+                revealedEnemies[Math.floor(Math.random() * revealedEnemies.length)] ?? revealedEnemies[0]!;
+            const attackInfo = lore.generateAttack({
+                state,
+                player,
+                muscleGroupsUsed,
+            });
+            const attackEnemy = {
+                kind: `plan-attack-enemy`,
+                player: player.name,
+                muscleGroupsUsed,
+                enemies: [
+                    {
+                        id: targetEnemy.id,
+                        name: targetEnemy.name,
+                        attackKind: attackInfo.attackKind,
+                        attackName: attackInfo.attackName,
+                        attackWeapon: attackInfo.attackWeapon,
+                        healthStatus: calculateHealthState(targetEnemy.stats),
+                    },
+                ],
+            } satisfies GameEvent;
+            events.push(attackEnemy);
+            // (player.pendingActions ??= []).push(attackEnemy);
+        });
+
+        return {
+            events,
+            estimateRemainingSec,
+            canCompleteImmediately: false,
+        };
+    };
+
     const playerAction_attackEnemy = ({
         context,
         estimateRemainingSec,
@@ -560,9 +654,11 @@ export const createGameRuntime = (
     const startPlayerAction = ({
         context,
         estimateRemainingSec,
+        disableAttack,
     }: {
         context: GameRuntimeContext;
         estimateRemainingSec: number;
+        disableAttack?: boolean;
     }): { events: GameEvent[] } => {
         if (estimateRemainingSec <= 15) {
             // skip start action
@@ -579,6 +675,10 @@ export const createGameRuntime = (
         // if revealed enemy in location, attack enemy
         const revealedEnemies = enemiesAtlocation.filter((x) => x.isDiscovered);
         if (revealedEnemies.length) {
+            if (disableAttack) {
+                return playerAction_planAhead({ context, estimateRemainingSec, revealedEnemies });
+            }
+
             // already in battle
             return playerAction_attackEnemy({ context, estimateRemainingSec, revealedEnemies });
         }
@@ -588,6 +688,17 @@ export const createGameRuntime = (
             const revealResult = playerAction_revealEnemies({ context, estimateRemainingSec, enemiesAtlocation });
             if (revealResult.estimateRemainingSec < 15) {
                 return revealResult;
+            }
+
+            if (disableAttack) {
+                const attackResult = playerAction_planAhead({
+                    context,
+                    estimateRemainingSec: revealResult.estimateRemainingSec,
+                    revealedEnemies: revealResult.revealedEnemies,
+                });
+                return {
+                    events: [...revealResult.events, ...attackResult.events],
+                };
             }
 
             const attackResult = playerAction_attackEnemy({
@@ -839,7 +950,7 @@ export const createGameRuntime = (
                     //     enemiesAtlocation.push(newEnemy);
                     // }
 
-                    const actionEvents = startPlayerAction({ context, estimateRemainingSec });
+                    const actionEvents = startPlayerAction({ context, estimateRemainingSec, disableAttack: true });
                     events.push(...actionEvents.events);
                     return;
                 }
@@ -975,11 +1086,24 @@ export const createGameRuntime = (
             );
         },
         triggerRestPeriod: ({ context, workResults }) => {
+            const resolvedAction = resolvePlayerAction({
+                context,
+                workResults,
+                estimateRemainingSec: context.currentSessionPeriod.remainingSec,
+            });
+
+            if (resolvedAction.events.length) {
+                // normal - events to process
+                return response(...resolvedAction.events);
+            }
+
+            // no events, start new action (no attack)
             return response(
-                ...resolvePlayerAction({
+                ...resolvedAction.events,
+                ...startPlayerAction({
                     context,
-                    workResults,
                     estimateRemainingSec: context.currentSessionPeriod.remainingSec,
+                    disableAttack: true,
                 }).events,
             );
         },
