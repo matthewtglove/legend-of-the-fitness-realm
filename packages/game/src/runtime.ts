@@ -721,6 +721,8 @@ export const createGameRuntime = (
             estimateRemainingSec = searchResult.estimateRemainingSec;
             events.push(...searchResult.events);
 
+            location.keyItem = undefined;
+
             if (estimateRemainingSec < 15) {
                 return {
                     events,
