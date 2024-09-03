@@ -178,7 +178,6 @@ export const parseWorkoutDocument = (document: string): WorkoutProgram => {
         }
 
         if (line.startsWith(`- timed `)) {
-            console.log(`Parsing timed step: ${line}`); // TODO: Console.log not working?
             // const timedRegex = /^- timed ((?:x|\d)+) ((?:\d|m|s)+)\/((?:\d|m|s)+) (\d+)rep\w* (2sided )?(.+)$/;
             const timedRegex = /^- timed ((?:x|\d)+) ((?:\d|m|s)+)\/((?:\d|m|s)+) (.+)$/;
             const match = line.match(timedRegex);
@@ -212,7 +211,6 @@ export const parseWorkoutDocument = (document: string): WorkoutProgram => {
         }
 
         if (line.startsWith(`- interval `)) {
-            console.log(`Parsing interval step: ${line}`);
             const intervalRegex = /^- interval ((?:x|\d)+) ((?:\d|m|s)+) (.+)$/;
             const match = line.match(intervalRegex);
             if (!match) {

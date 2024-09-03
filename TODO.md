@@ -1,8 +1,12 @@
 -   [ ] Parse workout file
     -   [x] Define
     -   [ ] Support all workout types
+        -   [x] Parse each type
+        -   [ ] Create timers for each type
+        -   [ ] Convert into sessions for game (getGameSessionPeriodsFromWorkoutStep)
     -   [ ] Post-process workout file
         -   [ ] Seperate segment and session ranges into their own object
+    -   [ ]
 -   [ ] Workout timer
     -   [x] Load workout session
         -   [x] Run workout session
