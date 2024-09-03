@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { extractMarkdownList } from './extract-prompt-results';
 import { prompt_questEventList } from './prompts/quest-prompts';
 import { sendOpenRouterAiRequest } from './call-llm';
 import { defaultQuestContext } from './story-runtime';
