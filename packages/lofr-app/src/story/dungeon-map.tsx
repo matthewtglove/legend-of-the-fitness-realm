@@ -49,7 +49,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                                     y={gridPosition[1] * s}
                                     width={s}
                                     height={s}
-                                    fill={isPlayerLocation ? `#aaaaff` : location?.isDiscovered ? `#aaffaa` : `#333333`}
+                                    fill={isPlayerLocation ? `#0000ff` : location?.isDiscovered ? `#008800` : `#111111`}
                                     stroke="black"
                                     strokeWidth={wallSize}
                                 >
@@ -69,7 +69,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                                             y1={gridPosition[1] * s + s / 2}
                                             x2={(dest[0] + 0.5) * s}
                                             y2={(dest[1] + 0.5) * s}
-                                            stroke="#880000ff"
+                                            stroke="#55333388"
                                             strokeWidth={connectionSize}
                                             // transform={`translate(${s * 0.4 - wallSize},${s * 0.4 - wallSize})`}
                                         />
@@ -79,6 +79,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                                     x={(gridPosition[0] + wallSize) * s}
                                     y={(gridPosition[1] + wallSize - fontSize) * s}
                                     fontSize={fontSize}
+                                    fill="white"
                                     // anchor svg text to top left
                                     dominantBaseline="hanging"
                                     textAnchor="start"
