@@ -19,6 +19,7 @@ import { Fragment, useRef, useState } from 'react';
 import { useStableCallback } from '../components/use-stable-callback';
 import { ExpandableView } from '../components/expandable-view';
 import { Button } from '../components/buttons';
+import { DungeonMap } from './dungeon-map';
 
 export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRuntime: GameStoryRuntime }) => {
     const loreBuilder = createLoreBuilder({
@@ -184,6 +185,8 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
     return (
         <div>
             <h1>Game Debugger</h1>
+
+            <DungeonMap storyRuntime={props.storyRuntime} />
 
             <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
                 <Button onClick={triggerSessionStart}>Start Workout Session</Button>
