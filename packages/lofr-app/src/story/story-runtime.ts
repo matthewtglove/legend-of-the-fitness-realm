@@ -81,9 +81,8 @@ export const createStoryRuntime = (questContext?: QuestContext) => {
             }
         }, 60 * 1000);
 
-        await new Promise<void>((resolve) => {
-            speakText(text, { voice: `story`, onDone: () => resolve() });
-        });
+        await speakText(text, { voice: `story` });
+
         if (speakIndex === _speakIndex_speaking) {
             _speakIndex_speaking = undefined;
         }

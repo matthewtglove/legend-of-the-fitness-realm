@@ -1,0 +1,13 @@
+{
+    "name": "@bcc/scripts",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "tsx ./dev.ts"
+    },
+    "devDependencies": {
+        "@types/node": "^20.14.8",
+        "tsx": "^4.15.7"
+    }
+}

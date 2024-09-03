@@ -5,7 +5,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "cd ../workout-parser && npm run build && cd ../lofr-app && tsc -b && vite build",
+        "build:dependencies": "cd ../workout-parser && npm run build && cd ../game && npm run build",
+        "build": "npm run build:dependencies && tsc -b && vite build",
         "prepublish": "npm run increment-build",
         "prepublish-ci": "npm run increment-build-ci",
         "increment-build": "tsx ./scripts/increment-build.ts",
@@ -14,9 +15,11 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@lofr/game": "*",
         "@lofr/workout-parser": "*",
         "react": "^18.3.1",
-        "react-dom": "^18.3.1"
+        "react-dom": "^18.3.1",
+        "tailwind-merge": "^2.5.2"
     },
     "devDependencies": {
         "@types/react": "^18.3.3",

@@ -1,7 +1,7 @@
 import { WorkoutSession, WorkoutStep, WorkoutStep_Rest, WorkoutStep_Timed } from '@lofr/workout-parser';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { speakText } from './workout-announce';
-import { StoryRuntime } from '../story/story-runtime';
+import { GameStoryRuntime } from '../story/game-story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
 import clickSoundUrl from '../assets/wooden-click.mp3';
@@ -35,7 +35,7 @@ export const WorkoutSessionTimer = ({
     storyRuntime,
 }: {
     workoutSession: WorkoutSession;
-    storyRuntime: StoryRuntime;
+    storyRuntime: GameStoryRuntime;
 }) => {
     const [hasStarted, setHasStarted] = useState(false);
     const [isStarting, setIsStarting] = useState(false);
@@ -45,19 +45,16 @@ export const WorkoutSessionTimer = ({
         console.log(`nextStep`);
         setStepIndex((index) => index + 1);
     };
-    const startWorkout = () => {
+    const startWorkout = async () => {
         setIsStarting(true);
         // console.log(`WorkoutSessionTimer.startWorkout`, {
         //     questContext: storyRuntime.questContext,
         //     storyRuntime: storyRuntime,
         // });
 
-        speakText(`Start Workout!`, {
-            onDone: () => {
-                setHasStarted(true);
-                storyRuntime.startWorkout();
-            },
-        });
+        await speakText(`Start Workout!`, {});
+        await storyRuntime.startWorkout(workoutSession);
+        setHasStarted(true);
     };
 
     // const [isClickSoundEnabled, setIsClickSoundEnabled] = useState(true);
@@ -121,6 +118,7 @@ export const WorkoutSessionTimer = ({
                                 <TimedTimer
                                     key={stepIndex}
                                     step={step}
+                                    stepIndex={stepIndex}
                                     onDone={nextStep}
                                     storyRuntime={storyRuntime}
                                     soundManager={soundManager}
@@ -220,7 +218,7 @@ const RestTimer = ({
 }: {
     step: WorkoutStep_Rest;
     onDone: () => void;
-    storyRuntime: StoryRuntime;
+    storyRuntime: GameStoryRuntime;
     soundManager: SoundManager;
 }) => {
     const timeTotal = step.durationSec;
@@ -230,20 +228,13 @@ const RestTimer = ({
     const [isPaused, setIsPaused] = useState(false);
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        const interval = setInterval(async () => {
             if (isPaused) {
                 return;
             }
             if (timeRemainingRef.current === timeTotal) {
-                speakText(`Rest for ${timeTotal} seconds`, {
-                    onDone: () => storyRuntime.workoutTransition(),
-                });
-                // speakText(
-                //     `One: This is story text. This is a lot of text as if I'm telling a story. Two: This is story text. This is a lot of text as if I'm telling a story. Three: This is story text. This is a lot of text as if I'm telling a story. Four: This is story text. This is a lot of text as if I'm telling a story.`,
-                //     {
-                //         voice: `story`,
-                //     },
-                // );
+                await speakText(`Rest for ${timeTotal} seconds`);
+                storyRuntime.workoutTransition();
             }
             // Play clicking sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
@@ -257,7 +248,7 @@ const RestTimer = ({
                 return;
             }
             if (timeRemainingRef.current === 30 && timeTotal >= 60) {
-                speakText(`30 seconds remaining.`);
+                await speakText(`30 seconds remaining.`);
             }
             setTimeRemaining(timeRemainingRef.current - 1);
         }, 1000);
@@ -304,13 +295,15 @@ const RestTimer = ({
 
 const TimedTimer = ({
     step,
+    stepIndex,
     onDone,
     storyRuntime,
     soundManager,
 }: {
     step: WorkoutStep_Timed;
+    stepIndex: number;
     onDone: () => void;
-    storyRuntime: StoryRuntime;
+    storyRuntime: GameStoryRuntime;
     soundManager: SoundManager;
 }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -326,7 +319,7 @@ const TimedTimer = ({
     const [isPaused, setIsPaused] = useState(false);
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        const interval = setInterval(async () => {
             if (isPaused) {
                 return;
             }
@@ -339,15 +332,19 @@ const TimedTimer = ({
 
             if (!timerData.hasStarted) {
                 timerData.isPending = true;
-                speakText(`Start of ${step.setCount} timed sets. ${exercisePhrase} Exercise!`, {
-                    onDone: () => {
-                        timerData.isPending = false;
-                        timerData.hasStarted = true;
-                        setRenderId((id) => id + 1);
-                        storyRuntime.startWorkoutSet(exercisePhrase);
-                    },
-                });
                 setRenderId((id) => id + 1);
+
+                await speakText(`Start of ${step.setCount} timed sets. ${exercisePhrase} Exercise!`, {});
+                timerData.isPending = false;
+                timerData.hasStarted = true;
+                setRenderId((id) => id + 1);
+                void storyRuntime.startWorkoutSet({
+                    setPhrase: exercisePhrase,
+                    remainingSec: timerData.timeRemaining,
+                    stepIndex,
+                    stepPeriodIndex: 0,
+                });
+
                 return;
             }
 
@@ -364,37 +361,44 @@ const TimedTimer = ({
             }
             // Swtich to next mode
             if (timerData.mode === `work`) {
-                speakText(`Rest`, {
-                    onDone: () => {
-                        storyRuntime.finishWorkoutSet(exercisePhrase, 0, `success`);
-                    },
-                });
                 timerData.mode = `rest`;
                 timerData.timeTotal = step.restDurationSec;
                 timerData.timeRemaining = step.restDurationSec;
                 setRenderId((id) => id + 1);
+
+                await speakText(`Rest`, {});
+                void storyRuntime.finishWorkoutSet({
+                    setPhrase: exercisePhrase,
+                    remainingSec: timerData.timeRemaining,
+                    stepIndex,
+                    stepPeriodIndex: 1,
+                });
+                // await storyRuntime.finishWorkoutSet(exercisePhrase, 0, `success`);
                 return;
             }
 
             // Switch to next set (if not on last set)
             if (timerData.stepSetIndex + 1 < step.setCount) {
-                speakText(`${exercisePhrase}`, {
-                    onDone: () => {
-                        storyRuntime.startWorkoutSet(exercisePhrase);
-                    },
-                });
                 timerData.stepSetIndex++;
                 timerData.mode = `work`;
                 timerData.timeTotal = step.workDurationSec;
                 timerData.timeRemaining = step.workDurationSec;
                 setRenderId((id) => id + 1);
+
+                await speakText(`${exercisePhrase}`, {});
+                void storyRuntime.startWorkoutSet({
+                    setPhrase: exercisePhrase,
+                    remainingSec: timerData.timeRemaining,
+                    stepIndex,
+                    stepPeriodIndex: 0,
+                });
                 return;
             }
 
             // Done
-            speakText(`Done with step`);
             clearInterval(interval);
             onDone();
+            await speakText(`Done with step`);
             return;
         }, 1000);
         return () => clearInterval(interval);

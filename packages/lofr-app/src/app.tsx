@@ -2,18 +2,18 @@ import { WorkoutProgram, WorkoutSession } from '@lofr/workout-parser';
 import { useRef, useState } from 'react';
 import { WorkoutLoader, WorkoutSelector } from './workout/workout-loader';
 import { WorkoutSessionTimer } from './workout/workout-timer';
-import { QuestEditor } from './story/quest-editor';
-import { QuestContext } from './story/story-types';
-import { createEmptyStoryRuntime, createStoryRuntime } from './story/story-runtime';
 import { ExpandableView } from './components/expandable-view';
 import buildNumber from './build-version.json';
+import { createGameStoryRuntime } from './story/game-story-runtime';
+import { LoreBuilderView } from './story/lore-builder-view';
+import { GameDebugger } from './story/game-debugger';
 
 const appVersion = `v1.0.${buildNumber}`;
 
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
     const [workoutSession, setWorkoutSession] = useState(undefined as undefined | WorkoutSession);
-    const storyRuntimeRef = useRef(createEmptyStoryRuntime());
+    const storyRuntimeRef = useRef(createGameStoryRuntime());
 
     // console.log(`App`, {
     //     questContext: storyRuntimeRef.current.questContext,
@@ -42,12 +42,22 @@ export const App = () => {
                         </>
                     </ExpandableView>
                 </div>
-                <div className="m-2">
+                {/* <div className="m-2">
                     <QuestEditor
                         value={storyRuntimeRef.current.questContext}
                         onChange={(x) => (storyRuntimeRef.current.questContext = x)}
                     />
-                </div>
+                </div> */}
+            </div>
+            <div className="m-2">
+                <ExpandableView mode="hide" title="Lore Builder" expanded={false}>
+                    <LoreBuilderView workoutProgram={workoutProgram} storyRuntime={storyRuntimeRef.current} />
+                </ExpandableView>
+            </div>
+            <div className="m-2">
+                <ExpandableView mode="exclude" title="Game Debugger" expanded={false}>
+                    <GameDebugger workoutProgram={workoutProgram} storyRuntime={storyRuntimeRef.current} />
+                </ExpandableView>
             </div>
             <div className="absolute pointer-events-none top-1 right-1 opacity-20">{appVersion}</div>
         </>

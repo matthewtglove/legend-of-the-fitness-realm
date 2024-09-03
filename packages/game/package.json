@@ -1,26 +1,27 @@
 {
-    "name": "@lofr/workout-parser",
+    "name": "@lofr/game",
     "version": "1.0.0",
     "type": "module",
     "exports": {
         ".": {
-            "import": "./dist/index.mjs",
-            "require": "./dist/index.cjs"
+            "import": "./dist/src/index.js"
         }
     },
-    "main": "./dist/index.cjs",
-    "types": "./dist/index.d.ts",
+    "types": "./dist/src/index.d.ts",
     "files": [
         "dist"
     ],
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "unbuild",
+        "build": "tsc",
+        "watch": "tsc -w",
         "parse-example": "tsx ./scripts/parse-example.ts"
     },
     "devDependencies": {
         "@types/node": "^20.14.8",
-        "tsx": "^4.15.7",
-        "unbuild": "^2.0.0"
+        "tsx": "^4.15.7"
+    },
+    "dependencies": {
+        "zod": "^3.23.8"
     }
 }
