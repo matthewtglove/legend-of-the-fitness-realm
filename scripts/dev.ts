@@ -29,14 +29,19 @@ export const run_watchAll = async () => {
 };
 
 const loadPackageJson = async (packagePath: string) => {
-    const packageJsonContents = await readFile(resolve(packagePath, `package.json`), { encoding: `utf8` });
-    const packageJson = JSON.parse(packageJsonContents) as { scripts?: Record<string, string> };
-    return packageJson;
+    try {
+        const packageJsonContents = await readFile(resolve(packagePath, `package.json`), { encoding: `utf8` });
+        const packageJson = JSON.parse(packageJsonContents) as { scripts?: Record<string, string> };
+        return packageJson;
+    } catch (err) {
+        console.warn(`Error loading package.json at ${packagePath}: ${err}`);
+        return undefined;
+    }
 };
 
 const packageJsonHasScript = async (packagePath: string, scriptName: string) => {
     const packageJson = await loadPackageJson(packagePath);
-    return packageJson.scripts && packageJson.scripts[scriptName];
+    return packageJson?.scripts && packageJson.scripts[scriptName];
 };
 
 run_watchAll()
