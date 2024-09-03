@@ -1,0 +1,70 @@
+{
+    "state": {
+        "players": [
+            {
+                "id": "player-2",
+                "name": "Rick the Rock Breaker",
+                "role": {
+                    "race": "Human",
+                    "class": "Barbarian"
+                },
+                "stats": {
+                    "level": 7,
+                    "health": 70,
+                    "healthMax": 70,
+                    "mana": 35,
+                    "manaMax": 35,
+                    "strength": 8,
+                    "endurance": 7,
+                    "agility": 9,
+                    "intelligence": 10
+                },
+                "equipment": {},
+                "inventory": [],
+                "location": "location-mirkwood-1"
+            },
+            {
+                "id": "player-3",
+                "name": "Matthew the Musical Mage",
+                "role": {
+                    "race": "Elf",
+                    "class": "Mage"
+                },
+                "stats": {
+                    "level": 4,
+                    "health": 40,
+                    "healthMax": 40,
+                    "mana": 20,
+                    "manaMax": 20,
+                    "strength": 10,
+                    "endurance": 2,
+                    "agility": 10,
+                    "intelligence": 5
+                },
+                "equipment": {},
+                "inventory": [],
+                "location": "location-mirkwood-1"
+            }
+        ],
+        "characters": [],
+        "locations": [
+            {
+                "id": "location-mirkwood-1",
+                "name": "Mirkwood",
+                "entrances": [
+                    "Rivendell",
+                    "Moria",
+                    "Lothlórien"
+                ],
+                "connections": [],
+                "isDiscovered": true
+            }
+        ],
+        "campaigns": [],
+        "quests": [],
+        "keyItems": [],
+        "items": [],
+        "_nextId": 4
+    },
+    "delta": {}
+}

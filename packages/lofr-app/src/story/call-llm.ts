@@ -1,28 +1,29 @@
 export const sendOpenRouterAiRequest = async (
     systemPrompt: string,
     prompt: string,
-    model = `gryphe/mythomax-l2-13b`,
+    { model = `gryphe/mythomax-l2-13b`, maxTokens = 1000 } = {},
 ) => {
     // use openrouter.ai (temporarily key - exposed for testing purposes)
-    const OPENROUTER_API_KEY = `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`;
+    const OPENROUTER_API_KEY = `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`;
     const YOUR_SITE_URL = `http://www.lofr.app/`;
     const YOUR_SITE_NAME = `Lofr - Legend of the Fitness Realm`;
 
     console.log(`sendOpenRouterAiRequest: START`, { systemPrompt, prompt, model });
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
+    const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
+        method: `POST`,
         headers: {
             Authorization: `Bearer ${OPENROUTER_API_KEY}`,
             'HTTP-Referer': `${YOUR_SITE_URL}`, // Optional, for including your app on openrouter.ai rankings.
             'X-Title': `${YOUR_SITE_NAME}`, // Optional. Shows in rankings on openrouter.ai.
-            'Content-Type': 'application/json',
+            'Content-Type': `application/json`,
         },
         body: JSON.stringify({
             model,
+            max_tokens: maxTokens,
             messages: [
                 {
-                    role: 'system',
+                    role: `system`,
                     content: systemPrompt,
                 },
                 {
@@ -50,7 +51,7 @@ type Response = {
     choices: (NonStreamingChoice | StreamingChoice | NonChatChoice)[];
     created: number; // Unix timestamp
     model: string;
-    object: 'chat.completion' | 'chat.completion.chunk';
+    object: `chat.completion` | `chat.completion.chunk`;
 
     system_fingerprint?: string; // Only present if the provider supports it
 
@@ -111,6 +112,6 @@ type FunctionCall = {
 
 type ToolCall = {
     id: string;
-    type: 'function';
+    type: `function`;
     function: FunctionCall;
 };
