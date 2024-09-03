@@ -166,7 +166,7 @@ export const parseWorkoutDocument = (document: string): WorkoutProgram => {
             throw new Error(`No session found`);
         }
 
-        // --- Steps ---
+        // MARK: Steps
 
         if (line.startsWith(`- rest `)) {
             const rest: WorkoutStep_Rest = {
@@ -207,6 +207,134 @@ export const parseWorkoutDocument = (document: string): WorkoutProgram => {
                 exercises,
             };
             lastSession.steps.push(timed);
+            continue;
+        }
+
+        if (line.startsWith(`- interval `)) {
+            const intervalRegex = /^- interval ((?:x|\d)+) ((?:\d|m|s)+) (.+)$/;
+            const match = line.match(intervalRegex);
+            if (!match) {
+                throw new Error(`Invalid interval step: ${line}`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [_, setCountPart, setDurationPart, exerciseParts] = match;
+
+            if (!exerciseParts || !setCountPart || !setDurationPart) {
+                throw new Error(`Invalid interval step: ${line}`);
+            }
+
+            const exercises = parseExercises(exerciseParts);
+
+            const interval: WorkoutStep_Interval = {
+                kind: `interval`,
+                setCount: parseInt(setCountPart.replace(`x`, ``)),
+                setDurationSec: parseTimeSpan(setDurationPart).seconds,
+                exercises,
+            };
+            lastSession.steps.push(interval);
+            continue;
+        }
+
+        if (line.startsWith(`- superset `)) {
+            const supersetRegex = /^- superset ((?:x|\d)+) ((?:\d|m|s)+) (.+)$/;
+            const match = line.match(supersetRegex);
+            if (!match) {
+                throw new Error(`Invalid superset step: ${line}`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [_, setCountPart, setDurationPart, exerciseParts] = match;
+
+            if (!exerciseParts || !setCountPart || !setDurationPart) {
+                throw new Error(`Invalid superset step: ${line}`);
+            }
+
+            const exercises = parseExercises(exerciseParts);
+
+            const superset: WorkoutStep_Superset = {
+                kind: `superset`,
+                setCount: parseInt(setCountPart.replace(`x`, ``)),
+                setDurationSec: parseTimeSpan(setDurationPart).seconds,
+                exercises,
+            };
+            lastSession.steps.push(superset);
+            continue;
+        }
+
+        if (line.startsWith(`- ladder `)) {
+            const ladderRegex = /^- ladder ((?:\d|m|s)+) (\d+)-(\d+)rep (.+)$/;
+            const match = line.match(ladderRegex);
+            if (!match) {
+                throw new Error(`Invalid ladder step: ${line}`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [_, durationPart, minRepPart, maxRepPart, exerciseNamePart] = match;
+
+            if (!exerciseNamePart || !durationPart || !minRepPart || !maxRepPart) {
+                throw new Error(`Invalid ladder step: ${line}`);
+            }
+
+            const ladder: WorkoutStep_Ladder = {
+                kind: `ladder`,
+                durationSec: parseTimeSpan(durationPart).seconds,
+                repRange: {
+                    min: parseInt(minRepPart),
+                    max: parseInt(maxRepPart),
+                },
+                exercise: {
+                    // Ladder sets only have one exercise
+                    exerciseName: exerciseNamePart,
+                },
+            };
+            lastSession.steps.push(ladder);
+            continue;
+        }
+
+        if (line.startsWith(`- tabata `)) {
+            const tabataRegex = /^- tabata ((?:\d|m|s)+) ((?:\d|m|s)+)\/((?:\d|m|s)+) (.+)$/;
+            const match = line.match(tabataRegex);
+            if (!match) {
+                throw new Error(`Invalid tabata step: ${line}`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [_, durationPart, workDurationPart, restDurationPart, exerciseNamePart] = match;
+
+            if (!exerciseNamePart || !durationPart || !workDurationPart || !restDurationPart) {
+                throw new Error(`Invalid tabata step: ${line}`);
+            }
+
+            const tabata: WorkoutStep_Tabata = {
+                kind: `tabata`,
+                durationSec: parseTimeSpan(durationPart).seconds,
+                workDurationSec: parseTimeSpan(workDurationPart).seconds,
+                restDurationSec: parseTimeSpan(restDurationPart).seconds,
+                exercise: {
+                    // Tabata sets only have one exercise
+                    exerciseName: exerciseNamePart,
+                },
+            };
+            lastSession.steps.push(tabata);
+            continue;
+        }
+
+        if (line.startsWith(`- stapper `)) {
+            const stapperRegex = /^- stapper ((?:\d|m|s)+) (.+)$/;
+            const match = line.match(stapperRegex);
+            if (!match) {
+                throw new Error(`Invalid stapper step: ${line}`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [_, durationPart, exerciseParts] = match;
+
+            if (!exerciseParts || !durationPart) {
+                throw new Error(`Invalid stapper step: ${line}`);
+            }
+
+            const stapper: WorkoutStep_Stapper = {
+                kind: `stapper`,
+                durationSec: parseTimeSpan(durationPart).seconds,
+                exercises: parseExercises(exerciseParts),
+            };
+            lastSession.steps.push(stapper);
             continue;
         }
     }
