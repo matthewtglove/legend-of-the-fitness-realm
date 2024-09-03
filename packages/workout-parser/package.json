@@ -15,12 +15,12 @@
     ],
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "unbuild",
+        "build": "tsc",
+        "watch": "tsc -w",
         "parse-example": "tsx ./scripts/parse-example.ts"
     },
     "devDependencies": {
         "@types/node": "^20.14.8",
-        "tsx": "^4.15.7",
-        "unbuild": "^2.0.0"
+        "tsx": "^4.15.7"
     }
 }
