@@ -56,9 +56,9 @@ export const KeepAwake = () => {
                 // pause video
                 video.pause();
 
-                // test: remove and re-add video to reset it?
-                video.remove();
-                videoRef.current = undefined;
+                // // test: remove and re-add video to reset it?
+                // video.remove();
+                // videoRef.current = undefined;
 
                 setLog((s) => [...s, { kind: `log`, message: `video stopped` }]);
                 startVideoAfterTime();
