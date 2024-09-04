@@ -4,22 +4,22 @@ import { speakText } from './workout-announce';
 import { GameStoryRuntime } from '../story/game-story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
-import clickSoundUrl from '../assets/wooden-click.mp3';
+import tickSoundUrl from '../assets/wooden-click.mp3';
 import { useStableCallback } from '../components/use-stable-callback';
 
 const createSoundManager = () => {
     const state = {
         enabled: true,
-        clickSound: new Audio(clickSoundUrl),
+        tickSound: new Audio(tickSoundUrl),
     };
 
     return {
-        playClickSound: () => {
+        playTickSound: () => {
             if (!state.enabled) {
                 return;
             }
 
-            state.clickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
+            state.tickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
         },
         toggleSound: () => {
             state.enabled = !state.enabled;
@@ -239,10 +239,15 @@ const RestTimer = ({
                 await speakText(`Rest for ${timeTotal} seconds`);
                 storyRuntime.workoutTransition();
             }
-            // Play clicking sound at 3, 2, 1 seconds
+            // Play tick sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
             if (timeRemainingRef.current <= 3 && timeRemainingRef.current > 0) {
-                soundManager.playClickSound();
+                soundManager.playTickSound();
+            }
+
+            // Play tick sound every 15 seconds
+            if (timeRemainingRef.current % 15 === 1) {
+                soundManager.playTickSound();
             }
 
             if (timeRemainingRef.current <= 1) {
@@ -353,10 +358,15 @@ const TimedTimer = ({
                 return;
             }
 
-            // Play clicking sound at 3, 2, 1 seconds
+            // Play tick sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
             if (timerData.timeRemaining <= 3 + 1 && timerData.timeRemaining > 0) {
-                soundManager.playClickSound();
+                soundManager.playTickSound();
+            }
+
+            // Play tick sound every 15 seconds
+            if (timerData.timeRemaining % 15 === 1) {
+                soundManager.playTickSound();
             }
 
             if (timerData.timeRemaining > 1) {
