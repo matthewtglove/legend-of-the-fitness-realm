@@ -245,29 +245,32 @@ const RestTimer = ({
             if (isPausedRef.current) {
                 return;
             }
-            if (timeRemainingRef.current === timeTotal) {
-                await speakText(`Rest for ${timeTotal} seconds`);
-                storyRuntime.workoutTransition();
-            }
+            const timeRemainingAtTick = timeRemainingRef.current;
+            setTimeRemaining(timeRemainingAtTick - 1);
+
             // Play tick sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
-            if (timeRemainingRef.current <= 3 && timeRemainingRef.current > 0) {
+            if (timeRemainingAtTick <= 3 && timeRemainingAtTick > 0) {
                 soundManager.playTickSound();
             }
             // Play ambient sound every 15 seconds
-            else if (timeRemainingRef.current % 15 === 1) {
+            else if (timeRemainingAtTick % 15 === 1) {
                 soundManager.playAmbientSound();
             }
 
-            if (timeRemainingRef.current <= 1) {
+            if (timeRemainingAtTick <= 1) {
                 clearInterval(interval);
                 onDone();
                 return;
             }
-            if (timeRemainingRef.current === 30 && timeTotal >= 60) {
+
+            if (timeRemainingAtTick === timeTotal) {
+                await speakText(`Rest for ${timeTotal} seconds`);
+                storyRuntime.workoutTransition();
+            }
+            if (timeRemainingAtTick === 30 && timeTotal >= 60) {
                 await speakText(`30 seconds remaining.`);
             }
-            setTimeRemaining(timeRemainingRef.current - 1);
         }, 1000);
         return () => clearInterval(interval);
     }, [onDone, soundManager, storyRuntime, timeTotal]);
