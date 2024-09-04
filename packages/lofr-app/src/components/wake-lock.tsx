@@ -71,7 +71,7 @@ export const KeepAwake = () => {
         }
     });
 
-    const startVideoAfterTime = useStableCallback(() => {
+    const createAndPauseVideo = useStableCallback(() => {
         // create video if not exists
         if (!videoRef.current) {
             setLog((s) => [...s, { kind: `log`, message: `video creating...` }]);
@@ -89,6 +89,10 @@ export const KeepAwake = () => {
 
             setLog((s) => [...s, { kind: `log`, message: `video created` }]);
         }
+    });
+
+    const startVideoAfterTime = useStableCallback(() => {
+        createAndPauseVideo();
 
         const TIME = 15 * 1000;
         setLog((s) => [...s, { kind: `log`, message: `video will start in ${TIME}ms` }]);
@@ -120,6 +124,7 @@ export const KeepAwake = () => {
                     text={`${!videoTimeoutId ? `Play` : `Stop`} Periodic Video`}
                     onClick={() => (!videoTimeoutId ? startVideoAfterTime() : stopVideoTimeout())}
                 />
+                <Button text={`Create and pause video`} onClick={createAndPauseVideo} />
             </div>
             <ExpandableView mode="exclude" title="Log" expanded={true}>
                 <div>
