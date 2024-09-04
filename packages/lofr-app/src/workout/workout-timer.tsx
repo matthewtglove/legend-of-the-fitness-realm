@@ -5,7 +5,7 @@ import { GameStoryRuntime } from '../story/game-story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
 import tickSoundUrl from '../assets/wooden-click.mp3';
-import stepSoundUrl from '../assets/step.ogg';
+import stepSoundUrl from '../assets/step.mp3';
 import { useStableCallback } from '../components/use-stable-callback';
 
 const createSoundManager = () => {
