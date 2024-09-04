@@ -71,7 +71,7 @@ export const KeepAwake = () => {
         }
     });
 
-    const createAndPauseVideo = useStableCallback((inline: boolean = false) => {
+    const createAndPauseVideo = useStableCallback((inline?: boolean) => {
         // create video if not exists
         if (!videoRef.current) {
             setLog((s) => [...s, { kind: `log`, message: `video creating...` }]);
@@ -81,7 +81,9 @@ export const KeepAwake = () => {
             video.autoplay = false;
             video.loop = true;
             video.muted = true;
-            video.playsInline = inline;
+            if (inline !== undefined) {
+                video.playsInline = inline;
+            }
             videoHostRef.current?.appendChild(video);
             videoHostRef.current?.scrollIntoView();
             video.play().then(() => video.pause());
@@ -132,8 +134,9 @@ export const KeepAwake = () => {
                     text={`${!videoTimeoutId ? `Play` : `Stop`} Periodic Video`}
                     onClick={() => (!videoTimeoutId ? startVideoAfterTime() : stopVideoTimeout())}
                 />
-                <Button text={`Create and pause video`} onClick={createAndPauseVideo} />
-                <Button text={`Create and pause video (inline)`} onClick={() => createAndPauseVideo(true)} />
+                <Button text={`Create and pause video (unset)`} onClick={() => createAndPauseVideo(undefined)} />
+                <Button text={`Create and pause video (inline=true)`} onClick={() => createAndPauseVideo(true)} />
+                <Button text={`Create and pause video (inline=false)`} onClick={() => createAndPauseVideo(false)} />
                 <Button text={`Remove video`} onClick={removeVideo} />
             </div>
             <ExpandableView mode="exclude" title="Log" expanded={true}>
