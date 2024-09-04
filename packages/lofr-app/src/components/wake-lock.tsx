@@ -77,6 +77,7 @@ export const KeepAwake = () => {
             video.autoplay = false;
             video.loop = true;
             video.muted = true;
+            video.playsInline = true;
             videoHostRef.current?.appendChild(video);
             videoHostRef.current?.scrollIntoView();
             video.play().then(() => video.pause());
