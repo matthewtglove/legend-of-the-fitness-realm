@@ -442,7 +442,7 @@ export const createGameRuntime = (
 
         const exerciseNames =
             context.sessionPeriods
-                .find((p, i) => i >= context.currentSessionPeriod.index && p.exercises)
+                .find((p, i) => i >= context.currentSessionPeriod.index && p.exercises.length)
                 ?.exercises.map((x) => x.exerciseName) ?? [];
         const exerciseMuscleGroups = exerciseNames.map((x) => lore.getExerciseInfo(x)?.muscleGroups).filter((x) => !!x);
         const muscleGroupsUsed = MuscleGroups.map((m) => ({
