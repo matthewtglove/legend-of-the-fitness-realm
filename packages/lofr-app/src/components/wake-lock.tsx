@@ -71,7 +71,7 @@ export const KeepAwake = () => {
         }
     });
 
-    const createAndPauseVideo = useStableCallback(() => {
+    const createAndPauseVideo = useStableCallback((inline: boolean = false) => {
         // create video if not exists
         if (!videoRef.current) {
             setLog((s) => [...s, { kind: `log`, message: `video creating...` }]);
@@ -81,14 +81,20 @@ export const KeepAwake = () => {
             video.autoplay = false;
             video.loop = true;
             video.muted = true;
-            // it kind of works without this
-            // video.playsInline = true;
+            video.playsInline = inline;
             videoHostRef.current?.appendChild(video);
             videoHostRef.current?.scrollIntoView();
             video.play().then(() => video.pause());
 
             setLog((s) => [...s, { kind: `log`, message: `video created` }]);
         }
+    });
+
+    const removeVideo = useStableCallback(() => {
+        setLog((s) => [...s, { kind: `log`, message: `video removing...` }]);
+        videoRef.current?.pause();
+        videoRef.current?.remove();
+        setLog((s) => [...s, { kind: `log`, message: `video removed` }]);
     });
 
     const startVideoAfterTime = useStableCallback(() => {
@@ -100,18 +106,20 @@ export const KeepAwake = () => {
     });
 
     const stopVideoTimeout = useStableCallback(() => {
-        setLog((s) => [...s, { kind: `log`, message: `video cancelled` }]);
+        setLog((s) => [...s, { kind: `log`, message: `video cancelling...` }]);
 
         videoRef.current?.pause();
         videoRef.current?.remove();
 
         clearTimeout(videoTimeoutId);
         setVideoTimeoutId(undefined);
+
+        setLog((s) => [...s, { kind: `log`, message: `video cancelled` }]);
     });
 
     return (
         <div className="flex flex-col gap-2 my-2">
-            <div className="flex flex-row gap-2">
+            <div className="flex flex-row flex-wrap gap-2">
                 <AsyncButton
                     text={`Obtain Wake Lock`}
                     action={obtainWakeLock}
@@ -125,6 +133,8 @@ export const KeepAwake = () => {
                     onClick={() => (!videoTimeoutId ? startVideoAfterTime() : stopVideoTimeout())}
                 />
                 <Button text={`Create and pause video`} onClick={createAndPauseVideo} />
+                <Button text={`Create and pause video (inline)`} onClick={() => createAndPauseVideo(true)} />
+                <Button text={`Remove video`} onClick={removeVideo} />
             </div>
             <ExpandableView mode="exclude" title="Log" expanded={true}>
                 <div>
