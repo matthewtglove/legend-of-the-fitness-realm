@@ -5,12 +5,15 @@ import { GameStoryRuntime } from '../story/game-story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
 import tickSoundUrl from '../assets/wooden-click.mp3';
+import stepSoundUrl from '../assets/step.ogg';
 import { useStableCallback } from '../components/use-stable-callback';
 
 const createSoundManager = () => {
     const state = {
         enabled: true,
         tickSound: new Audio(tickSoundUrl),
+        // ambientSounds
+        stepSound: new Audio(stepSoundUrl),
     };
 
     return {
@@ -20,6 +23,13 @@ const createSoundManager = () => {
             }
 
             state.tickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
+        },
+        playAmbientSound: () => {
+            if (!state.enabled) {
+                return;
+            }
+            // TODO: Choose random ambient sound
+            state.stepSound.play().catch((e) => console.error(`Failed to play sound:`, e));
         },
         toggleSound: () => {
             state.enabled = !state.enabled;
@@ -244,10 +254,9 @@ const RestTimer = ({
             if (timeRemainingRef.current <= 3 && timeRemainingRef.current > 0) {
                 soundManager.playTickSound();
             }
-
-            // Play tick sound every 15 seconds
-            if (timeRemainingRef.current % 15 === 1) {
-                soundManager.playTickSound();
+            // Play ambient sound every 15 seconds
+            else if (timeRemainingRef.current % 15 === 1) {
+                soundManager.playAmbientSound();
             }
 
             if (timeRemainingRef.current <= 1) {
@@ -363,10 +372,9 @@ const TimedTimer = ({
             if (timerData.timeRemaining <= 3 + 1 && timerData.timeRemaining > 0) {
                 soundManager.playTickSound();
             }
-
-            // Play tick sound every 15 seconds
-            if (timerData.timeRemaining % 15 === 1) {
-                soundManager.playTickSound();
+            // Play ambient sound every 15 seconds
+            else if (timerData.timeRemaining % 15 === 1) {
+                soundManager.playAmbientSound();
             }
 
             if (timerData.timeRemaining > 1) {
