@@ -26,45 +26,64 @@ export const KeepAwake = () => {
         }
     };
 
+    const videoHostRef = useRef<HTMLDivElement>(null);
+    const videoRef = useRef(undefined as undefined | HTMLVideoElement);
     const [videoTimeoutId, setVideoTimeoutId] = useState(undefined as undefined | ReturnType<typeof setTimeout>);
     const playVideo = useStableCallback(async () => {
         if (!videoTimeoutId) {
+            setLog((s) => [...s, { kind: `error`, message: `playVideo - error: video was cancelled` }]);
             return;
         }
         clearTimeout(videoTimeoutId);
         setVideoTimeoutId(undefined);
 
+        const video = videoRef.current;
+        if (!video) {
+            setLog((s) => [...s, { kind: `error`, message: `playVideo - error: video does not exist` }]);
+            return;
+        }
+
         try {
             // periodic video
-            setLog((s) => [...s, { kind: `log`, message: `video creating...` }]);
-
-            const video = document.createElement(`video`);
-            video.src = `https://www.w3schools.com/html/mov_bbb.mp4`;
-            video.autoplay = true;
-            video.loop = true;
-            video.muted = true;
             setLog((s) => [...s, { kind: `log`, message: `video playing...` }]);
 
+            videoHostRef.current?.scrollIntoView();
+            video.currentTime = 0;
             await video.play();
             setLog((s) => [...s, { kind: `log`, message: `video started` }]);
 
-            videoHostRef.current?.appendChild(video);
-            videoHostRef.current?.scrollIntoView();
             setTimeout(() => {
-                // stop video
+                // pause video
                 video.pause();
 
-                // remove video
-                video.remove();
                 setLog((s) => [...s, { kind: `log`, message: `video stopped` }]);
                 startVideoAfterTime();
             }, 3000);
         } catch (e) {
-            setLog((s) => [...s, { kind: `error`, message: `${(e as { message?: string })?.message ?? ``}: ${e}` }]);
+            setLog((s) => [
+                ...s,
+                { kind: `error`, message: `playVideo - error: ${(e as { message?: string })?.message ?? ``}: ${e}` },
+            ]);
         }
     });
 
     const startVideoAfterTime = useStableCallback(() => {
+        // create video if not exists
+        if (!videoRef.current) {
+            setLog((s) => [...s, { kind: `log`, message: `video creating...` }]);
+            const video = document.createElement(`video`);
+            videoRef.current = video;
+            video.src = `https://www.w3schools.com/html/mov_bbb.mp4`;
+            video.autoplay = false;
+            video.loop = true;
+            video.muted = true;
+            videoHostRef.current?.appendChild(video);
+            videoHostRef.current?.scrollIntoView();
+            video.play().then(() => video.pause());
+
+            setLog((s) => [...s, { kind: `log`, message: `video created` }]);
+        }
+
         const TIME = 15 * 1000;
         setLog((s) => [...s, { kind: `log`, message: `video will start in ${TIME}ms` }]);
         setVideoTimeoutId(setTimeout(playVideo, TIME));
@@ -72,11 +91,13 @@ export const KeepAwake = () => {
 
     const stopVideoTimeout = useStableCallback(() => {
         setLog((s) => [...s, { kind: `log`, message: `video cancelled` }]);
+
+        videoRef.current?.pause();
+        videoRef.current?.remove();
+
         clearTimeout(videoTimeoutId);
         setVideoTimeoutId(undefined);
     });
-
-    const videoHostRef = useRef<HTMLDivElement>(null);
 
     return (
         <div className="flex flex-col gap-2 my-2">
