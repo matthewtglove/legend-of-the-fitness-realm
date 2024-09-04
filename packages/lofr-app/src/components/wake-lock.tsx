@@ -81,12 +81,19 @@ export const KeepAwake = () => {
             video.autoplay = false;
             video.loop = true;
             video.muted = true;
+            setLog((s) => [...s, { kind: `log`, message: `video inline = ${inline}` }]);
             if (inline !== undefined) {
                 video.playsInline = inline;
             }
             videoHostRef.current?.appendChild(video);
             videoHostRef.current?.scrollIntoView();
-            video.play().then(() => video.pause());
+
+            setLog((s) => [...s, { kind: `log`, message: `video playing...` }]);
+            video.play().then(() => {
+                setLog((s) => [...s, { kind: `log`, message: `video pausing...` }]);
+                video.pause();
+                setLog((s) => [...s, { kind: `log`, message: `video paused` }]);
+            });
 
             setLog((s) => [...s, { kind: `log`, message: `video created` }]);
         }
