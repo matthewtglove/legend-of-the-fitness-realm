@@ -60,7 +60,7 @@ export const KeepAwake = () => {
                 // video.remove();
                 // videoRef.current = undefined;
 
-                setLog((s) => [...s, { kind: `log`, message: `video stopped` }]);
+                setLog((s) => [...s, { kind: `log`, message: `video paused` }]);
                 startVideoAfterTime();
             }, 3000);
         } catch (e) {
@@ -90,7 +90,7 @@ export const KeepAwake = () => {
 
             setLog((s) => [...s, { kind: `log`, message: `video playing...` }]);
             video.play().then(() => {
-                setLog((s) => [...s, { kind: `log`, message: `video pausing...` }]);
+                setLog((s) => [...s, { kind: `log`, message: `video started, now pausing...` }]);
                 video.pause();
                 setLog((s) => [...s, { kind: `log`, message: `video paused` }]);
             });
