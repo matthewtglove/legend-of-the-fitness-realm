@@ -56,6 +56,10 @@ export const KeepAwake = () => {
                 // pause video
                 video.pause();
 
+                // test: remove and re-add video to reset it?
+                video.remove();
+                videoRef.current = undefined;
+
                 setLog((s) => [...s, { kind: `log`, message: `video stopped` }]);
                 startVideoAfterTime();
             }, 3000);
@@ -77,7 +81,8 @@ export const KeepAwake = () => {
             video.autoplay = false;
             video.loop = true;
             video.muted = true;
-            video.playsInline = true;
+            // it kind of works without this
+            // video.playsInline = true;
             videoHostRef.current?.appendChild(video);
             videoHostRef.current?.scrollIntoView();
             video.play().then(() => video.pause());
