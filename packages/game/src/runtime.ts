@@ -450,8 +450,15 @@ export const createGameRuntime = (
             intensity: Math.max(...exerciseMuscleGroups.map((x) => x[m] || 0)),
         }))
             .sort((a, b) => -(a.intensity - b.intensity))
-            .filter((x) => x.intensity > 2)
+            .filter((x) => x.intensity > 1)
             .map((x) => x.name);
+
+        console.log(`playerAction_planAhead`, {
+            muscleGroupsUsed,
+            exerciseNames,
+            exerciseMuscleGroups,
+            context,
+        });
 
         const events: GameEvent[] = [];
         estimateRemainingSec = 0;
@@ -513,6 +520,14 @@ export const createGameRuntime = (
             .sort((a, b) => -(a.intensity - b.intensity))
             .filter((x) => x.intensity > 2)
             .map((x) => x.name);
+
+        console.log(`playerAction_attackEnemy`, {
+            muscleGroupsUsed,
+            exerciseNames,
+            exerciseMuscleGroups,
+            currentSessionPeriod: context.sessionPeriods[context.currentSessionPeriod.index],
+            context,
+        });
 
         const events: GameEvent[] = [];
         estimateRemainingSec = 0;

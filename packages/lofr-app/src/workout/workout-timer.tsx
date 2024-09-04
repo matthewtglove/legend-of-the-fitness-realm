@@ -5,6 +5,7 @@ import { GameStoryRuntime } from '../story/game-story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
 import clickSoundUrl from '../assets/wooden-click.mp3';
+import { useStableCallback } from '../components/use-stable-callback';
 
 const createSoundManager = () => {
     const state = {
@@ -41,11 +42,11 @@ export const WorkoutSessionTimer = ({
     const [isStarting, setIsStarting] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const step = workoutSession.steps[stepIndex];
-    const nextStep = () => {
+    const nextStep = useStableCallback(() => {
         console.log(`nextStep`);
         setStepIndex((index) => index + 1);
-    };
-    const startWorkout = async () => {
+    });
+    const startWorkout = useStableCallback(async () => {
         setIsStarting(true);
         // console.log(`WorkoutSessionTimer.startWorkout`, {
         //     questContext: storyRuntime.questContext,
@@ -55,7 +56,7 @@ export const WorkoutSessionTimer = ({
         await speakText(`Start Workout!`, {});
         await storyRuntime.startWorkout(workoutSession);
         setHasStarted(true);
-    };
+    });
 
     // const [isClickSoundEnabled, setIsClickSoundEnabled] = useState(true);
     // const toggleClickSound = () => {
@@ -226,10 +227,12 @@ const RestTimer = ({
     const timeRemainingRef = useRef(timeRemaining);
     timeRemainingRef.current = timeRemaining;
     const [isPaused, setIsPaused] = useState(false);
+    const isPausedRef = useRef(isPaused);
+    isPausedRef.current = isPaused;
 
     useEffect(() => {
         const interval = setInterval(async () => {
-            if (isPaused) {
+            if (isPausedRef.current) {
                 return;
             }
             if (timeRemainingRef.current === timeTotal) {
@@ -253,7 +256,7 @@ const RestTimer = ({
             setTimeRemaining(timeRemainingRef.current - 1);
         }, 1000);
         return () => clearInterval(interval);
-    }, [isPaused]);
+    }, [onDone, soundManager, storyRuntime, timeTotal]);
 
     return (
         <>
@@ -317,10 +320,12 @@ const TimedTimer = ({
         timeRemaining: step.workDurationSec,
     });
     const [isPaused, setIsPaused] = useState(false);
+    const isPausedRef = useRef(isPaused);
+    isPausedRef.current = isPaused;
 
     useEffect(() => {
         const interval = setInterval(async () => {
-            if (isPaused) {
+            if (isPausedRef.current) {
                 return;
             }
             const exercisePhrase = `${step.exercises.map((x) => `${x.repCount} "${x.exerciseName}"`).join(` and `)}.`;
@@ -402,7 +407,17 @@ const TimedTimer = ({
             return;
         }, 1000);
         return () => clearInterval(interval);
-    }, [isPaused]);
+    }, [
+        onDone,
+        soundManager,
+        step.exercises,
+        step.restDurationSec,
+        step.setCount,
+        step.workDurationSec,
+        stepIndex,
+        storyRuntime,
+    ]);
+
     const { mode, timeTotal, timeRemaining, stepSetIndex } = timerDataRef.current;
 
     return (
