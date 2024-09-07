@@ -26,7 +26,7 @@ import {
     AttackEnemyOutcomeEvent,
     GameRuntimeSubscriptionData,
 } from './types';
-import { cloneDeep, deepDiff } from './deep-obj';
+import { cloneDeep, diffDeep } from './deep-obj';
 
 export const createEmptyGameState = (): GameState => {
     const gameState: GameState = {
@@ -1195,8 +1195,8 @@ export const createGameRuntime = (
                 subscribableState.next({
                     state: stateAfter,
                     stateLast: subscribableState.stateLast,
-                    stateDiff: deepDiff(subscribableState.stateLast, stateAfter),
-                    response,
+                    stateDiff: diffDeep(subscribableState.stateLast, stateAfter),
+                    gameEvents: response,
                 });
             }
             return response;

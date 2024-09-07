@@ -2,14 +2,14 @@ export const cloneDeep = <T>(obj: T): T => {
     return JSON.parse(JSON.stringify(obj));
 };
 
-export type DeepDiff<T> =
+export type DiffDeep<T> =
     | undefined
     | null
     | {
-          [P in keyof T]?: DeepDiff<T[P]>;
+          [P in keyof T]?: DiffDeep<T[P]>;
       };
 
-export const deepDiff = <T>(a: T, b: T): undefined | null | DeepDiff<T> => {
+export const diffDeep = <T>(a: T, b: T): undefined | null | DiffDeep<T> => {
     if (a === b) {
         // undefined => no change
         return undefined;
@@ -31,7 +31,7 @@ export const deepDiff = <T>(a: T, b: T): undefined | null | DeepDiff<T> => {
     }
 
     let hasChangedField = false;
-    const diff: DeepDiff<T> = {};
+    const diff: DiffDeep<T> = {};
     for (const k in a) {
         if (!(k in b)) {
             // removed field
@@ -39,7 +39,7 @@ export const deepDiff = <T>(a: T, b: T): undefined | null | DeepDiff<T> => {
             hasChangedField = true;
         }
 
-        const fieldValue = deepDiff(a[k], b[k]);
+        const fieldValue = diffDeep(a[k], b[k]);
         if (fieldValue !== undefined) {
             hasChangedField = true;
             diff[k] = fieldValue;

@@ -1,4 +1,4 @@
-import { DeepDiff } from './deep-obj';
+import { DiffDeep } from './deep-obj';
 import * as LoreTypes from './lore/lore-types';
 
 // MARK: GameState
@@ -216,8 +216,8 @@ export type GameItem = {
 export type GameRuntimeSubscriptionData = {
     state: GameState;
     stateLast: GameState;
-    stateDiff: DeepDiff<GameState>;
-    response: GameEventResponse;
+    stateDiff: DiffDeep<GameState>;
+    gameEvents: GameEventResponse;
 };
 
 export type GameRuntime = {

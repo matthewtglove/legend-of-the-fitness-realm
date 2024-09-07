@@ -15,11 +15,11 @@ import {
     GameSessionPeriod,
 } from '@lofr/game';
 import { sendOpenRouterAiRequest } from './call-llm';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useStableCallback } from '../components/use-stable-callback';
 import { ExpandableView } from '../components/expandable-view';
 import { Button } from '../components/buttons';
-import { DungeonMap } from './dungeon-map';
+import { cloneDeep } from '../../../game/dist/src/deep-obj';
 
 export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRuntime: GameStoryRuntime }) => {
     const loreBuilder = createLoreBuilder({
@@ -40,13 +40,11 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
     const gameRuntime = props.storyRuntime.gameRuntime;
     const stateHistoryRef = useRef([
         {
-            context: JSON.parse(
-                JSON.stringify(props.storyRuntime.gameContext),
-            ) as typeof props.storyRuntime.gameContext,
-            state: JSON.parse(JSON.stringify(gameRuntime.state)) as typeof gameRuntime.state,
+            context: cloneDeep(props.storyRuntime.gameContext),
+            state: cloneDeep(gameRuntime.state),
             delta: {} as unknown,
             period: undefined as undefined | GameSessionPeriod,
-            event: undefined as undefined | GameEventResponse,
+            gameEvents: undefined as undefined | GameEventResponse,
         },
     ]);
     const stateHistory = stateHistoryRef.current;
@@ -54,64 +52,19 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
     const [renderId, setRenderId] = useState(0);
     const gameContextRef = useRef(props.storyRuntime.gameContext);
 
-    gameRuntime.triggerSessionStart;
-
-    const pushGameState = (state: GameState, event: GameEventResponse, period?: GameSessionPeriod) => {
-        const lastState = stateHistory[stateHistory.length - 1];
-        if (!lastState) {
-            stateHistory.push({
-                context: JSON.parse(JSON.stringify(gameContextRef.current)),
-                state,
-                delta: state,
-                period,
-                event,
+    useEffect(() => {
+        const { unsubscribe } = gameRuntime.subscribe((data) => {
+            stateHistoryRef.current.push({
+                context: cloneDeep(gameContextRef.current),
+                state: data.state,
+                period: gameContextRef.current.sessionPeriods[gameContextRef.current.currentSessionPeriod.index],
+                gameEvents: data.gameEvents,
+                delta: data.stateDiff,
             });
-            return;
-        }
-
-        // Recursively find object deltas
-        const findObjectDelta = (obj: unknown, lastObj: unknown): unknown => {
-            if (obj === lastObj) {
-                return undefined;
-            }
-            if (typeof obj !== typeof lastObj) {
-                return obj ?? undefined;
-            }
-
-            if (Array.isArray(obj) && Array.isArray(lastObj)) {
-                // itemwise diff
-                return obj.map((item, i) => findObjectDelta(item, lastObj[i]));
-            }
-
-            if (typeof obj !== `object` || obj == null) {
-                return obj ?? undefined;
-            }
-            if (typeof lastObj !== `object` || lastObj == null) {
-                return obj ?? undefined;
-            }
-
-            return Object.keys(obj).reduce((acc, k) => {
-                const key = k as keyof typeof obj;
-                if (obj[key] !== lastObj[key]) {
-                    acc[key] = findObjectDelta(obj[key], lastObj[key]);
-                }
-                return acc;
-            }, {} as Record<string, unknown>);
-        };
-
-        stateHistory.push({
-            context: JSON.parse(JSON.stringify(gameContextRef.current)),
-            state: JSON.parse(JSON.stringify(state)),
-            delta: findObjectDelta(state, lastState),
-            period,
-            event,
+            setRenderId((s) => s + 1);
         });
-        setRenderId((s) => s + 1);
-    };
-    const popGameState = () => {
-        stateHistory.pop();
-        gameRuntime.state = stateHistory[stateHistory.length - 1]?.state ?? createEmptyGameState();
-    };
+        return unsubscribe;
+    }, [gameRuntime]);
 
     const triggerSessionStart = () => {
         if (!props.workoutProgram) {
@@ -131,27 +84,23 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
         const event = gameRuntime.triggerSessionStart({
             context: gameContextRef.current,
         });
-        pushGameState(gameRuntime.state, event);
     };
     const triggerSessionEnd = () => {
         const event = gameRuntime.triggerSessionEnd({
             context: gameContextRef.current,
         });
-        pushGameState(gameRuntime.state, event);
     };
 
     const triggerExtraWorkPeriod = () => {
         const event = gameRuntime.triggerWorkPeriod({
             context: gameContextRef.current,
         });
-        pushGameState(gameRuntime.state, event);
     };
     const triggerExtraRestPeriod = () => {
         const event = gameRuntime.triggerRestPeriod({
             context: gameContextRef.current,
             workResults: [],
         });
-        pushGameState(gameRuntime.state, event);
     };
 
     const triggerNextPeriod = () => {
@@ -170,7 +119,6 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                       context: gameContextRef.current,
                       workResults: [],
                   });
-        pushGameState(gameRuntime.state, event, currentPeriod);
 
         // go to next period
         gameContextRef.current.currentSessionPeriod = {
@@ -212,7 +160,7 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                                       }sec ${state.period.exercises.map((ex) => ex.exerciseName).join(`, `)}`
                             } \n${
                                 // events
-                                `${state.event?.events.map((x) => `▪ ${x.kind}`).join(`, `) ?? ``}`
+                                `${state.gameEvents?.events.map((x) => `▪ ${x.kind}`).join(`, `) ?? ``}`
                             } \n${
                                 // players
                                 `${state.state.players
@@ -223,7 +171,7 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                             expanded={false}
                             mode={`exclude`}
                         >
-                            <pre className="my-2 whitespace-pre-wrap">{summarizeGameEvent(state.event)}</pre>
+                            <pre className="my-2 whitespace-pre-wrap">{summarizeGameEvent(state.gameEvents)}</pre>
                             <pre className="my-2 whitespace-pre-wrap">
                                 {state.state.players
                                     .map(
@@ -242,6 +190,11 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                         <ExpandableView title={`GameState ${i} - JSON`} expanded={false} mode={`exclude`}>
                             <textarea className="w-full h-[50vh]" readOnly>
                                 {JSON.stringify(state, null, 2)}
+                            </textarea>
+                        </ExpandableView>
+                        <ExpandableView title={`GameState Diff ${i} - JSON`} expanded={false} mode={`exclude`}>
+                            <textarea className="w-full h-[50vh]" readOnly>
+                                {JSON.stringify(state.delta, null, 2)}
                             </textarea>
                         </ExpandableView>
                     </ExpandableView>
