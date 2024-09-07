@@ -9,7 +9,6 @@ import {
     formatGameEventMessage,
     GameSessionPeriod,
     GameState,
-    GameEvent,
 } from '@lofr/game';
 import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
 import { speakText } from '../workout/workout-announce';
@@ -122,29 +121,28 @@ export const createGameStoryRuntime = () => {
 
     const storyState = {
         iNextId: 0,
-        storyHistory: [] as { id: string; eventFormatted: string; message?: string; event: GameEvent }[],
+        storyHistory: [] as { id: string; eventFormatted: string; message?: string; gameEvents: GameEventResponse }[],
     };
 
     const announceGameEvents = async (gameEvents: GameEventResponse) => {
         console.log(`accountGameEvents`, { gameRuntimeState: cloneDeep(state.gameRuntime.state), state });
 
-        for (const event of gameEvents.events) {
-            const formatted = formatGameEventMessage(event);
-            console.log(`startWorkout: gameEvent: ${event.kind}`, event);
+        // for (const event of gameEvents.events) {
+        const formatted = gameEvents.events.map((event) => formatGameEventMessage(event)).join(`\n`);
 
-            const id = `${storyState.iNextId++}`;
+        const id = `${storyState.iNextId++}`;
 
-            const previousStory = storyState.storyHistory
-                .slice(-5)
-                .map((x) => `${x.message}\n`)
-                .join(``);
+        const previousStory = storyState.storyHistory
+            .slice(-5)
+            .map((x) => `${x.message}\n`)
+            .join(``);
 
-            storyState.storyHistory.push({ id: `${id}`, message: `🔃`, eventFormatted: formatted, event });
+        storyState.storyHistory.push({ id: `${id}`, message: `🔃`, eventFormatted: formatted, gameEvents });
 
-            const result = await sendOpenRouterAiRequest(
-                `You are a dungeun master for a game. You must add a single sentance to summarize the game event. DO NOT ADD EXTRA FACTS! Describe only the facts in the event.`,
-                //`Previous Story:\n${previousStory}\n---\nGame Event:\n'${formatted}'\n---\nGame Event Retold (no extra facts):\n`,
-                `
+        const result = await sendOpenRouterAiRequest(
+            `You are a dungeun master for a game. You must add a single sentance to summarize the game event. DO NOT ADD EXTRA FACTS! Describe only the facts in the event.`,
+            //`Previous Story:\n${previousStory}\n---\nGame Event:\n'${formatted}'\n---\nGame Event Retold (no extra facts):\n`,
+            `
 {
     // This is the previous story that has been told to the player already
     previousStory: \`${previousStory}\`,
@@ -153,21 +151,21 @@ export const createGameStoryRuntime = () => {
     // This is the game event retold in a single sentence as a story - no extra facts allowed, all nouns in the gameEvent should be mentioned and no other nouns
     // retell only the game event in a single sentence, but with some adjectives to make it interesting while still brief
     gameEventRetold: \``,
-                {
-                    maxTokens: 200,
-                    timeoutMs: 10000,
-                },
-            );
-            const nextStoryParsed = result?.split(`\``)[0];
-            const message = nextStoryParsed || formatted;
-            storyState.storyHistory.splice(
-                storyState.storyHistory.findIndex((x) => x.id === id),
-                1,
-            );
-            storyState.storyHistory.push({ id: `${id}`, message, eventFormatted: formatted, event });
+            {
+                maxTokens: 200,
+                timeoutMs: 10000,
+            },
+        );
+        const nextStoryParsed = result?.split(`\``)[0];
+        const message = nextStoryParsed || formatted;
+        storyState.storyHistory.splice(
+            storyState.storyHistory.findIndex((x) => x.id === id),
+            1,
+        );
+        storyState.storyHistory.push({ id: `${id}`, message, eventFormatted: formatted, gameEvents });
 
-            await speakText(message, { voice: `story` });
-        }
+        await speakText(message, { voice: `story` });
+        // }
     };
 
     return {

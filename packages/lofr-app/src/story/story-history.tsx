@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { GameStoryRuntime } from './game-story-runtime';
+import { summarizeGameEventResponse } from './summarize';
 
 export const StoryHistoryView = ({ storyRuntime }: { storyRuntime: GameStoryRuntime }) => {
     const [renderId, setRenderId] = useState(0);
@@ -13,8 +14,11 @@ export const StoryHistoryView = ({ storyRuntime }: { storyRuntime: GameStoryRunt
             <div className="flex flex-col gap-2" key={renderId}>
                 {storyRuntime.storyHistory.map((x, i) => (
                     <div key={i} className={`flex flex-col gap-2 p-1 border border-slate-200`}>
-                        <div className="text-green-600">
-                            {x.id} - {x.eventFormatted}
+                        <div className="text-green-600 whitespace-pre-wrap">
+                            {x.id}: {x.eventFormatted}
+                        </div>
+                        <div className="text-xs text-green-600 whitespace-pre-wrap">
+                            {summarizeGameEventResponse(x.gameEvents)}
                         </div>
                         <div className="text-slate-800">{x.message}</div>
                     </div>
