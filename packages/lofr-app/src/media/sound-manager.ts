@@ -14,7 +14,7 @@ export const createSoundManager = () => {
         enabled: true,
         enabledGameSounds: true,
         tickSound: new Audio(tickSoundUrl),
-        gameAudioSet: new Map<string, HTMLAudioElement>(),
+        gameAudio: new Audio(),
         ambientSoundUrls: [
             `/sounds/step.mp3`,
             ...parseAudioDirectory(
@@ -192,7 +192,7 @@ Start_Sounds_020.wav
             if (!state.enabled) {
                 return;
             }
-            playRandomSoundUrl(state.gameAudioSet, state.ambientSoundUrls);
+            playRandomSoundUrl(state.gameAudio, state.ambientSoundUrls);
         },
         playGameEventSound: (gameEvents: GameEventResponse) => {
             if (!state.enabledGameSounds) {
@@ -202,33 +202,33 @@ Start_Sounds_020.wav
             if (
                 gameEvents.events.some((e) => e.kind === `loot-enemy-key-item` || e.kind === `search-location-key-item`)
             ) {
-                playRandomSoundUrl(state.gameAudioSet, state.keyItemSoundUrls);
+                playRandomSoundUrl(state.gameAudio, state.keyItemSoundUrls);
                 return;
             }
 
             if (
                 gameEvents.events.some((e) => e.kind === `attack-enemy-outcome` && e.enemies.some((e) => e.isDefeated))
             ) {
-                playRandomSoundUrl(state.gameAudioSet, state.defeatEnemySoundUrls);
+                playRandomSoundUrl(state.gameAudio, state.defeatEnemySoundUrls);
                 return;
             }
 
             if (gameEvents.events.some((e) => e.kind === `attack-enemy-outcome`)) {
-                playRandomSoundUrl(state.gameAudioSet, state.attackEnemySoundUrls);
+                playRandomSoundUrl(state.gameAudio, state.attackEnemySoundUrls);
                 return;
             }
 
             if (gameEvents.events.some((e) => e.kind === `attack-enemy`)) {
-                playRandomSoundUrl(state.gameAudioSet, state.attackEnemySoundUrls);
+                playRandomSoundUrl(state.gameAudio, state.attackEnemySoundUrls);
                 return;
             }
 
             if (gameEvents.events.some((e) => e.kind === `reveal-enemy`)) {
-                playRandomSoundUrl(state.gameAudioSet, state.battleStartSoundUrls);
+                playRandomSoundUrl(state.gameAudio, state.battleStartSoundUrls);
                 return;
             }
             if (gameEvents.events.some((e) => e.kind === `quest-objective`)) {
-                playRandomSoundUrl(state.gameAudioSet, state.questStartSoundUrls);
+                playRandomSoundUrl(state.gameAudio, state.questStartSoundUrls);
                 return;
             }
 
@@ -238,14 +238,15 @@ Start_Sounds_020.wav
 };
 
 const randomItem = <T>(items: T[]): undefined | T => items[Math.floor(Math.random() * items.length)];
-const playRandomSoundUrl = (audioSet: Map<string, HTMLAudioElement>, items: string[]) => {
+const playRandomSoundUrl = (gameAudio: HTMLAudioElement, items: string[]) => {
     const item = randomItem(items);
     if (!item) {
         return;
     }
 
-    const audio = audioSet.has(item) ? audioSet.get(item) : new Audio(item);
-    audio?.play().catch((err: unknown) => console.error(`Failed to play sound`, err));
+    gameAudio.src = item;
+    gameAudio.load();
+    gameAudio?.play().catch((err: unknown) => console.error(`Failed to play sound`, err));
 };
 
 export type SoundManager = ReturnType<typeof createSoundManager>;
