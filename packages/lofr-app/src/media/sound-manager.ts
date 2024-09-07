@@ -15,7 +15,6 @@ export const createSoundManager = () => {
         enabledGameSounds: true,
         tickSound: new Audio(tickSoundUrl),
         gameAudioSet: new Map<string, HTMLAudioElement>(),
-        // ambientSounds
         ambientSoundUrls: [
             `/sounds/step.mp3`,
             ...parseAudioDirectory(
