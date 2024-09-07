@@ -1,3 +1,4 @@
+import { DeepDiff } from './deep-obj';
 import * as LoreTypes from './lore/lore-types';
 
 // MARK: GameState
@@ -212,8 +213,18 @@ export type GameItem = {
 };
 
 // MARK: GameRuntime
+export type GameRuntimeSubscriptionData = {
+    state: GameState;
+    stateLast: GameState;
+    stateDiff: DeepDiff<GameState>;
+    response: GameEventResponse;
+};
+
 export type GameRuntime = {
     state: GameState;
+    subscribe: (fn: (data: GameRuntimeSubscriptionData) => void) => {
+        unsubscribe: () => void;
+    };
 
     /** Recap and offer player decision */
     triggerSessionStart: (options: { context: GameRuntimeContext }) => GameEventResponse;

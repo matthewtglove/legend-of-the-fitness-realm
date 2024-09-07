@@ -12,6 +12,7 @@ import {
 import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
 import { speakText } from '../workout/workout-announce';
 import { sendOpenRouterAiRequest } from './call-llm';
+// import { create } from 'zustand';
 
 export const createGameStoryRuntime = () => {
     const loreBuilder = createLoreBuilder({
@@ -54,6 +55,12 @@ export const createGameStoryRuntime = () => {
         sessionPeriodIndex: 0,
         sessionPeriodRemainingSec: 0,
     };
+
+    // const useStore = create((set) => ({
+    //     bears: 0,
+    //     increasePopulation: () => set((state) => ({ bears: state.bears + 1 })),
+    //     removeAllBears: () => set({ bears: 0 }),
+    //   }))
 
     const getGameContext = (): GameRuntimeContext => {
         return {

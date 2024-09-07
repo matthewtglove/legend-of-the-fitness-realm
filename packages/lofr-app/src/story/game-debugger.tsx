@@ -186,13 +186,11 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
         <div>
             <h1>Game Debugger</h1>
 
-            <DungeonMap storyRuntime={props.storyRuntime} />
-
-            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 <Button onClick={triggerSessionStart}>Start Workout Session</Button>
                 <Button onClick={triggerSessionEnd}>End Workout Session</Button>
             </div>
-            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 {hasNextPeriod && <Button onClick={triggerNextPeriod}>Trigger Next Period</Button>}
                 <Button className="bg-yellow-600" onClick={triggerExtraWorkPeriod}>
                     Trigger Extra Work Period
@@ -225,8 +223,8 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                             expanded={false}
                             mode={`exclude`}
                         >
-                            <pre className="whitespace-pre-wrap my-2">{summarizeGameEvent(state.event)}</pre>
-                            <pre className="whitespace-pre-wrap my-2">
+                            <pre className="my-2 whitespace-pre-wrap">{summarizeGameEvent(state.event)}</pre>
+                            <pre className="my-2 whitespace-pre-wrap">
                                 {state.state.players
                                     .map(
                                         (p) =>
@@ -250,11 +248,11 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                 ))}
             </div>
 
-            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 <Button onClick={triggerSessionStart}>Start Workout Session</Button>
                 <Button onClick={triggerSessionEnd}>End Workout Session</Button>
             </div>
-            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 {hasNextPeriod && <Button onClick={triggerNextPeriod}>Trigger Next Period</Button>}
                 <Button className="bg-yellow-600" onClick={triggerExtraWorkPeriod}>
                     Trigger Extra Work Period
@@ -521,7 +519,7 @@ export const JsonEditor = <T,>({
                     value={valueJson}
                     onChange={(e) => setValueJson(e.target.value)}
                 />
-                <div className="flex flex-row gap-2 justify-end">
+                <div className="flex flex-row justify-end gap-2">
                     {onReload && (
                         <Button className="bg-red-400" onClick={onReload}>
                             Reload

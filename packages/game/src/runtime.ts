@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { subscribe, unsubscribe } from 'diagnostics_channel';
 import { MuscleGroups } from './lore/lore-types';
 import {
     GameRuntimeContext,
@@ -23,7 +24,9 @@ import {
     GameCharacterHealthStatus,
     GameQuest,
     AttackEnemyOutcomeEvent,
+    GameRuntimeSubscriptionData,
 } from './types';
+import { cloneDeep, deepDiff } from './deep-obj';
 
 export const createEmptyGameState = (): GameState => {
     const gameState: GameState = {
@@ -44,7 +47,7 @@ export const createGameRuntime = (
     lore: GameLoreProvider,
     battle: GameBattleProvider,
 ): GameRuntime => {
-    const state: GameState = JSON.parse(JSON.stringify(initialGameState));
+    const state: GameState = cloneDeep(initialGameState);
 
     const getSessionPlayers = ({ context }: { context: GameRuntimeContext }) => {
         return state.players.filter((x) => context.sessionPlayers.some((p) => p.player === x.id));
@@ -1015,8 +1018,12 @@ export const createGameRuntime = (
         };
     };
 
-    return {
+    const gameRuntime: GameRuntime = {
         state,
+        // placeholder
+        subscribe: () => {
+            return { unsubscribe: () => {} };
+        },
         createPlayer: ({ characterName, characterRace, characterClass, level }) => {
             if (!state.locations.length) {
                 // create initial location
@@ -1139,4 +1146,71 @@ export const createGameRuntime = (
             throw new Error(`Not implemented`);
         },
     };
+
+    // record gameRuntime state changes
+
+    const subscribableState = {
+        enabled: true,
+        enabledHistory: true,
+        stateLast: cloneDeep(state),
+        history: [] as GameRuntimeSubscriptionData[],
+        next: (data: GameRuntimeSubscriptionData) => {
+            if (subscribableState.enabledHistory) {
+                subscribableState.history.push(data);
+            }
+            subscribableState.stateLast = data.state;
+
+            subscribableState.subscribers.forEach((fn) => {
+                try {
+                    fn?.(data);
+                } catch (e) {
+                    console.error(`Error in subscriber - ignored`, e);
+                }
+            });
+        },
+        subscribers: [] as (undefined | ((data: GameRuntimeSubscriptionData) => void))[],
+        subscribe: (fn: (data: GameRuntimeSubscriptionData) => void) => {
+            subscribableState.subscribers.push(fn);
+            return {
+                unsubscribe: () => {
+                    const index = subscribableState.subscribers.indexOf(fn);
+                    if (index >= 0) {
+                        subscribableState.subscribers.splice(index, 1);
+                    }
+                },
+            };
+        },
+    };
+
+    const recordChanges = <T extends (...args: unknown[]) => GameEventResponse>(fn: T): T => {
+        return ((...args: Parameters<T>) => {
+            if (!subscribableState.enabled) {
+                return fn(...args);
+            }
+
+            const response = fn(...args);
+
+            if (response && `events` in response) {
+                const stateAfter = cloneDeep(state);
+                subscribableState.next({
+                    state: stateAfter,
+                    stateLast: subscribableState.stateLast,
+                    stateDiff: deepDiff(subscribableState.stateLast, stateAfter),
+                    response,
+                });
+            }
+            return response;
+        }) as T;
+    };
+
+    for (const kRaw in gameRuntime) {
+        const k = kRaw as keyof GameRuntime;
+        if (typeof gameRuntime[k] === `function`) {
+            const g = gameRuntime as Record<keyof GameRuntime, unknown>;
+            g[k] = recordChanges(g[k] as (...args: unknown[]) => GameEventResponse);
+        }
+    }
+
+    gameRuntime.subscribe = subscribableState.subscribe;
+    return gameRuntime;
 };
