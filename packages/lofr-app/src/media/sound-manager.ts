@@ -170,7 +170,6 @@ Start_Sounds_017.wav
 Start_Sounds_018.wav
 Start_Sounds_019.wav
 Start_Sounds_020.wav
-Start_Sounds_N2.mp3
                 `,
             ),
         ],
