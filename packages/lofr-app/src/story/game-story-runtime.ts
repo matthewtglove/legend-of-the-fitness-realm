@@ -9,6 +9,7 @@ import {
     formatGameEventMessage,
     GameSessionPeriod,
     GameState,
+    GameEvent,
 } from '@lofr/game';
 import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
 import { speakText } from '../workout/workout-announce';
@@ -120,7 +121,8 @@ export const createGameStoryRuntime = () => {
     };
 
     const storyState = {
-        storyHistory: [] as string[],
+        iNextId: 0,
+        storyHistory: [] as { id: string; eventFormatted: string; message?: string; event: GameEvent }[],
     };
 
     const announceGameEvents = async (gameEvents: GameEventResponse) => {
@@ -130,10 +132,15 @@ export const createGameStoryRuntime = () => {
             const formatted = formatGameEventMessage(event);
             console.log(`startWorkout: gameEvent: ${event.kind}`, event);
 
+            const id = `${storyState.iNextId++}`;
+
             const previousStory = storyState.storyHistory
                 .slice(-5)
-                .map((x) => `${x}\n`)
+                .map((x) => `${x.message}\n`)
                 .join(``);
+
+            storyState.storyHistory.push({ id: `${id}`, message: `🔃`, eventFormatted: formatted, event });
+
             const result = await sendOpenRouterAiRequest(
                 `You are a dungeun master for a game. You must add a single sentance to summarize the game event. DO NOT ADD EXTRA FACTS! Describe only the facts in the event`,
                 `Previous Story:\n${previousStory}\nGame Event: '${formatted}'\n\nNext Story Sentance to Summarize Only the Event:`,
@@ -144,9 +151,11 @@ export const createGameStoryRuntime = () => {
             );
 
             const message = result ?? formatted;
-            if (result) {
-                storyState.storyHistory.push(message);
-            }
+            storyState.storyHistory.splice(
+                storyState.storyHistory.findIndex((x) => x.id === id),
+                1,
+            );
+            storyState.storyHistory.push({ id: `${id}`, message, eventFormatted: formatted, event });
 
             await speakText(message, { voice: `story` });
         }
@@ -161,6 +170,9 @@ export const createGameStoryRuntime = () => {
         },
         get gameContext() {
             return getGameContext();
+        },
+        get storyHistory() {
+            return storyState.storyHistory;
         },
         resetGame: () => {
             gameStateStorage.remove();

@@ -9,6 +9,7 @@ import { LoreBuilderView } from './story/lore-builder-view';
 import { GameDebugger } from './story/game-debugger';
 import { KeepAwake } from './components/wake-lock';
 import { DungeonMap } from './story/dungeon-map';
+import { StoryHistoryView } from './story/story-history';
 
 const appVersion = `v1.0.${buildNumber}`;
 
@@ -54,6 +55,9 @@ export const App = () => {
                 </div>
                 <ExpandableView mode="hide" title="Dungeon Map" expanded={true}>
                     <DungeonMap storyRuntime={storyRuntimeRef.current} />
+                </ExpandableView>
+                <ExpandableView mode="exclude" title="Story History" expanded={false}>
+                    <StoryHistoryView storyRuntime={storyRuntimeRef.current} />
                 </ExpandableView>
                 <ExpandableView mode="hide" title="Lore Builder" expanded={false}>
                     <LoreBuilderView workoutProgram={workoutProgram} storyRuntime={storyRuntimeRef.current} />
