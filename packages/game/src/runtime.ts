@@ -1019,7 +1019,9 @@ export const createGameRuntime = (
     };
 
     const gameRuntime: GameRuntime = {
-        state,
+        get state() {
+            return state;
+        },
         // placeholder
         subscribe: () => {
             return { unsubscribe: () => {} };

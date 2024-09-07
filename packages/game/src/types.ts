@@ -221,7 +221,7 @@ export type GameRuntimeSubscriptionData = {
 };
 
 export type GameRuntime = {
-    state: GameState;
+    get state(): GameState;
     subscribe: (fn: (data: GameRuntimeSubscriptionData) => void) => {
         unsubscribe: () => void;
     };

@@ -147,6 +147,11 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                     Trigger Extra Rest Period
                 </Button>
             </div>
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
+                <Button className="bg-red-400" onClick={props.storyRuntime.resetGame}>
+                    Reset Game
+                </Button>
+            </div>
 
             <div className="flex flex-col gap-2">
                 {stateHistory.map((state, i) => (
@@ -188,12 +193,12 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                             <pre className="whitespace-pre-wrap">{summarizeGameState(state.state)}</pre>
                         </ExpandableView>
                         <ExpandableView title={`GameState ${i} - JSON`} expanded={false} mode={`exclude`}>
-                            <textarea className="w-full h-[50vh]" readOnly>
+                            <textarea className="w-full h-[50vh] text-xs whitespace-pre" readOnly>
                                 {JSON.stringify(state, null, 2)}
                             </textarea>
                         </ExpandableView>
                         <ExpandableView title={`GameState Diff ${i} - JSON`} expanded={false} mode={`exclude`}>
-                            <textarea className="w-full h-[50vh]" readOnly>
+                            <textarea className="w-full h-[50vh] text-xs whitespace-pre" readOnly>
                                 {JSON.stringify(state.delta, null, 2)}
                             </textarea>
                         </ExpandableView>
@@ -408,18 +413,19 @@ export const GameContextEditor = ({
 }) => {
     return (
         <>
-            <div className="flex flex-col gap-0">
-                <h1>Session Periods</h1>
-                {value.sessionPeriods.map((sp, i) => (
-                    <Fragment key={i}>
-                        <div className="">
-                            {`Session Period ${i}: ${sp.kind} ${sp.durationSec}sec ${sp.exercises
-                                .map((ex) => ex.exerciseName)
-                                .join(`, `)}`}
-                        </div>
-                    </Fragment>
-                ))}
-            </div>
+            <ExpandableView mode="hide" title="Session Periods" expanded={false}>
+                <div className="flex flex-col gap-0">
+                    {value.sessionPeriods.map((sp, i) => (
+                        <Fragment key={i}>
+                            <div className="">
+                                {`Session Period ${i}: ${sp.kind} ${sp.durationSec}sec ${sp.exercises
+                                    .map((ex) => ex.exerciseName)
+                                    .join(`, `)}`}
+                            </div>
+                        </Fragment>
+                    ))}
+                </div>
+            </ExpandableView>
             <JsonEditor
                 label="Game Context"
                 value={value}

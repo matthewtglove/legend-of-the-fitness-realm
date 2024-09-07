@@ -31,7 +31,9 @@ export const diffDeep = <T>(a: T, b: T): undefined | null | DiffDeep<T> => {
     }
 
     let hasChangedField = false;
-    const diff: DiffDeep<T> = {};
+    const diff: DiffDeep<T> = {
+        ...(`id` in b ? { id: b[`id`] } : {}),
+    };
     for (const k in a) {
         if (!(k in b)) {
             // removed field
@@ -57,11 +59,6 @@ export const diffDeep = <T>(a: T, b: T): undefined | null | DiffDeep<T> => {
 
     if (!hasChangedField) {
         return undefined;
-    }
-
-    if (`id` in b) {
-        // show id if fields have changed
-        (diff as Record<string, unknown>)[`id`] = b[`id`];
     }
 
     return diff;

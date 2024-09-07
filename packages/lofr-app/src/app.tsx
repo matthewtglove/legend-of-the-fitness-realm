@@ -52,7 +52,7 @@ export const App = () => {
                     />
                 </div> */}
                 </div>
-                <ExpandableView mode="hide" title="Dungeon Map" expanded={false}>
+                <ExpandableView mode="hide" title="Dungeon Map" expanded={true}>
                     <DungeonMap storyRuntime={storyRuntimeRef.current} />
                 </ExpandableView>
                 <ExpandableView mode="hide" title="Lore Builder" expanded={false}>
