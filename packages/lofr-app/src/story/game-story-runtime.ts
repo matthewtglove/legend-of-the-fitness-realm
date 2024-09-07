@@ -119,15 +119,36 @@ export const createGameStoryRuntime = () => {
         };
     };
 
+    const storyState = {
+        storyHistory: [] as string[],
+    };
+
     const announceGameEvents = async (gameEvents: GameEventResponse) => {
         console.log(`accountGameEvents`, { gameRuntimeState: cloneDeep(state.gameRuntime.state), state });
 
         for (const event of gameEvents.events) {
             const formatted = formatGameEventMessage(event);
             console.log(`startWorkout: gameEvent: ${event.kind}`, event);
-            // console.log(formatted);
 
-            await speakText(formatted, { voice: `story` });
+            const previousStory = storyState.storyHistory
+                .slice(-5)
+                .map((x) => `${x}\n`)
+                .join(``);
+            const result = await sendOpenRouterAiRequest(
+                `You are a dungeun master for a game. You must add a single sentance to summarize the game event. DO NOT ADD EXTRA FACTS! Describe only the facts in the event`,
+                `Previous Story:\n${previousStory}\nGame Event: '${formatted}'\n\nNext Story Sentance to Summarize Only the Event:`,
+                {
+                    maxTokens: 200,
+                    timeoutMs: 10000,
+                },
+            );
+
+            const message = result ?? formatted;
+            if (result) {
+                storyState.storyHistory.push(message);
+            }
+
+            await speakText(message, { voice: `story` });
         }
     };
 
