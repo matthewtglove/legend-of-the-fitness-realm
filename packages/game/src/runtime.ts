@@ -850,7 +850,7 @@ export const createGameRuntime = (
                             const damage = 1 + Math.floor((0.25 + Math.random()) * player.stats.strength);
                             enemy.stats.health -= damage;
 
-                            if (enemy.stats.health < 0) {
+                            if (enemy.stats.health <= 0) {
                                 enemy.stats.health = 0;
                                 enemy.isDefeated = true;
                             }
