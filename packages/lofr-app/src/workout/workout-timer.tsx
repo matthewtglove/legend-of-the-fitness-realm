@@ -1,45 +1,10 @@
 import { WorkoutSession, WorkoutStep, WorkoutStep_Rest, WorkoutStep_Timed } from '@lofr/workout-parser';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { speakText } from './workout-announce';
 import { GameStoryRuntime } from '../story/game-story-runtime';
 import { PauseIcon } from '../assets/pause-icon';
 import { PlayIcon } from '../assets/play-icon';
-import tickSoundUrl from '../assets/wooden-click.mp3';
-import stepSoundUrl from '../assets/step.mp3';
 import { useStableCallback } from '../components/use-stable-callback';
-
-const createSoundManager = () => {
-    const state = {
-        enabled: true,
-        tickSound: new Audio(tickSoundUrl),
-        // ambientSounds
-        stepSound: new Audio(stepSoundUrl),
-    };
-
-    return {
-        playTickSound: () => {
-            if (!state.enabled) {
-                return;
-            }
-
-            state.tickSound.play().catch((e) => console.error(`Failed to play sound:`, e));
-        },
-        playAmbientSound: () => {
-            if (!state.enabled) {
-                return;
-            }
-            // TODO: Choose random ambient sound
-            state.stepSound.play().catch((e) => console.error(`Failed to play sound:`, e));
-        },
-        toggleSound: () => {
-            state.enabled = !state.enabled;
-            // console.log(`toggleSound`, state.enabled);
-            return state.enabled;
-        },
-    };
-};
-
-type SoundManager = ReturnType<typeof createSoundManager>;
 
 export const WorkoutSessionTimer = ({
     workoutSession,
@@ -73,8 +38,6 @@ export const WorkoutSessionTimer = ({
     //     setIsClickSoundEnabled((s) => !s);
     // };
 
-    const soundManager = useMemo(createSoundManager, []);
-
     return (
         <>
             <div>
@@ -84,7 +47,12 @@ export const WorkoutSessionTimer = ({
                     </div>
                     <div className="flex flex-row items-center">
                         <label className="m-2 text">Countdown Clicks</label>
-                        <input className="" type="checkbox" defaultChecked={true} onChange={soundManager.toggleSound} />
+                        <input
+                            className=""
+                            type="checkbox"
+                            defaultChecked={true}
+                            onChange={storyRuntime.soundManager.toggleSound}
+                        />
                     </div>
                 </div>
                 {!hasStarted && (
@@ -117,13 +85,7 @@ export const WorkoutSessionTimer = ({
                                 </div>
                             )}
                             {step?.kind === `rest` && (
-                                <RestTimer
-                                    key={stepIndex}
-                                    step={step}
-                                    onDone={nextStep}
-                                    storyRuntime={storyRuntime}
-                                    soundManager={soundManager}
-                                />
+                                <RestTimer key={stepIndex} step={step} onDone={nextStep} storyRuntime={storyRuntime} />
                             )}
                             {step?.kind === `timed` && (
                                 <TimedTimer
@@ -132,7 +94,6 @@ export const WorkoutSessionTimer = ({
                                     stepIndex={stepIndex}
                                     onDone={nextStep}
                                     storyRuntime={storyRuntime}
-                                    soundManager={soundManager}
                                 />
                             )}
                         </div>
@@ -225,12 +186,10 @@ const RestTimer = ({
     step,
     onDone,
     storyRuntime,
-    soundManager,
 }: {
     step: WorkoutStep_Rest;
     onDone: () => void;
     storyRuntime: GameStoryRuntime;
-    soundManager: SoundManager;
 }) => {
     const timeTotal = step.durationSec;
     const [timeRemaining, setTimeRemaining] = useState(timeTotal);
@@ -251,11 +210,11 @@ const RestTimer = ({
             // Play tick sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
             if (timeRemainingAtTick <= 3 && timeRemainingAtTick > 0) {
-                soundManager.playTickSound();
+                storyRuntime.soundManager.playTickSound();
             }
             // Play ambient sound every 15 seconds
             else if (timeRemainingAtTick % 15 === 1) {
-                soundManager.playAmbientSound();
+                storyRuntime.soundManager.playAmbientSound();
             }
 
             if (timeRemainingAtTick <= 1) {
@@ -273,7 +232,7 @@ const RestTimer = ({
             }
         }, 1000);
         return () => clearInterval(interval);
-    }, [onDone, soundManager, storyRuntime, timeTotal]);
+    }, [onDone, storyRuntime, timeTotal]);
 
     return (
         <>
@@ -318,13 +277,11 @@ const TimedTimer = ({
     stepIndex,
     onDone,
     storyRuntime,
-    soundManager,
 }: {
     step: WorkoutStep_Timed;
     stepIndex: number;
     onDone: () => void;
     storyRuntime: GameStoryRuntime;
-    soundManager: SoundManager;
 }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [renderId, setRenderId] = useState(0);
@@ -373,11 +330,11 @@ const TimedTimer = ({
             // Play tick sound at 3, 2, 1 seconds
             // Question: Why is this delayed by 1 second? I had to add +1 to the condition to make it work.
             if (timerData.timeRemaining <= 3 + 1 && timerData.timeRemaining > 0) {
-                soundManager.playTickSound();
+                storyRuntime.soundManager.playTickSound();
             }
             // Play ambient sound every 15 seconds
             else if (timerData.timeRemaining % 15 === 1) {
-                soundManager.playAmbientSound();
+                storyRuntime.soundManager.playAmbientSound();
             }
 
             if (timerData.timeRemaining > 1) {
@@ -428,16 +385,7 @@ const TimedTimer = ({
             return;
         }, 1000);
         return () => clearInterval(interval);
-    }, [
-        onDone,
-        soundManager,
-        step.exercises,
-        step.restDurationSec,
-        step.setCount,
-        step.workDurationSec,
-        stepIndex,
-        storyRuntime,
-    ]);
+    }, [onDone, step.exercises, step.restDurationSec, step.setCount, step.workDurationSec, stepIndex, storyRuntime]);
 
     const { mode, timeTotal, timeRemaining, stepSetIndex } = timerDataRef.current;
 
