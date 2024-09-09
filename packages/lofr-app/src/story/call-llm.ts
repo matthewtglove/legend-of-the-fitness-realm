@@ -52,8 +52,17 @@ export const sendOpenRouterAiRequest = async (
                 signal: abortController.signal,
             });
 
+            if (!response.ok) {
+                console.error(`sendOpenRouterAiRequest: ERROR`, {
+                    status: response.status,
+                    statusText: response.statusText,
+                });
+                reject(`sendOpenRouterAiRequest: ERROR`);
+                return;
+            }
+
             const result: Response = await response.json();
-            const message = (result.choices[0] as NonStreamingChoice)?.message.content ?? undefined;
+            const message = (result?.choices[0] as NonStreamingChoice)?.message.content ?? undefined;
 
             console.log(`sendOpenRouterAiRequest: END`, { message, systemPrompt, prompt, model });
 

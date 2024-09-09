@@ -175,6 +175,9 @@ export const createGameStoryRuntime = () => {
         const result = await sendOpenRouterAiRequest(systemPrompt, userPrompt, {
             maxTokens: 200,
             timeoutMs: 10000,
+        }).catch((err) => {
+            console.error(`sendOpenRouterAiRequest: ERROR`, err);
+            return undefined;
         });
         const nextStoryParsed = result?.split(`\``)[0];
         const message = nextStoryParsed || formatted;
