@@ -1,4 +1,4 @@
-import { PromptData, QuestContext } from '../story-types';
+import { PromptData, QuestContext } from '../../../../../lofr-app/src/story/story-types';
 
 export type WorkoutStoryKind = `session-intro` | `event-intro` | `event-conclusion` | `next-set` | `set-result`;
 export type QuestEventStorySuccessLevel = `failure` | `mild-sucess` | `success` | `amazing-success`;

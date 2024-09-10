@@ -1,5 +1,5 @@
-import { extractMarkdownList } from '../extract-prompt-results';
-import { PromptData, QuestContext } from '../story-types';
+import { extractMarkdownList } from '../../../../../lofr-app/src/story/extract-prompt-results';
+import { PromptData, QuestContext } from '../../../../../lofr-app/src/story/story-types';
 
 export const prompt_questEventList = (options: {
     questContext: QuestContext;
