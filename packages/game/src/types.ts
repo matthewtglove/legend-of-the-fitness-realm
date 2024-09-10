@@ -16,7 +16,13 @@ export type GameState = {
 // MARK: GameLoreProvider
 export type GameLoreProvider = {
     getExerciseInfo: (exerciseName: string) => undefined | LoreTypes.ExerciseInfo;
-    generateAttack: (props: { state: GameState; player: GamePlayer; muscleGroupsUsed: LoreTypes.MuscleGroup[] }) => {
+    generateAttack: (props: {
+        state: GameState;
+        player: GamePlayer;
+        muscleGroupsUsed: LoreTypes.MuscleGroup[];
+        motionDirection: LoreTypes.MotionDirection;
+        motionSpeed: LoreTypes.MotionSpeed;
+    }) => {
         attackName: string;
         attackKind: `melee` | `ranged` | `magic`;
         attackWeapon?: string;

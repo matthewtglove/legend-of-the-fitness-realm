@@ -447,7 +447,11 @@ export const createGameRuntime = (
             context.sessionPeriods
                 .find((p, i) => i >= context.currentSessionPeriod.index && p.exercises.length)
                 ?.exercises.map((x) => x.exerciseName) ?? [];
-        const exerciseMuscleGroups = exerciseNames.map((x) => lore.getExerciseInfo(x)?.muscleGroups).filter((x) => !!x);
+        const exerciseInfos = exerciseNames
+            .map((x) => lore.getExerciseInfo(x))
+            .filter((x) => !!x)
+            .map((x) => x!);
+        const exerciseMuscleGroups = exerciseInfos.map((x) => x.muscleGroups);
         const muscleGroupsUsed = MuscleGroups.map((m) => ({
             name: m,
             intensity: Math.max(...exerciseMuscleGroups.map((x) => x[m] || 0)),
@@ -455,9 +459,13 @@ export const createGameRuntime = (
             .sort((a, b) => -(a.intensity - b.intensity))
             .filter((x) => x.intensity > 1)
             .map((x) => x.name);
+        const motionDirection = exerciseInfos.map((x) => x.motionDirection).find((x) => !!x) ?? `forward`;
+        const motionSpeed = exerciseInfos.map((x) => x.motionSpeed).find((x) => !!x) ?? `normal`;
 
         console.log(`playerAction_planAhead`, {
             muscleGroupsUsed,
+            motionDirection,
+            motionSpeed,
             exerciseNames,
             exerciseMuscleGroups,
             context,
@@ -475,6 +483,8 @@ export const createGameRuntime = (
                 state,
                 player,
                 muscleGroupsUsed,
+                motionDirection,
+                motionSpeed,
             });
             const attackEnemy = {
                 kind: `plan-attack-enemy`,
@@ -515,7 +525,11 @@ export const createGameRuntime = (
 
         const exerciseNames =
             context.sessionPeriods[context.currentSessionPeriod.index]?.exercises.map((x) => x.exerciseName) ?? [];
-        const exerciseMuscleGroups = exerciseNames.map((x) => lore.getExerciseInfo(x)?.muscleGroups).filter((x) => !!x);
+        const exerciseInfos = exerciseNames
+            .map((x) => lore.getExerciseInfo(x))
+            .filter((x) => !!x)
+            .map((x) => x!);
+        const exerciseMuscleGroups = exerciseInfos.map((x) => x.muscleGroups);
         const muscleGroupsUsed = MuscleGroups.map((m) => ({
             name: m,
             intensity: Math.max(...exerciseMuscleGroups.map((x) => x[m] || 0)),
@@ -523,9 +537,13 @@ export const createGameRuntime = (
             .sort((a, b) => -(a.intensity - b.intensity))
             .filter((x) => x.intensity > 2)
             .map((x) => x.name);
+        const motionDirection = exerciseInfos.map((x) => x.motionDirection).find((x) => !!x) ?? `forward`;
+        const motionSpeed = exerciseInfos.map((x) => x.motionSpeed).find((x) => !!x) ?? `normal`;
 
         console.log(`playerAction_attackEnemy`, {
             muscleGroupsUsed,
+            motionDirection,
+            motionSpeed,
             exerciseNames,
             exerciseMuscleGroups,
             currentSessionPeriod: context.sessionPeriods[context.currentSessionPeriod.index],
@@ -544,6 +562,8 @@ export const createGameRuntime = (
                 state,
                 player,
                 muscleGroupsUsed,
+                motionDirection,
+                motionSpeed,
             });
             const attackEnemy = {
                 kind: `attack-enemy`,

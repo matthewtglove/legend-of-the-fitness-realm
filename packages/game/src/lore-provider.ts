@@ -23,7 +23,7 @@ export const createGameLoreProvider = (loreBuilder: LoreBuilder): GameLoreProvid
         getExerciseInfo: (exerciseName: string) => {
             return loreBuilder.getExerciseInfo_cached(exerciseName);
         },
-        generateAttack: ({ state, player, muscleGroupsUsed }) => {
+        generateAttack: ({ state, player, muscleGroupsUsed, motionDirection, motionSpeed }) => {
             // prettier-ignore
             const attacks = [
                 { battleClass: `Barbarian`, primaryMuscleGroup: `core`, attackKind: `melee`, weaponKind: undefined, name: `Core Crush` },
