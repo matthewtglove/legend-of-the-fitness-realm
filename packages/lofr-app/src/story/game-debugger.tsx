@@ -20,7 +20,7 @@ import { useStableCallback } from '../components/use-stable-callback';
 import { ExpandableView } from '../components/expandable-view';
 import { Button } from '../components/buttons';
 import { cloneDeep } from '../../../game/dist/src/deep-obj';
-import { summarizeGameEventResponse, summarizeGameState, summarizePendingAction } from './summarize';
+import { summarizeGameEventResponse, summarizeGameState, summarizePendingAction, summarizePlayer } from './summarize';
 
 export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRuntime: GameStoryRuntime }) => {
     const loreBuilder = createLoreBuilder({
@@ -194,6 +194,13 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                         </ExpandableView>
                         <ExpandableView title={`GameState ${i} - Summary`} expanded={false} mode={`exclude`}>
                             <pre className="whitespace-pre-wrap">{summarizeGameState(state.state)}</pre>
+                        </ExpandableView>
+                        <ExpandableView title={`GameState ${i} - Player Summary`} expanded={false} mode={`exclude`}>
+                            {state.state.players.map((p) => (
+                                <pre key={p.id} className="whitespace-pre-wrap">
+                                    {summarizePlayer(state.state, p.id, 0, new Set(), { skipNestedDetails: true })}
+                                </pre>
+                            ))}
                         </ExpandableView>
                         <ExpandableView title={`GameState ${i} - JSON`} expanded={false} mode={`exclude`}>
                             <textarea className="w-full h-[50vh] text-xs whitespace-pre" readOnly>

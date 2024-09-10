@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { subscribe, unsubscribe } from 'diagnostics_channel';
 import { MuscleGroups } from './lore/lore-types';
+import * as LoreTypes from './lore/lore-types';
 import {
     GameRuntimeContext,
     GameBattleProvider,
@@ -401,6 +402,67 @@ export const createGameRuntime = (
         };
     };
 
+    const selectPlayerAttack = ({
+        player,
+        muscleGroupsUsed,
+        motionDirection,
+        motionSpeed,
+    }: {
+        player: GamePlayer;
+        muscleGroupsUsed: LoreTypes.MuscleGroup[];
+        motionDirection: LoreTypes.MotionDirection;
+        motionSpeed: LoreTypes.MotionSpeed;
+    }) => {
+        // use existing player attack
+        const mainMuscleGroups = muscleGroupsUsed.slice(0, 2);
+
+        const attacksForPlayer = player.attacks.filter(
+            (x) => mainMuscleGroups.includes(x.muscleGroup) && x.motionDirection === motionDirection,
+        );
+
+        if (!attacksForPlayer.length) {
+            // generate a basic attack if none available
+            const newAttack = lore.generateAttack({
+                state,
+                player,
+                level: 1,
+                muscleGroupsUsed,
+                motionDirection,
+                motionSpeed,
+            });
+            player.attacks.push({
+                name: newAttack.attackName,
+                level: 1,
+                usageCount: 0,
+                muscleGroup: muscleGroupsUsed[0] ?? `arms`,
+                motionDirection,
+                motionSpeed,
+                attackKind: newAttack.attackKind,
+                attackWeapon: newAttack.attackWeapon,
+            });
+            return newAttack;
+        }
+
+        const maxUsages = Math.max(...attacksForPlayer.map((x) => x.usageCount));
+        const attacksWithWeights = attacksForPlayer.map((x) => ({
+            ...x,
+            weight: 1 + maxUsages - x.usageCount,
+        }));
+        const weightTotal = attacksWithWeights.reduce((acc, x) => acc + x.weight, 0);
+        let randomWeight = Math.random() * weightTotal;
+        const attackSelected = attacksWithWeights.find((x) => (randomWeight -= x.weight) <= 0) ?? attacksWithWeights[0];
+
+        if (!attackSelected) {
+            throw new Error(`No attack selected`);
+        }
+
+        return {
+            attackName: attackSelected.name,
+            attackKind: attackSelected.attackKind,
+            attackWeapon: attackSelected.attackWeapon,
+        };
+    };
+
     const playerAction_planAhead = ({
         context,
         estimateRemainingSec,
@@ -479,8 +541,7 @@ export const createGameRuntime = (
             // randomly select enemy
             const targetEnemy =
                 revealedEnemies[Math.floor(Math.random() * revealedEnemies.length)] ?? revealedEnemies[0]!;
-            const attackInfo = lore.generateAttack({
-                state,
+            const attackInfo = selectPlayerAttack({
                 player,
                 muscleGroupsUsed,
                 motionDirection,
@@ -558,8 +619,7 @@ export const createGameRuntime = (
             // randomly select enemy
             const targetEnemy =
                 revealedEnemies[Math.floor(Math.random() * revealedEnemies.length)] ?? revealedEnemies[0]!;
-            const attackInfo = lore.generateAttack({
-                state,
+            const attackInfo = selectPlayerAttack({
                 player,
                 muscleGroupsUsed,
                 motionDirection,
@@ -569,6 +629,8 @@ export const createGameRuntime = (
                 kind: `attack-enemy`,
                 player: player.name,
                 muscleGroupsUsed,
+                motionDirection,
+                motionSpeed,
                 enemies: [
                     {
                         id: targetEnemy.id,
@@ -816,6 +878,7 @@ export const createGameRuntime = (
             events,
         };
     };
+
     const resolvePlayerAction = ({
         context,
         workResults,
@@ -855,6 +918,52 @@ export const createGameRuntime = (
                     if (!player) {
                         throw new Error(`Player not found`);
                     }
+
+                    const grantPlayerExperience = () => {
+                        // experience & level up (only 2 muscle groups get experience)
+                        const muscleGroupsUsed = action.muscleGroupsUsed.slice(0, 2);
+                        for (const muscleGroup of muscleGroupsUsed) {
+                            const muscleGroupExperience = player.muscleGroupExperience[muscleGroup];
+                            muscleGroupExperience.experience += 1 / muscleGroupsUsed.length;
+
+                            if (muscleGroupExperience.experience < muscleGroupExperience.level + 1) {
+                                continue;
+                            }
+
+                            // level up
+                            muscleGroupExperience.level += 1;
+                            muscleGroupExperience.experience = 0;
+
+                            // generate new attack
+                            const newAttack = lore.generateAttack({
+                                state,
+                                player,
+                                level: muscleGroupExperience.level,
+                                muscleGroupsUsed: [muscleGroup],
+                                motionDirection: action.motionDirection,
+                                motionSpeed: action.motionSpeed,
+                            });
+                            player.attacks.push({
+                                name: newAttack.attackName,
+                                level: muscleGroupExperience.level,
+                                usageCount: 0,
+                                attackKind: newAttack.attackKind,
+                                attackWeapon: newAttack.attackWeapon,
+                                muscleGroup: muscleGroup,
+                                motionDirection: action.motionDirection,
+                                motionSpeed: action.motionSpeed,
+                            });
+
+                            events.push({
+                                kind: `player-muscle-group-level-up`,
+                                player: player.name,
+                                muscleGroup: muscleGroup,
+                                level: muscleGroupExperience.level,
+                                newAttackName: newAttack.attackName,
+                            });
+                        }
+                    };
+
                     const result = action.enemies
                         .map((x) => {
                             const enemy = state.characters.findLast((c) => c.id === x.id);
@@ -895,6 +1004,7 @@ export const createGameRuntime = (
                         .map((x) => x!);
 
                     if (!result.length) {
+                        grantPlayerExperience();
                         return;
                     }
 
@@ -913,6 +1023,7 @@ export const createGameRuntime = (
                         })),
                     });
 
+                    // key item drop
                     result
                         .filter((x) => x.isDefeated && x.enemy.keyItem)
                         .forEach((x) => {
@@ -933,6 +1044,7 @@ export const createGameRuntime = (
                             updateKeyItemCompletions();
                         });
 
+                    grantPlayerExperience();
                     return;
                 }
 
@@ -1038,6 +1150,24 @@ export const createGameRuntime = (
         };
     };
 
+    // update game state for missing fields
+    state.players.forEach((player) => {
+        if (!player.attacks) {
+            player.attacks = [];
+        }
+        if (!player.muscleGroupExperience) {
+            player.muscleGroupExperience = {
+                core: { level: 1, experience: 0 },
+                back: { level: 1, experience: 0 },
+                chest: { level: 1, experience: 0 },
+                shoulders: { level: 1, experience: 0 },
+                arms: { level: 1, experience: 0 },
+                legs: { level: 1, experience: 0 },
+                glutes: { level: 1, experience: 0 },
+            };
+        }
+    });
+
     const gameRuntime: GameRuntime = {
         get state() {
             return state;
@@ -1074,6 +1204,16 @@ export const createGameRuntime = (
                     race: characterRace,
                     class: characterClass,
                 }),
+                attacks: [],
+                muscleGroupExperience: {
+                    core: { level: 1, experience: 0 },
+                    back: { level: 1, experience: 0 },
+                    chest: { level: 1, experience: 0 },
+                    shoulders: { level: 1, experience: 0 },
+                    arms: { level: 1, experience: 0 },
+                    legs: { level: 1, experience: 0 },
+                    glutes: { level: 1, experience: 0 },
+                },
                 equipment: {},
                 inventory: [],
                 location: state.locations[0]!.id,

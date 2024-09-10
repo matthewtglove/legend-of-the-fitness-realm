@@ -19,6 +19,7 @@ export type GameLoreProvider = {
     generateAttack: (props: {
         state: GameState;
         player: GamePlayer;
+        level: number;
         muscleGroupsUsed: LoreTypes.MuscleGroup[];
         motionDirection: LoreTypes.MotionDirection;
         motionSpeed: LoreTypes.MotionSpeed;
@@ -150,6 +151,39 @@ export type GamePlayer = {
         class: string;
     };
     stats: GameCharacterStats;
+    /** Player attacks:
+     *
+     * A player will unlock new attacks by working with a muscle group.
+     */
+    attacks: {
+        name: string;
+        level: number;
+        /** Track usages so that unique attacks can be used */
+        usageCount: number;
+        attackKind: `melee` | `ranged` | `magic`;
+        attackWeapon?: string;
+        /** The muscle group associated with this attack, used for generating the attack and must match for using the attack */
+        muscleGroup: LoreTypes.MuscleGroup;
+        /** The direction of the exercise must match the attack to use that attack */
+        motionDirection: LoreTypes.MotionDirection;
+        /** ? The speed of the exercise should match to use the attack (flexibly, since this might be impossible to match) */
+        motionSpeed: LoreTypes.MotionSpeed;
+    }[];
+    muscleGroupExperience: Record<
+        LoreTypes.MuscleGroup,
+        {
+            level: number;
+            /** Simple linear difficulty progression:
+             *
+             * Each workout set will increase the experience by 1,
+             * once the experience is equal to the next level,
+             * that level is earned
+             *
+             * This will unlock a new attack for the muscle group
+             */
+            experience: number;
+        }
+    >;
     equipment: {
         weapon?: GameItemId;
         armor?: GameItemId;
@@ -343,8 +377,9 @@ export type GameEvent =
     | PlanAttackEnemyEvent
     | AttackEnemyEvent
     | AttackEnemyOutcomeEvent
-    | TalkToNPCEvent
+    | PlayerMuscleGroupLevelUpEvent
     | LevelUpEvent
+    | TalkToNPCEvent
     | EquipWeaponEvent;
 
 export type GamePendingActionEvent = AttackEnemyEvent | MoveLocationEvent;
@@ -430,6 +465,8 @@ type AttackEnemyEvent = {
     kind: `attack-enemy`;
     player: string;
     muscleGroupsUsed: LoreTypes.MuscleGroup[];
+    motionDirection: LoreTypes.MotionDirection;
+    motionSpeed: LoreTypes.MotionSpeed;
     enemies: {
         id: GameCharacterId;
         name: string;
@@ -461,16 +498,24 @@ export type AttackEnemyOutcomeEvent = {
     }[];
 };
 
-// TODO: define other events
-
-type TalkToNPCEvent = {
-    kind: `talk-to-npc`;
-    npc: GameCharacterId;
+type PlayerMuscleGroupLevelUpEvent = {
+    kind: `player-muscle-group-level-up`;
+    player: string;
+    muscleGroup: LoreTypes.MuscleGroup;
+    level: number;
+    newAttackName: string;
 };
+
+// TODO: define other events
 
 type LevelUpEvent = {
     kind: `level-up`;
     character: GameCharacterId;
+};
+
+type TalkToNPCEvent = {
+    kind: `talk-to-npc`;
+    npc: GameCharacterId;
 };
 
 type EquipWeaponEvent = {
