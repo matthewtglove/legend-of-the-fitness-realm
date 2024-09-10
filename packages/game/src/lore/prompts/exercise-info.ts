@@ -1,4 +1,13 @@
-import { MuscleGroup, MuscleGroups, MuscleIntensity, MotionSpeed, ExerciseInfo, MotionSpeeds } from '../lore-types';
+import {
+    MuscleGroup,
+    MuscleGroups,
+    MuscleIntensity,
+    MotionSpeed,
+    ExerciseInfo,
+    MotionSpeeds,
+    MotionDirections,
+    MotionDirection,
+} from '../lore-types';
 import { definePrompt, promptResponseParser_findJson } from '../prompt-builder';
 import { z } from 'zod';
 
@@ -62,6 +71,7 @@ type ExerciseDescription_01 = {
     describeActualExerciseToUser?: string;
     instructions?: string;
     motionSpeed: MotionSpeed;
+    motionDirection: MotionDirection;
     usedMuscleGroups?: MuscleGroup[];
     muscleGroupIntensities: {
         core?: MuscleIntensityLabel;
@@ -77,6 +87,7 @@ type ExerciseDescription_01 = {
 type ExerciseDescription_02 = {
     instructions: string;
     motionSpeed: MotionSpeed;
+    motionDirection: MotionDirection;
     primaryMuscleGroups: MuscleGroup[];
     supportingMuscleGroups: MuscleGroup[];
 };
@@ -112,6 +123,7 @@ const ExerciseInfoSchema = z
     .object({
         name: z.string(),
         motionSpeed: z.enum(MotionSpeeds),
+        motionDirection: z.enum(MotionDirections),
         muscleGroups: z.object({
             core: MuscleIntensitySchema,
             back: MuscleIntensitySchema,
@@ -135,6 +147,7 @@ export const promptExerciseInfo = definePrompt<{ exerciseName: string }, Exercis
                 return ExerciseInfoSchema.parse({
                     name: exerciseName,
                     motionSpeed: x.motionSpeed,
+                    motionDirection: x.motionDirection,
                     muscleGroups:
                         `muscleGroupIntensities` in x
                             ? {
@@ -160,10 +173,12 @@ export const promptExerciseInfo = definePrompt<{ exerciseName: string }, Exercis
 \`\`\`typescript
 type MuscleGroup = 'core' | 'back' | 'chest' | 'shoulders' | 'arms' | 'legs' | 'glutes';
 type MotionSpeed = 'slow' | 'normal' | 'fast' | 'explosive';
+type MotionDirection = 'forward' | 'backward' | 'down' | 'up' | 'sideways';
 
 type ExerciseDescription = {
     instructions: string;
     motionSpeed: MotionSpeed;
+    motionDirection: MotionDirection;
     primaryMuscleGroups: MuscleGroup[];
     supportingMuscleGroups: MuscleGroup[];
 };

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cn } from './tailwind-utils';
 
 export const ExpandableView = ({
     title,
@@ -23,7 +24,10 @@ export const ExpandableView = ({
 
     return (
         <div className="p-2 border-2 rounded border-slate-200">
-            <div className="flex flex-row items-center">
+            <div
+                className={cn(`flex flex-row items-center`, expanded && `pb-2 border-b border-b-slate-200`)}
+                onClick={() => setExpanded(!expanded)}
+            >
                 <button className="text-left whitespace-pre-wrap" onClick={() => setExpanded(!expanded)}>
                     {expanded ? `⬇️` : `➡️`} {title}
                 </button>

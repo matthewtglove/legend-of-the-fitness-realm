@@ -1,16 +1,24 @@
-import { GameLocation, GameLocationId } from '@lofr/game';
+import { GameLocation, GameLocationId, GameState } from '@lofr/game';
 import { GameStoryRuntime } from './game-story-runtime';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime }) => {
-    const dungeonMap = useRef(buildDungeonMap(storyRuntime));
+    const [dungeonMap, setDungeonMap] = useState(buildDungeonMap(storyRuntime.gameRuntime.state));
+
+    // useEffect(() => {
+    //     dungeonMap.current = buildDungeonMap(storyRuntime);
+    // }, [storyRuntime, storyRuntime.gameRuntime.state.locations.length]);
 
     useEffect(() => {
-        dungeonMap.current = buildDungeonMap(storyRuntime);
-    }, [storyRuntime, storyRuntime.gameRuntime.state.locations.length]);
+        const { unsubscribe } = storyRuntime.gameRuntime.subscribe((data) => {
+            console.log(`DungeonMap: gameRuntime state updated`, { data });
+            setDungeonMap(buildDungeonMap(data.state));
+        });
+        return unsubscribe;
+    }, [storyRuntime]);
 
     const s = 1;
-    const bounds = dungeonMap.current.bounds;
+    const bounds = dungeonMap.bounds;
 
     const l = (bounds.l - 2) * s;
     const t = (bounds.t - 2) * s;
@@ -31,7 +39,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                 <g
                 //transform={`translate(${w / 2},${h / 2})`}
                 >
-                    {Array.from(dungeonMap.current.grid.entries()).map(([gridPositionKey, locationId]) => {
+                    {Array.from(dungeonMap.grid.entries()).map(([gridPositionKey, locationId]) => {
                         const location = storyRuntime.gameRuntime.state.locations.find((x) => x.id === locationId);
                         const isPlayerLocation = storyRuntime.gameRuntime.state.players.some(
                             (p) => p.location === locationId,
@@ -40,7 +48,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                             (c) => c.location === locationId && c.role.alignment === `enemy` && !c.isDefeated,
                         );
                         const hasKeyItem = !!location?.keyItem;
-                        const gridPosition = dungeonMap.current.locationLookup.get(locationId) ?? [0, 0];
+                        const gridPosition = dungeonMap.locationLookup.get(locationId) ?? [0, 0];
                         return (
                             <>
                                 <rect
@@ -49,7 +57,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                                     y={gridPosition[1] * s}
                                     width={s}
                                     height={s}
-                                    fill={isPlayerLocation ? `#aaaaff` : location?.isDiscovered ? `#aaffaa` : `#333333`}
+                                    fill={isPlayerLocation ? `#0000ff` : location?.isDiscovered ? `#008800` : `#111111`}
                                     stroke="black"
                                     strokeWidth={wallSize}
                                 >
@@ -57,7 +65,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                                 </rect>
 
                                 {location?.connections.map((connection) => {
-                                    const dest = dungeonMap.current.locationLookup.get(connection.location);
+                                    const dest = dungeonMap.locationLookup.get(connection.location);
                                     if (!dest) {
                                         return null;
                                     }
@@ -69,7 +77,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                                             y1={gridPosition[1] * s + s / 2}
                                             x2={(dest[0] + 0.5) * s}
                                             y2={(dest[1] + 0.5) * s}
-                                            stroke="#880000ff"
+                                            stroke="#55333388"
                                             strokeWidth={connectionSize}
                                             // transform={`translate(${s * 0.4 - wallSize},${s * 0.4 - wallSize})`}
                                         />
@@ -79,6 +87,7 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
                                     x={(gridPosition[0] + wallSize) * s}
                                     y={(gridPosition[1] + wallSize - fontSize) * s}
                                     fontSize={fontSize}
+                                    fill="white"
                                     // anchor svg text to top left
                                     dominantBaseline="hanging"
                                     textAnchor="start"
@@ -105,8 +114,8 @@ export const DungeonMap = ({ storyRuntime }: { storyRuntime: GameStoryRuntime })
     );
 };
 
-const buildDungeonMap = (storyRuntime: GameStoryRuntime) => {
-    const locations = storyRuntime.gameRuntime.state.locations;
+const buildDungeonMap = (gameState: GameState) => {
+    const locations = gameState.locations;
 
     const map: DungeonMapSet = {
         grid: new Map(),

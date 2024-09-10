@@ -7,6 +7,7 @@ export const AsyncButton = <TValue,>(props: {
     className?: string;
     action: () => PromiseLike<TValue>;
     onDone: (value: TValue) => void;
+    disabled?: boolean;
 }) => {
     const { doWork, loading, error } = useAsyncWorker();
     const doAction = () => {
@@ -23,7 +24,7 @@ export const AsyncButton = <TValue,>(props: {
     console.log(`AsyncButton RENDER`, { loading, error });
     return (
         <>
-            <Button className={props.className} onClick={doAction} disabled={loading}>
+            <Button className={props.className} onClick={doAction} disabled={loading || props.disabled}>
                 <div className="flex flex-row gap-1 items-center">
                     {props.text}
                     {loading ? <div className="animate-spin">⌛️</div> : undefined}
@@ -49,7 +50,11 @@ export const Button = ({
 }) => {
     return (
         <button
-            className={cn(`p-2 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70`, className)}
+            className={cn(
+                `p-2 text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70`,
+                className,
+                disabled && `opacity-50 pointer-events-none`,
+            )}
             onClick={onClick}
             disabled={disabled}
         >

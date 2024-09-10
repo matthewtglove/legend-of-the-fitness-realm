@@ -36,6 +36,8 @@ const speakTextSync = (
                 priority:
                     // prefer local
                     (x.localService ? 1000 : 0) +
+                    // prefer South Africa (has the best voice on iOS)
+                    (x.lang.startsWith(`en-ZA`) ? 200 : 0) +
                     // prefer British
                     (x.lang.startsWith(`en-GB`) ? 100 : 0) +
                     // avoid default voice

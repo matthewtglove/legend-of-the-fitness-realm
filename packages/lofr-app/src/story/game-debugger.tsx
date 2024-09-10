@@ -15,11 +15,12 @@ import {
     GameSessionPeriod,
 } from '@lofr/game';
 import { sendOpenRouterAiRequest } from './call-llm';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useStableCallback } from '../components/use-stable-callback';
 import { ExpandableView } from '../components/expandable-view';
 import { Button } from '../components/buttons';
-import { DungeonMap } from './dungeon-map';
+import { cloneDeep } from '../../../game/dist/src/deep-obj';
+import { summarizeGameEventResponse, summarizeGameState, summarizePendingAction, summarizePlayer } from './summarize';
 
 export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRuntime: GameStoryRuntime }) => {
     const loreBuilder = createLoreBuilder({
@@ -40,13 +41,11 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
     const gameRuntime = props.storyRuntime.gameRuntime;
     const stateHistoryRef = useRef([
         {
-            context: JSON.parse(
-                JSON.stringify(props.storyRuntime.gameContext),
-            ) as typeof props.storyRuntime.gameContext,
-            state: JSON.parse(JSON.stringify(gameRuntime.state)) as typeof gameRuntime.state,
+            context: cloneDeep(props.storyRuntime.gameContext),
+            state: cloneDeep(gameRuntime.state),
             delta: {} as unknown,
             period: undefined as undefined | GameSessionPeriod,
-            event: undefined as undefined | GameEventResponse,
+            gameEvents: undefined as undefined | GameEventResponse,
         },
     ]);
     const stateHistory = stateHistoryRef.current;
@@ -54,64 +53,19 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
     const [renderId, setRenderId] = useState(0);
     const gameContextRef = useRef(props.storyRuntime.gameContext);
 
-    gameRuntime.triggerSessionStart;
-
-    const pushGameState = (state: GameState, event: GameEventResponse, period?: GameSessionPeriod) => {
-        const lastState = stateHistory[stateHistory.length - 1];
-        if (!lastState) {
-            stateHistory.push({
-                context: JSON.parse(JSON.stringify(gameContextRef.current)),
-                state,
-                delta: state,
-                period,
-                event,
+    useEffect(() => {
+        const { unsubscribe } = gameRuntime.subscribe((data) => {
+            stateHistoryRef.current.push({
+                context: cloneDeep(gameContextRef.current),
+                state: data.state,
+                period: gameContextRef.current.sessionPeriods[gameContextRef.current.currentSessionPeriod.index],
+                gameEvents: data.gameEvents,
+                delta: data.stateDiff,
             });
-            return;
-        }
-
-        // Recursively find object deltas
-        const findObjectDelta = (obj: unknown, lastObj: unknown): unknown => {
-            if (obj === lastObj) {
-                return undefined;
-            }
-            if (typeof obj !== typeof lastObj) {
-                return obj ?? undefined;
-            }
-
-            if (Array.isArray(obj) && Array.isArray(lastObj)) {
-                // itemwise diff
-                return obj.map((item, i) => findObjectDelta(item, lastObj[i]));
-            }
-
-            if (typeof obj !== `object` || obj == null) {
-                return obj ?? undefined;
-            }
-            if (typeof lastObj !== `object` || lastObj == null) {
-                return obj ?? undefined;
-            }
-
-            return Object.keys(obj).reduce((acc, k) => {
-                const key = k as keyof typeof obj;
-                if (obj[key] !== lastObj[key]) {
-                    acc[key] = findObjectDelta(obj[key], lastObj[key]);
-                }
-                return acc;
-            }, {} as Record<string, unknown>);
-        };
-
-        stateHistory.push({
-            context: JSON.parse(JSON.stringify(gameContextRef.current)),
-            state: JSON.parse(JSON.stringify(state)),
-            delta: findObjectDelta(state, lastState),
-            period,
-            event,
+            setRenderId((s) => s + 1);
         });
-        setRenderId((s) => s + 1);
-    };
-    const popGameState = () => {
-        stateHistory.pop();
-        gameRuntime.state = stateHistory[stateHistory.length - 1]?.state ?? createEmptyGameState();
-    };
+        return unsubscribe;
+    }, [gameRuntime]);
 
     const triggerSessionStart = () => {
         if (!props.workoutProgram) {
@@ -131,27 +85,23 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
         const event = gameRuntime.triggerSessionStart({
             context: gameContextRef.current,
         });
-        pushGameState(gameRuntime.state, event);
     };
     const triggerSessionEnd = () => {
         const event = gameRuntime.triggerSessionEnd({
             context: gameContextRef.current,
         });
-        pushGameState(gameRuntime.state, event);
     };
 
     const triggerExtraWorkPeriod = () => {
         const event = gameRuntime.triggerWorkPeriod({
             context: gameContextRef.current,
         });
-        pushGameState(gameRuntime.state, event);
     };
     const triggerExtraRestPeriod = () => {
         const event = gameRuntime.triggerRestPeriod({
             context: gameContextRef.current,
             workResults: [],
         });
-        pushGameState(gameRuntime.state, event);
     };
 
     const triggerNextPeriod = () => {
@@ -170,7 +120,6 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                       context: gameContextRef.current,
                       workResults: [],
                   });
-        pushGameState(gameRuntime.state, event, currentPeriod);
 
         // go to next period
         gameContextRef.current.currentSessionPeriod = {
@@ -186,19 +135,22 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
         <div>
             <h1>Game Debugger</h1>
 
-            <DungeonMap storyRuntime={props.storyRuntime} />
-
-            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 <Button onClick={triggerSessionStart}>Start Workout Session</Button>
                 <Button onClick={triggerSessionEnd}>End Workout Session</Button>
             </div>
-            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 {hasNextPeriod && <Button onClick={triggerNextPeriod}>Trigger Next Period</Button>}
                 <Button className="bg-yellow-600" onClick={triggerExtraWorkPeriod}>
                     Trigger Extra Work Period
                 </Button>
                 <Button className="bg-yellow-600" onClick={triggerExtraRestPeriod}>
                     Trigger Extra Rest Period
+                </Button>
+            </div>
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
+                <Button className="bg-red-400" onClick={props.storyRuntime.resetGame}>
+                    Reset Game
                 </Button>
             </div>
 
@@ -214,7 +166,7 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                                       }sec ${state.period.exercises.map((ex) => ex.exerciseName).join(`, `)}`
                             } \n${
                                 // events
-                                `${state.event?.events.map((x) => `▪ ${x.kind}`).join(`, `) ?? ``}`
+                                `${state.gameEvents?.events.map((x) => `▪ ${x.kind}`).join(`, `) ?? ``}`
                             } \n${
                                 // players
                                 `${state.state.players
@@ -225,8 +177,10 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                             expanded={false}
                             mode={`exclude`}
                         >
-                            <pre className="whitespace-pre-wrap my-2">{summarizeGameEvent(state.event)}</pre>
-                            <pre className="whitespace-pre-wrap my-2">
+                            <pre className="my-2 whitespace-pre-wrap">
+                                {summarizeGameEventResponse(state.gameEvents)}
+                            </pre>
+                            <pre className="my-2 whitespace-pre-wrap">
                                 {state.state.players
                                     .map(
                                         (p) =>
@@ -241,20 +195,32 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                         <ExpandableView title={`GameState ${i} - Summary`} expanded={false} mode={`exclude`}>
                             <pre className="whitespace-pre-wrap">{summarizeGameState(state.state)}</pre>
                         </ExpandableView>
+                        <ExpandableView title={`GameState ${i} - Player Summary`} expanded={false} mode={`exclude`}>
+                            {state.state.players.map((p) => (
+                                <pre key={p.id} className="whitespace-pre-wrap">
+                                    {summarizePlayer(state.state, p.id, 0, new Set(), { skipNestedDetails: true })}
+                                </pre>
+                            ))}
+                        </ExpandableView>
                         <ExpandableView title={`GameState ${i} - JSON`} expanded={false} mode={`exclude`}>
-                            <textarea className="w-full h-[50vh]" readOnly>
+                            <textarea className="w-full h-[50vh] text-xs whitespace-pre" readOnly>
                                 {JSON.stringify(state, null, 2)}
+                            </textarea>
+                        </ExpandableView>
+                        <ExpandableView title={`GameState Diff ${i} - JSON`} expanded={false} mode={`exclude`}>
+                            <textarea className="w-full h-[50vh] text-xs whitespace-pre" readOnly>
+                                {JSON.stringify(state.delta, null, 2)}
                             </textarea>
                         </ExpandableView>
                     </ExpandableView>
                 ))}
             </div>
 
-            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 <Button onClick={triggerSessionStart}>Start Workout Session</Button>
                 <Button onClick={triggerSessionEnd}>End Workout Session</Button>
             </div>
-            <div className="flex flex-row justify-end flex-wrap gap-2 my-2">
+            <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 {hasNextPeriod && <Button onClick={triggerNextPeriod}>Trigger Next Period</Button>}
                 <Button className="bg-yellow-600" onClick={triggerExtraWorkPeriod}>
                     Trigger Extra Work Period
@@ -279,173 +245,6 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
     );
 };
 
-const summarizeGameEvent = (event: GameEventResponse | undefined) => {
-    if (!event) {
-        return `No event`;
-    }
-
-    if (!event.events.length) {
-        return `⭕ No events`;
-    }
-
-    return `Events:\n${event.events.map((e) => `\n- ${e.kind} \n\n    ${formatGameEventMessage(e)}\n`).join(``)}`;
-};
-
-export const summarizePendingAction = (a: GamePendingActionEvent) => {
-    return a.kind === `move-location`
-        ? `🚗${a.kind} ➡ '${a.locationId}'`
-        : a.kind === `attack-enemy`
-        ? `⚔${a.kind} ➡ ${a.enemies.map((e) => `'${e.id}'`).join(`,`)}`
-        : ``;
-};
-
-export const summarizeGameState = (state: GameState) => {
-    const summarizeLocation = (locationId: string, indent: number, visited: Set<string>): string => {
-        const nl = `\n${` `.repeat(indent * 2)}`;
-
-        if (visited.has(locationId)) {
-            return `${nl}- 🔙Location '${locationId}'`;
-        }
-        visited.add(locationId);
-
-        const l = state.locations.find((l) => l.id === locationId);
-        if (!l) {
-            return `${nl}- ! Location '${locationId}' not found`;
-        }
-
-        return `${nl}- [${!l.isDiscovered ? `` : `👁`}] Location: '${l.id}'${state.characters
-            .filter((c) => c.location === l.id)
-            .map((c) => summarizeCharacter(c.id, indent + 1, visited))
-            .join(``)}${state.keyItems
-            .filter((c) => l.keyItem === c.id)
-            .map((c) => summarizeKeyItem(c.id, indent + 1, visited))
-            .join(``)}${l.connections
-            .map((c) =>
-                visited.has(c.location)
-                    ? // ? `${nl}  - ~Connection => '${c.location}' ${!c.isDiscovered ? `` : `👁`}`
-                      ``
-                    : `${nl}  - [${!c.isDiscovered ? `` : `👁`}${
-                          c.requiredKeyItem ? `🔒'${c.requiredKeyItem}'` : ``
-                      }] Connection => '${c.location}'${summarizeLocation(c.location, indent + 2, visited)}`,
-            )
-            .join(``)}`;
-    };
-
-    const summarizeCharacter = (characterId: string, indent: number, visited: Set<string>): string => {
-        const nl = `\n${` `.repeat(indent * 2)}`;
-
-        if (visited.has(characterId)) {
-            return `${nl}- 🔙Character '${characterId}'`;
-        }
-        visited.add(characterId);
-
-        const c = state.characters.find((c) => c.id === characterId);
-        if (!c) {
-            return `${nl}- ! Character '${characterId}' not found`;
-        }
-
-        return `${nl}- [${!c.isDiscovered ? `` : `👁`}${c.isDefeated ? `💀` : ``}] Character: '${c.id}' ${
-            c.role.enemyDifficulty ?? ``
-        } ${c.stats.health}/${c.stats.healthMax}hp ${
-            c.keyItem ? `${summarizeKeyItem(c.keyItem, indent + 1, visited)}` : ``
-        }`;
-    };
-
-    const summarizePlayer = (playerId: string, indent: number, visited: Set<string>): string => {
-        const nl = `\n${` `.repeat(indent * 2)}`;
-
-        if (visited.has(playerId)) {
-            return `${nl}- 🔙Player '${playerId}'`;
-        }
-        visited.add(playerId);
-
-        const p = state.players.find((p) => p.id === playerId);
-        if (!p) {
-            return `${nl}- ! Player '${playerId}' not found`;
-        }
-
-        return `${nl}- [] Player: '${p.name}'${
-            p.pendingActions ? `🕒${p.pendingActions.map((a) => `${nl}  - ${summarizePendingAction(a)}`)}` : ``
-        }${summarizeLocation(p.location, indent + 1, visited)}`;
-    };
-
-    const summarizeKeyItem = (keyItemId: string, indent: number, visited: Set<string>): string => {
-        const nl = `\n${` `.repeat(indent * 2)}`;
-
-        if (visited.has(keyItemId)) {
-            return `${nl}- 🔙🔑KeyItem '${keyItemId}'`;
-        }
-        visited.add(keyItemId);
-
-        const k = state.keyItems.find((k) => k.id === keyItemId);
-        if (!k) {
-            return `${nl}- ! KeyItem '${keyItemId}' not found`;
-        }
-
-        return `${nl}- [${k.isObtained ? `👁` : ``}${k.isVisible ? `` : ``}] 🔑KeyItem: '${k.id}'`;
-    };
-
-    const summarizeCampaign = (campaignId: string, indent: number, visited: Set<string>): string => {
-        const nl = `\n${` `.repeat(indent * 2)}`;
-
-        if (visited.has(campaignId)) {
-            return `${nl}- 🔙Campaign '${campaignId}'`;
-        }
-        visited.add(campaignId);
-
-        const c = state.campaigns.find((c) => c.id === campaignId);
-        if (!c) {
-            return `${nl}- ! Campaign '${campaignId}' not found`;
-        }
-
-        const currentCampaign = state.campaigns.findLast((x) => !x.isComplete);
-        const isCurrent = currentCampaign?.id === c.id;
-
-        return `${nl}- [${c.isComplete ? `🏁` : ``}${isCurrent ? `🟢` : ``}] Campaign: '${c.id}'${c.quests
-            .map((q) => summarizeQuest(q, indent + 1, visited))
-            .join(``)}`;
-    };
-
-    const summarizeQuest = (questId: string, indent: number, visited: Set<string>): string => {
-        const nl = `\n${` `.repeat(indent * 2)}`;
-
-        if (visited.has(questId)) {
-            return `${nl}- 🔙Quest '${questId}'`;
-        }
-        visited.add(questId);
-
-        const q = state.quests.find((q) => q.id === questId);
-        if (!q) {
-            return `${nl}- ! Quest '${questId}' not found`;
-        }
-
-        const currentQuest = state.quests.findLast((x) => !x.isComplete);
-        const currentObjective = currentQuest?.objectives.find(
-            (x) => !state.keyItems.find((k) => k.id === x.completionKeyItem)?.isObtained,
-        );
-
-        return `${nl}- [${q.isComplete ? `🏁` : ``}${currentQuest?.id === q.id ? `🟢` : ``}] Quest: '${
-            q.id
-        }'${q.objectives
-            .map(
-                (o) =>
-                    `${nl}  - [${state.keyItems.find((k) => k.id === o.completionKeyItem)?.isObtained ? `🏁` : ``}${
-                        currentObjective === o ? `🟢` : ``
-                    }] ${o.name} ${summarizeKeyItem(o.completionKeyItem, indent + 2, visited)}`,
-            )
-            .join(``)}`;
-    };
-
-    const visited = new Set<string>();
-    return `
-${state.locations.map((l) => summarizeLocation(l.id, 0, visited)).join(``)}
-${state.players.map((l) => summarizePlayer(l.id, 0, visited)).join(``)}
-${state.characters.map((l) => summarizeCharacter(l.id, 0, visited)).join(``)}
-${state.keyItems.map((l) => summarizeKeyItem(l.id, 0, visited)).join(``)}
-${state.campaigns.map((l) => summarizeCampaign(l.id, 0, visited)).join(``)}
-`;
-};
-
 export const GameContextEditor = ({
     value,
     onChange,
@@ -457,18 +256,19 @@ export const GameContextEditor = ({
 }) => {
     return (
         <>
-            <div className="flex flex-col gap-0">
-                <h1>Session Periods</h1>
-                {value.sessionPeriods.map((sp, i) => (
-                    <Fragment key={i}>
-                        <div className="">
-                            {`Session Period ${i}: ${sp.kind} ${sp.durationSec}sec ${sp.exercises
-                                .map((ex) => ex.exerciseName)
-                                .join(`, `)}`}
-                        </div>
-                    </Fragment>
-                ))}
-            </div>
+            <ExpandableView mode="hide" title="Session Periods" expanded={false}>
+                <div className="flex flex-col gap-0">
+                    {value.sessionPeriods.map((sp, i) => (
+                        <Fragment key={i}>
+                            <div className="">
+                                {`Session Period ${i}: ${sp.kind} ${sp.durationSec}sec ${sp.exercises
+                                    .map((ex) => ex.exerciseName)
+                                    .join(`, `)}`}
+                            </div>
+                        </Fragment>
+                    ))}
+                </div>
+            </ExpandableView>
             <JsonEditor
                 label="Game Context"
                 value={value}
@@ -521,7 +321,7 @@ export const JsonEditor = <T,>({
                     value={valueJson}
                     onChange={(e) => setValueJson(e.target.value)}
                 />
-                <div className="flex flex-row gap-2 justify-end">
+                <div className="flex flex-row justify-end gap-2">
                     {onReload && (
                         <Button className="bg-red-400" onClick={onReload}>
                             Reload

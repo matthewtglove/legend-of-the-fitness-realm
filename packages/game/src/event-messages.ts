@@ -85,7 +85,7 @@ export const formatGameEventMessage = (event: GameEvent) => {
     if (event.kind === `attack-enemy`) {
         const { player, enemies } = event;
 
-        return `${player} attacks ${formatNameList(
+        return `${player} will attack ${formatNameList(
             enemies.map(
                 (x) =>
                     `${x.healthStatus === `ok` ? `` : `${x.healthStatus}`} ${x.name} with ${x.attackName}${
@@ -113,6 +113,10 @@ export const formatGameEventMessage = (event: GameEvent) => {
     if (event.kind === `loot-enemy-key-item`) {
         const { player, enemy, keyItem } = event;
         return `${player} searches ${enemy} and finds the ${keyItem}.`;
+    }
+    if (event.kind === `player-muscle-group-level-up`) {
+        const { player, muscleGroup, level, newAttackName } = event;
+        return `${player} powered up their ${muscleGroup} to level ${level}. They unlocked the '${newAttackName}' attack.`;
     }
     if (event.kind === `move-location`) {
         const { playerNames, location, connection } = event;

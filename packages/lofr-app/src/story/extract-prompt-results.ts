@@ -6,5 +6,5 @@ export const extractMarkdownList = (responseText: string): undefined | string =>
         .filter((line) => line.startsWith(`- `) || line.startsWith(`* `) || line.match(/^\d/));
 
     // trim list marker
-    return listLines.map((line) => line.replace(/^(\-|\*|\d+\.?) /, ``).trim()).join(`\n`);
+    return listLines.map((line) => line.replace(/^(-|\*|\d+\.?) /, ``).trim()).join(`\n`);
 };

@@ -23,76 +23,255 @@ export const createGameLoreProvider = (loreBuilder: LoreBuilder): GameLoreProvid
         getExerciseInfo: (exerciseName: string) => {
             return loreBuilder.getExerciseInfo_cached(exerciseName);
         },
-        generateAttack: ({ state, player, muscleGroupsUsed }) => {
-            // prettier-ignore
-            const attacks = [
-                { battleClass: `Barbarian`, primaryMuscleGroup: `arms`, attackKind: `melee`, weaponKind: undefined, name: `Mighty Punch` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: undefined, name: `Leg Sweep` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: undefined, name: `Rock Throw` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `back`, attackKind: `melee`, weaponKind: undefined, name: `Backstab` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `chest`, attackKind: `melee`, weaponKind: undefined, name: `Chest Slam` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `glutes`, attackKind: `melee`, weaponKind: undefined, name: `Butt Slam` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: undefined, name: `Leg Sweep` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `melee`, weaponKind: undefined, name: `Shoulder Slam` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: `sword`, name: `Piercing Lunge` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `melee`, weaponKind: `axe`, name: `Axe Swing` },
-                { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: `sword`, name: `Sword Slash` },
+        generateAttack: ({ state, player, level, muscleGroupsUsed, motionDirection, motionSpeed }) => {
+            const attackTree = {
+                fighter: {
+                    muscleGroups: {
+                        core: {
+                            directions: {
+                                forward: [`Belly Buster`],
+                                backward: [`Stability Press`],
+                                down: [`Belly Flop`],
+                                up: [`Crunch`],
+                                sideways: [`Side Splitter`],
+                            },
+                        },
+                        back: {
+                            directions: {
+                                forward: [`Backbreaker`],
+                                backward: [`Back Slam`],
+                                down: [`Back Crush`],
+                                up: [`Back Lift`],
+                                sideways: [`Back Twist`],
+                            },
+                        },
+                        chest: {
+                            directions: {
+                                forward: [`Chest Crush`],
+                                backward: [`Chest Slam`],
+                                down: [`Chest Press`],
+                                up: [`Chest Lift`],
+                                sideways: [`Chest Twist`],
+                            },
+                        },
+                        arms: {
+                            directions: {
+                                forward: [`Punch`],
+                                backward: [`Backhand`],
+                                down: [`Ground Pound`],
+                                up: [`Uppercut`],
+                                sideways: [`Side Swipe`],
+                            },
+                        },
+                        shoulders: {
+                            directions: {
+                                forward: [`Shoulder Slam`],
+                                backward: [`Elbow Jab`],
+                                down: [`Elbow Drop`],
+                                up: [`Mighty Shrug`],
+                                sideways: [`Rotator Whack`],
+                            },
+                        },
+                        legs: {
+                            directions: {
+                                forward: [`Kick`],
+                                backward: [`Back Kick`],
+                                down: [`Stomp`],
+                                up: [`Jump Kick`],
+                                sideways: [`Side Kick`],
+                            },
+                        },
+                        glutes: {
+                            directions: {
+                                forward: [`Butt Slam`],
+                                backward: [`Booty Bump`],
+                                down: [`Booty Drop`],
+                                up: [`Butt Lift`],
+                                sideways: [`Hip Slam`],
+                            },
+                        },
+                    },
+                },
+                magic: {
+                    muscleGroups: {
+                        core: {
+                            directions: {
+                                forward: [`Magic Missile`],
+                                backward: [`Magic Shield`],
+                                down: [`Magic Burst`],
+                                up: [`Magic Heal`],
+                                sideways: [`Magic Wave`],
+                            },
+                        },
+                        back: {
+                            directions: {
+                                forward: [`Shadow Bolt`],
+                                backward: [`Shadow Shield`],
+                                down: [`Shadow Burst`],
+                                up: [`Shadow Heal`],
+                                sideways: [`Shadow Wave`],
+                            },
+                        },
+                        chest: {
+                            directions: {
+                                forward: [`Arcane Blast`],
+                                backward: [`Arcane Shield`],
+                                down: [`Arcane Burst`],
+                                up: [`Arcane Heal`],
+                                sideways: [`Arcane Wave`],
+                            },
+                        },
+                        arms: {
+                            directions: {
+                                forward: [`Fireball`],
+                                backward: [`Fire Shield`],
+                                down: [`Fire Burst`],
+                                up: [`Fire Heal`],
+                                sideways: [`Fire Wave`],
+                            },
+                        },
+                        shoulders: {
+                            directions: {
+                                forward: [`Lightning Bolt`],
+                                backward: [`Lightning Shield`],
+                                down: [`Lightning Burst`],
+                                up: [`Lightning Heal`],
+                                sideways: [`Lightning Wave`],
+                            },
+                        },
+                        legs: {
+                            directions: {
+                                forward: [`Ice Lance`],
+                                backward: [`Ice Shield`],
+                                down: [`Ice Burst`],
+                                up: [`Ice Heal`],
+                                sideways: [`Ice Wave`],
+                            },
+                        },
+                        glutes: {
+                            directions: {
+                                forward: [`Meteor Strike`],
+                                backward: [`Meteor Shield`],
+                                down: [`Meteor Burst`],
+                                up: [`Meteor Heal`],
+                                sideways: [`Meteor Wave`],
+                            },
+                        },
+                    },
+                },
+            } as const;
 
-                { battleClass: `Archer`, primaryMuscleGroup: `arms`, attackKind: `ranged`, weaponKind: `bow`, name: `Arrow Strike` },
-                { battleClass: `Archer`, primaryMuscleGroup: `core`, attackKind: `ranged`, weaponKind: `bow`, name: `Arrow Volley` },
-                { battleClass: `Archer`, primaryMuscleGroup: `back`, attackKind: `ranged`, weaponKind: `bow`, name: `Snipe Shot` },
-                { battleClass: `Archer`, primaryMuscleGroup: `chest`, attackKind: `ranged`, weaponKind: `bow`, name: `Piercing Shot` },
-                { battleClass: `Archer`, primaryMuscleGroup: `glutes`, attackKind: `ranged`, weaponKind: `bow`, name: `Booty Blast` },
-                { battleClass: `Archer`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `bow`, name: `Kick` },
-                { battleClass: `Archer`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: `bow`, name: `Shoulder Shot` },
-                { battleClass: `Archer`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `bow`, name: `Jump Flip Shot` },
-                { battleClass: `Archer`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: `bow`, name: `Arrow Rain` },
-                { battleClass: `Archer`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `bow`, name: `Arrow Barrage` },
-
-                { battleClass: `Mage`, primaryMuscleGroup: `arms`, attackKind: `magic`, weaponKind: `staff`, name: `Fireball` },
-                { battleClass: `Mage`, primaryMuscleGroup: `back`, attackKind: `magic`, weaponKind: `staff`, name: `Shadow Bolt` },
-                { battleClass: `Mage`, primaryMuscleGroup: `core`, attackKind: `magic`, weaponKind: undefined, name: `Heal` },
-                { battleClass: `Mage`, primaryMuscleGroup: `chest`, attackKind: `magic`, weaponKind: `staff`, name: `Ice Shard` },
-                { battleClass: `Mage`, primaryMuscleGroup: `glutes`, attackKind: `magic`, weaponKind: `staff`, name: `Fart of Doom` },
-                { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: `staff`, name: `Lightning Bolt` },
-                { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: `staff`, name: `Mind Blast` },
-                { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: `staff`, name: `You Shall Not Pass` },
-                { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: `staff`, name: `Mind Control` },
-                { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: `staff`, name: `Mind Crush` },
-
-                { battleClass: `Bard`, primaryMuscleGroup: `arms`, attackKind: `ranged`, weaponKind: `lute`, name: `Sonic Blast` },
-                { battleClass: `Bard`, primaryMuscleGroup: `back`, attackKind: `ranged`, weaponKind: `lute`, name: `Soothing Melody` },
-                { battleClass: `Bard`, primaryMuscleGroup: `core`, attackKind: `ranged`, weaponKind: `lute`, name: `Inspiring Tune` },
-                { battleClass: `Bard`, primaryMuscleGroup: `chest`, attackKind: `ranged`, weaponKind: `lute`, name: `Enchanting Song` },
-                { battleClass: `Bard`, primaryMuscleGroup: `glutes`, attackKind: `ranged`, weaponKind: `lute`, name: `Booty Bounce` },
-                { battleClass: `Bard`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `lute`, name: `Dance of Death` },
-                { battleClass: `Bard`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: `lute`, name: `Song of Silence` },
-                { battleClass: `Bard`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `lute`, name: `Dance of Doom` },
-                { battleClass: `Bard`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: `lute`, name: `Song of Sorrow` },
-                { battleClass: `Bard`, primaryMuscleGroup: `legs`, attackKind: `ranged`, weaponKind: `lute`, name: `Dance of Despair` },
-            ] as const;
-
-            const mainMuscleGroups = muscleGroupsUsed.slice(0, 2);
-            const attacksForPlayer = attacks.filter(
-                (x) =>
-                    x.battleClass.toLowerCase() === player.role.class.toLowerCase() &&
-                    mainMuscleGroups.includes(x.primaryMuscleGroup),
-            );
-            const attack = attacksForPlayer[Math.floor(Math.random() * attacksForPlayer.length)] ?? attacks[0]!;
-
-            console.log(`generateAttack`, {
-                role: player.role,
-                mainMuscleGroups,
-                player,
-                muscleGroupsUsed,
-                attack,
-                attacksForPlayer,
-            });
-            return {
-                attackWeapon: attack.weaponKind,
-                attackKind: attack.attackKind,
-                attackName: attack.name,
+            const battleClassMapping = {
+                fighter: [`barbarian`, `fighter`, `warrior`],
+                magic: [`mage`, `sorcerer`, `wizard`],
             };
+
+            const playerBattleClass = Object.entries(battleClassMapping).find(([battleClass, roleClasses]) =>
+                roleClasses.includes(player.role.class.toLowerCase()),
+            )?.[0] as keyof typeof attackTree;
+
+            const attackTreeAttack =
+                attackTree[playerBattleClass]?.muscleGroups[muscleGroupsUsed[0] ?? `arms`]?.directions[
+                    motionDirection
+                ]?.[0];
+
+            if (!attackTreeAttack) {
+                return {
+                    attackWeapon: undefined,
+                    attackKind: `melee`,
+                    attackName: `The Unknown Attack ${level > 1 ? `Level ${level}` : ``}`.trim(),
+                };
+            }
+
+            return {
+                attackWeapon: undefined,
+                attackKind: player.role.class.toLowerCase() === `fighter` ? `melee` : `magic`,
+                attackName: `${attackTreeAttack} ${level > 1 ? `Level ${level}` : ``}`.trim(),
+            };
+
+            // // prettier-ignore
+            // const attacks = [
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `core`, attackKind: `melee`, weaponKind: undefined, name: `Core Crush` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `core`, attackKind: `melee`, weaponKind: undefined, name: `Core Slam` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `core`, attackKind: `melee`, weaponKind: `sword`, name: `Sword Slash` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `back`, attackKind: `melee`, weaponKind: undefined, name: `Back Crush` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `back`, attackKind: `melee`, weaponKind: undefined, name: `Backbreaker` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `back`, attackKind: `melee`, weaponKind: undefined, name: `Backstab` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `chest`, attackKind: `melee`, weaponKind: undefined, name: `Chest Slam` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `chest`, attackKind: `melee`, weaponKind: undefined, name: `Chest Crush` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `chest`, attackKind: `melee`, weaponKind: `sword`, name: `Sword Stab` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `arms`, attackKind: `melee`, weaponKind: undefined, name: `Mighty Punch` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `arms`, attackKind: `melee`, weaponKind: undefined, name: `Arm Slam` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `arms`, attackKind: `melee`, weaponKind: `sword`, name: `Sword Slice` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `ranged`, weaponKind: undefined, name: `Rock Throw` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `melee`, weaponKind: undefined, name: `Shoulder Slam` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `shoulders`, attackKind: `melee`, weaponKind: `axe`, name: `Axe Swing` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: undefined, name: `Leg Sweep` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: `sword`, name: `Piercing Lunge` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `legs`, attackKind: `melee`, weaponKind: `sword`, name: `Sword Slash` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `glutes`, attackKind: `melee`, weaponKind: undefined, name: `Butt Slam` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `glutes`, attackKind: `melee`, weaponKind: undefined, name: `Booty Bump` },
+            //     { battleClass: `Barbarian`, primaryMuscleGroup: `glutes`, attackKind: `melee`, weaponKind: `sword`, name: `Butt with Sword` },
+
+            //     { battleClass: `Mage`, primaryMuscleGroup: `core`, attackKind: `magic`, weaponKind: undefined, name: `Heal` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `core`, attackKind: `magic`, weaponKind: undefined, name: `Magic Missile` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `core`, attackKind: `magic`, weaponKind: `staff`, name: `Staff Strike` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `back`, attackKind: `magic`, weaponKind: undefined, name: `Back Blast` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `back`, attackKind: `magic`, weaponKind: undefined, name: `Shadow Bolt` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `chest`, attackKind: `magic`, weaponKind: undefined, name: `Fireball` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `arms`, attackKind: `magic`, weaponKind: undefined, name: `Frost Nova` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: undefined, name: `Lightning Bolt` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: undefined, name: `Ice Lance` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `glutes`, attackKind: `magic`, weaponKind: undefined, name: `Meteor Strike` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `chest`, attackKind: `magic`, weaponKind: undefined, name: `Chest Beam` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `arms`, attackKind: `magic`, weaponKind: undefined, name: `Arcane Blast` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: undefined, name: `Shoulder Shock` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: undefined, name: `Leg Lightning` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `glutes`, attackKind: `magic`, weaponKind: undefined, name: `Butt Blaze` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `core`, attackKind: `magic`, weaponKind: undefined, name: `Core Blast` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `core`, attackKind: `magic`, weaponKind: undefined, name: `Core Explosion` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `core`, attackKind: `magic`, weaponKind: `staff`, name: `Staff Whack` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `back`, attackKind: `magic`, weaponKind: undefined, name: `Back Burn` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `back`, attackKind: `magic`, weaponKind: undefined, name: `Shadow Strike` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `chest`, attackKind: `magic`, weaponKind: undefined, name: `Fire Blast` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `chest`, attackKind: `magic`, weaponKind: undefined, name: `Chest Explosion` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `chest`, attackKind: `magic`, weaponKind: `staff`, name: `Staff Beam` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `arms`, attackKind: `magic`, weaponKind: undefined, name: `Frost Bolt` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `arms`, attackKind: `magic`, weaponKind: undefined, name: `Arm Burn` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `arms`, attackKind: `magic`, weaponKind: `staff`, name: `Staff Blast` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: undefined, name: `Lightning Strike` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: undefined, name: `Shoulder Burn` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `shoulders`, attackKind: `magic`, weaponKind: `staff`, name: `Staff Shock` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: undefined, name: `Ice Blast` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: `staff`, name: `Staff Lunge` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `legs`, attackKind: `magic`, weaponKind: `staff`, name: `Staff Slash` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `glutes`, attackKind: `magic`, weaponKind: undefined, name: `Butt Burn` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `glutes`, attackKind: `magic`, weaponKind: undefined, name: `Booty Blast` },
+            //     { battleClass: `Mage`, primaryMuscleGroup: `glutes`, attackKind: `magic`, weaponKind: `staff`, name: `Poisonous Fumes` },
+
+            // ] as const;
+
+            // const mainMuscleGroups = muscleGroupsUsed.slice(0, 2);
+            // const attacksForPlayer = attacks.filter(
+            //     (x) =>
+            //         x.battleClass.toLowerCase() === player.role.class.toLowerCase() &&
+            //         mainMuscleGroups.includes(x.primaryMuscleGroup),
+            // );
+            // const attack = attacksForPlayer[Math.floor(Math.random() * attacksForPlayer.length)] ?? attacks[0]!;
+
+            // console.log(`generateAttack`, {
+            //     role: player.role,
+            //     mainMuscleGroups,
+            //     player,
+            //     muscleGroupsUsed,
+            //     attack,
+            //     attacksForPlayer,
+            // });
+            // return {
+            //     attackWeapon: attack.weaponKind,
+            //     attackKind: attack.attackKind,
+            //     attackName: attack.name,
+            // };
         },
         generatePlayerInfo: ({ state }) => {
             // Generate a random fantasy enemy name and role.
