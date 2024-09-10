@@ -114,6 +114,10 @@ export const formatGameEventMessage = (event: GameEvent) => {
         const { player, enemy, keyItem } = event;
         return `${player} searches ${enemy} and finds the ${keyItem}.`;
     }
+    if (event.kind === `player-muscle-group-level-up`) {
+        const { player, muscleGroup, level, newAttackName } = event;
+        return `${player} powered up their ${muscleGroup} to level ${level}. They unlocked the '${newAttackName}' attack.`;
+    }
     if (event.kind === `move-location`) {
         const { playerNames, location, connection } = event;
         return `${formatNameList(playerNames)} ${
