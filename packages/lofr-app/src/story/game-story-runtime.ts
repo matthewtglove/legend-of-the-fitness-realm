@@ -13,7 +13,7 @@ import {
 import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
 import { speakText } from '../workout/workout-announce';
 import { sendOpenRouterAiRequest } from './call-llm';
-import { cloneDeep } from '../../../game/dist/src/deep-obj';
+import { cloneDeep, equalsDeep } from '../../../game/dist/src/deep-obj';
 import { createSoundManager } from '../media/sound-manager';
 // import { create } from 'zustand';
 
@@ -62,6 +62,12 @@ export const createGameStoryRuntime = () => {
         stepSessionPeriods: [] as GameSessionPeriod[][],
         sessionPeriodIndex: 0,
         sessionPeriodRemainingSec: 0,
+        predictedAnnouncement: undefined as
+            | undefined
+            | {
+                  contextUsed: GameRuntimeContext;
+                  announcement: { message: string };
+              },
     };
 
     const loadGameState = () => {
@@ -103,17 +109,17 @@ export const createGameStoryRuntime = () => {
     //     removeAllBears: () => set({ bears: 0 }),
     //   }))
 
-    const getGameContext = (): GameRuntimeContext => {
+    const getGameContext = (_state: typeof state): GameRuntimeContext => {
         return {
             campaignSessionsTotal: 1,
             campaignSessionsRemaining: 0,
-            sessionPeriods: state.stepSessionPeriods.flat() ?? [],
-            sessionPeriodsRemaining: state.stepSessionPeriods.slice(state.sessionPeriodIndex + 1).flat() ?? [],
+            sessionPeriods: _state.stepSessionPeriods.flat() ?? [],
+            sessionPeriodsRemaining: _state.stepSessionPeriods.slice(_state.sessionPeriodIndex + 1).flat() ?? [],
             currentSessionPeriod: {
-                index: state.sessionPeriodIndex,
-                remainingSec: state.sessionPeriodRemainingSec,
+                index: _state.sessionPeriodIndex,
+                remainingSec: _state.sessionPeriodRemainingSec,
             },
-            sessionPlayers: state.gameRuntime.state.players.map((player) => ({
+            sessionPlayers: _state.gameRuntime.state.players.map((player) => ({
                 isLocal: true,
                 player: player.id,
             })),
@@ -135,13 +141,15 @@ export const createGameStoryRuntime = () => {
         }[],
     };
 
-    const announceGameEvents = async (gameEvents: GameEventResponse) => {
-        console.log(`accountGameEvents`, { gameRuntimeState: cloneDeep(state.gameRuntime.state), state });
+    const prepareGameEventAnnouncement = async (gameEvents: GameEventResponse) => {
+        console.log(`createGameStoryRuntime:prepareGameEventAnnouncement`, {
+            gameRuntimeState: cloneDeep(state.gameRuntime.state),
+            state,
+        });
 
         // play sound
         soundManager.playGameEventSound(gameEvents);
 
-        // for (const event of gameEvents.events) {
         const formatted = gameEvents.events.map((event) => formatGameEventMessage(event)).join(`\n`);
 
         const id = `${storyState.iNextId++}`;
@@ -176,7 +184,7 @@ export const createGameStoryRuntime = () => {
             maxTokens: 200,
             timeoutMs: 10000,
         }).catch((err) => {
-            console.error(`sendOpenRouterAiRequest: ERROR`, err);
+            console.error(`createGameStoryRuntime:sendOpenRouterAiRequest: ERROR`, err);
             return undefined;
         });
         const nextStoryParsed = result?.split(`\``)[0];
@@ -193,8 +201,37 @@ export const createGameStoryRuntime = () => {
             prompt: { systemPrompt, userPrompt, fullResponse: result },
         });
 
+        return { message };
+    };
+
+    const speakAnnouncement = async ({ message }: { message: string }) => {
+        console.log(`createGameStoryRuntime:speakAnnouncement`, { message });
         await speakText(message, { voice: `story` });
-        // }
+    };
+
+    const predictNextGameEvent = async () => {
+        const predictiveGameRuntime = createGameRuntime(
+            gameStateStorage.get() ?? createEmptyGameState(),
+            createGameLoreProvider(loreBuilder),
+            createGameBattleProvider(),
+        );
+        const nextContext = getGameContext({ ...state, sessionPeriodIndex: state.sessionPeriodIndex + 1 });
+        const nextPeriod = nextContext.sessionPeriods[nextContext.currentSessionPeriod.index];
+        if (!nextPeriod) {
+            return;
+        }
+
+        console.log(`createGameStoryRuntime:predictNextGameEvent`, { nextContext, nextPeriod });
+        const nextGameEvents =
+            nextPeriod.kind === `work`
+                ? predictiveGameRuntime.triggerWorkPeriod({ context: nextContext })
+                : predictiveGameRuntime.triggerRestPeriod({ context: nextContext, workResults: [] });
+
+        const nextAnnouncement = await prepareGameEventAnnouncement(nextGameEvents);
+        state.predictedAnnouncement = {
+            contextUsed: nextContext,
+            announcement: nextAnnouncement,
+        };
     };
 
     const soundManager = createSoundManager();
@@ -207,7 +244,7 @@ export const createGameStoryRuntime = () => {
             return loreBuilder;
         },
         get gameContext() {
-            return getGameContext();
+            return getGameContext(state);
         },
         get storyHistory() {
             return storyState.storyHistory;
@@ -231,12 +268,14 @@ export const createGameStoryRuntime = () => {
             state.sessionPeriodIndex = 0;
             state.sessionPeriodRemainingSec = state.stepSessionPeriods[0]?.[0]?.durationSec ?? 0;
 
-            const gameEvents = state.gameRuntime.triggerSessionStart({ context: getGameContext() });
-            await announceGameEvents(gameEvents);
+            const gameEvents = state.gameRuntime.triggerSessionStart({ context: getGameContext(state) });
+            const announcement = await prepareGameEventAnnouncement(gameEvents);
+            void predictNextGameEvent();
+            await speakAnnouncement(announcement);
         },
         finishWorkout: async () => {
-            const gameEvents = state.gameRuntime.triggerSessionEnd({ context: getGameContext() });
-            await announceGameEvents(gameEvents);
+            const gameEvents = state.gameRuntime.triggerSessionEnd({ context: getGameContext(state) });
+            await prepareGameEventAnnouncement(gameEvents);
         },
         startWorkoutSet: async (options: {
             setPhrase: string;
@@ -248,8 +287,20 @@ export const createGameStoryRuntime = () => {
             state.sessionPeriodIndex = options.stepPeriodIndex;
             state.sessionPeriodRemainingSec = options.remainingSec;
 
-            const gameEvents = state.gameRuntime.triggerWorkPeriod({ context: getGameContext() });
-            await announceGameEvents(gameEvents);
+            if (
+                state.predictedAnnouncement &&
+                equalsDeep(getGameContext(state), state.predictedAnnouncement.contextUsed)
+            ) {
+                const announcement = state.predictedAnnouncement.announcement;
+                void predictNextGameEvent();
+                await speakAnnouncement(announcement);
+                return;
+            }
+
+            const gameEvents = state.gameRuntime.triggerWorkPeriod({ context: getGameContext(state) });
+            const announcement = await prepareGameEventAnnouncement(gameEvents);
+            void predictNextGameEvent();
+            await speakAnnouncement(announcement);
         },
         finishWorkoutSet: async (options: {
             setPhrase: string;
@@ -261,9 +312,21 @@ export const createGameStoryRuntime = () => {
             state.sessionPeriodIndex = options.stepPeriodIndex;
             state.sessionPeriodRemainingSec = options.remainingSec;
 
+            if (
+                state.predictedAnnouncement &&
+                equalsDeep(getGameContext(state), state.predictedAnnouncement.contextUsed)
+            ) {
+                const announcement = state.predictedAnnouncement.announcement;
+                void predictNextGameEvent();
+                await speakAnnouncement(announcement);
+                return;
+            }
+
             // TODO: add workout results
-            const gameEvents = state.gameRuntime.triggerRestPeriod({ context: getGameContext(), workResults: [] });
-            await announceGameEvents(gameEvents);
+            const gameEvents = state.gameRuntime.triggerRestPeriod({ context: getGameContext(state), workResults: [] });
+            const announcement = await prepareGameEventAnnouncement(gameEvents);
+            void predictNextGameEvent();
+            await speakAnnouncement(announcement);
         },
 
         // TODO: Implement game story runtime methods

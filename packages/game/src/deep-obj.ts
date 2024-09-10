@@ -2,6 +2,10 @@ export const cloneDeep = <T>(obj: T): T => {
     return JSON.parse(JSON.stringify(obj));
 };
 
+export const equalsDeep = <T>(a: T, b: T): boolean => {
+    return JSON.stringify(a) === JSON.stringify(b);
+};
+
 export type DiffDeep<T> =
     | undefined
     | null
