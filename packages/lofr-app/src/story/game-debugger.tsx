@@ -131,9 +131,34 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
     const hasNextPeriod =
         gameContextRef.current.currentSessionPeriod.index < gameContextRef.current.sessionPeriods.length + 1;
 
+    const [manualGameState, setManualGameState] = useState(undefined as undefined | string);
+
     return (
         <div>
             <h1>Game Debugger</h1>
+
+            <ExpandableView mode="exclude" title="Manually Set Game State" expanded={false}>
+                <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
+                    <textarea
+                        value={manualGameState ?? JSON.stringify(gameRuntime.state, null, 2)}
+                        onChange={(e) => {
+                            setManualGameState(e.target.value);
+                        }}
+                        className="w-full h-[50vh] text-xs whitespace-pre"
+                        placeholder="Paste Game State Json Here"
+                    ></textarea>
+                    <Button
+                        className="bg-red-400"
+                        disabled={!manualGameState}
+                        onClick={() => manualGameState && props.storyRuntime.setGameState(JSON.parse(manualGameState))}
+                    >
+                        Set Game State
+                    </Button>
+                    <Button className="bg-yellow-600" onClick={() => setManualGameState(undefined)}>
+                        Reload Game State
+                    </Button>
+                </div>
+            </ExpandableView>
 
             <div className="flex flex-row flex-wrap justify-end gap-2 my-2">
                 <Button onClick={triggerSessionStart}>Start Workout Session</Button>
@@ -204,7 +229,7 @@ export const GameDebugger = (props: { workoutProgram?: WorkoutProgram; storyRunt
                         </ExpandableView>
                         <ExpandableView title={`GameState ${i} - JSON`} expanded={false} mode={`exclude`}>
                             <textarea className="w-full h-[50vh] text-xs whitespace-pre" readOnly>
-                                {JSON.stringify(state, null, 2)}
+                                {JSON.stringify(state.state, null, 2)}
                             </textarea>
                         </ExpandableView>
                         <ExpandableView title={`GameState Diff ${i} - JSON`} expanded={false} mode={`exclude`}>

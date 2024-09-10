@@ -219,6 +219,10 @@ export const createGameStoryRuntime = () => {
             gameStateStorage.remove();
             loadGameState();
         },
+        setGameState: (gameState: GameState) => {
+            gameStateStorage.set(gameState);
+            loadGameState();
+        },
         startWorkout: async (workoutSession: WorkoutSession) => {
             state.workoutSession = workoutSession;
             state.stepSessionPeriods = workoutSession.steps.map(getGameSessionPeriodsFromWorkoutStep);
