@@ -28,6 +28,7 @@ import {
     GameRuntimeSubscriptionData,
 } from './types';
 import { cloneDeep, diffDeep } from './deep-obj';
+import { randomizeOrder } from './random-utils';
 
 export const createEmptyGameState = (): GameState => {
     const gameState: GameState = {
@@ -472,7 +473,7 @@ export const createGameRuntime = (
         estimateRemainingSec: number;
         revealedEnemies: GameCharacter[];
     }) => {
-        const sessionPlayers = getSessionPlayers({ context });
+        const sessionPlayers = randomizeOrder(getSessionPlayers({ context }));
 
         // get next exercise period
         const exercisePeriodDistance =
@@ -484,7 +485,7 @@ export const createGameRuntime = (
             const quest = ensureQuestExists({ context });
             const campaign = getCampaignFromQuest({ questId: quest.id });
             // Ensure all players are in the same location
-            const currentPlayers = getSessionPlayers({ context });
+            const currentPlayers = sessionPlayers;
             const location = getLocation({ context });
             currentPlayers.forEach((player) => {
                 player.location = location.id;
@@ -582,7 +583,7 @@ export const createGameRuntime = (
         estimateRemainingSec: number;
         revealedEnemies: GameCharacter[];
     }) => {
-        const sessionPlayers = getSessionPlayers({ context });
+        const sessionPlayers = randomizeOrder(getSessionPlayers({ context }));
 
         const exerciseNames =
             context.sessionPeriods[context.currentSessionPeriod.index]?.exercises.map((x) => x.exerciseName) ?? [];
@@ -854,7 +855,7 @@ export const createGameRuntime = (
             throw new Error(`Unable to find next location`);
         }
 
-        const players = getSessionPlayers({ context });
+        const players = randomizeOrder(getSessionPlayers({ context }));
         const connection = location.connections.find((x) => x.location === nextLocation.id);
         const moveLocation: GamePendingActionEvent = {
             kind: `move-location`,
@@ -904,7 +905,7 @@ export const createGameRuntime = (
         // - if key item, obtain key item
 
         // handle pending player actions
-        const pendingActions = state.players.flatMap((x) => x.pendingActions ?? []);
+        const pendingActions = randomizeOrder(state.players).flatMap((x) => x.pendingActions ?? []);
         state.players.forEach((x) => {
             x.pendingActions = [];
         });
