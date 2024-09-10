@@ -920,6 +920,15 @@ export const createGameRuntime = (
                     }
 
                     const grantPlayerExperience = () => {
+                        // record usage
+                        const playerAttacks = action.enemies
+                            .map((enemy) => player.attacks.find((a) => a.name === enemy.attackName))
+                            .filter((x) => !!x)
+                            .map((x) => x!);
+                        playerAttacks.forEach((attack) => {
+                            attack.usageCount += 1;
+                        });
+
                         // experience & level up (only 2 muscle groups get experience)
                         const muscleGroupsUsed = action.muscleGroupsUsed.slice(0, 2);
                         for (const muscleGroup of muscleGroupsUsed) {
