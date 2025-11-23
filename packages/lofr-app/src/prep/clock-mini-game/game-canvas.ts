@@ -29,8 +29,8 @@ export const createPocketWatchGame = (
     bgImage.src = watchImage;
 
     // --- Configuration ---
-    const bgWatchCenterX = 508;
-    const bgWatchCenterY = 618;
+    const bgWatchCenterX = 506;
+    const bgWatchCenterY = 614;
     const bgWatchRatioX = bgWatchCenterX / 1024;
     const bgWatchRatioY = bgWatchCenterY / 1024;
     const watchRadiusRatio = 0.4;
@@ -113,6 +113,8 @@ export const createPocketWatchGame = (
         ctx.fillRect(radius, -thickness / 2, length, thickness);
         ctx.restore();
     };
+
+
     // --- PIXEL ART DRAWING HELPERS ---
 
     const drawPixelLine = (
@@ -124,7 +126,7 @@ export const createPocketWatchGame = (
         pixelSize: number,
         thickness: number
     ) => {
-        // 1. Convert raw canvas coordinates to "Pixel Grid" coordinates
+        // 1. Convert raw canvas coordinates to "Logical Grid" coordinates
         let x = Math.round(x0 / pixelSize);
         let y = Math.round(y0 / pixelSize);
         const endX = Math.round(x1 / pixelSize);
@@ -137,23 +139,15 @@ export const createPocketWatchGame = (
         const sy = (y < endY) ? 1 : -1;
         let err = dx - dy;
 
-        // 3. Use a Set to store unique grid coordinates.
-        // This solves the shadow problem: even if our math touches a pixel twice,
-        // the Set ensures we only DRAW it once, so opacity doesn't accumulate.
+        // 3. Use a Set to store unique grid coordinates
+        // This solves the "Darker Shadow" overlap issue perfectly.
         const pixelsToDraw = new Set<string>();
 
-        // eslint-disable-next-line no-constant-condition
         while (true) {
-            // Add the main pixel
-            pixelsToDraw.add(`${x},${y}`);
-
-            // Handle Thickness
-            // For a clock hand, a "thick" line usually means a 2x2 brush 
-            // rather than just 1x1. This makes the hour hand look "heavy".
-            if (thickness > 1) {
-                pixelsToDraw.add(`${x + 1},${y}`);     // Right
-                pixelsToDraw.add(`${x},${y + 1}`);     // Bottom
-                pixelsToDraw.add(`${x + 1},${y + 1}`); // Bottom-Right
+            for (let tx = 0; tx < thickness; tx++) {
+                for (let ty = 0; ty < thickness; ty++) {
+                    pixelsToDraw.add(`${x + tx},${y + ty}`);
+                }
             }
 
             if (x === endX && y === endY) break;
@@ -169,18 +163,26 @@ export const createPocketWatchGame = (
             }
         }
 
-        // 4. Render
+        // 4. Render with "Snap-to-Neighbor" Logic
         ctx.fillStyle = color;
-        pixelsToDraw.forEach(key => {
-            const [gx, gy] = key.split(`,`).map(Number) as [number, number];
 
-            // Convert back to canvas coordinates
-            ctx.fillRect(
-                gx * pixelSize,
-                gy * pixelSize,
-                pixelSize,
-                pixelSize
-            );
+        pixelsToDraw.forEach(key => {
+            const [gx, gy] = key.split(`,`).map(Number);
+
+            // THE FIX FOR GRAY LINES:
+            // Instead of: ctx.fillRect(gx * size, gy * size, size, size)
+            // We calculate the exact Integer start and the exact Integer end.
+            // This forces the browser to fill every pixel between them with no gaps.
+
+            const xStart = Math.floor(gx * pixelSize);
+            const yStart = Math.floor(gy * pixelSize);
+
+            // Calculate where the NEXT pixel would start, and subtract current start
+            // This handles cases where pixelSize is a float (e.g. 3.333)
+            const width = Math.floor((gx + 1) * pixelSize) - xStart;
+            const height = Math.floor((gy + 1) * pixelSize) - yStart;
+
+            ctx.fillRect(xStart, yStart, width, height);
         });
     };
 
@@ -193,15 +195,12 @@ export const createPocketWatchGame = (
         color: string,
         type: `hour` | `minute`
     ) => {
-        // Calculate the Endpoint using Trig
         const endX = centerX + Math.cos(angle) * length;
         const endY = centerY + Math.sin(angle) * length;
 
-        // Ensure we pass the thickness (width) correctly
-        // Hour hand usually width=2, Minute hand width=1
         const thickness = width;
 
-        // Get the global pixel size (ensure these variables are accessible in this scope)
+        // Ensure these match your external scope variables
         const pixelSize = backgroundImagePixelSize * backgroundImageScale;
 
         // 1. Draw Shadow
@@ -361,7 +360,7 @@ export const createPocketWatchGame = (
 
         // 4. Center Pin
         ctx.save();
-        ctx.translate(targetCenterX, targetCenterY);
+        ctx.translate(targetCenterX + 2, targetCenterY + 2);
         ctx.fillStyle = `#111`;
         ctx.beginPath();
         ctx.arc(0, 0, 6, 0, TWO_PI);
