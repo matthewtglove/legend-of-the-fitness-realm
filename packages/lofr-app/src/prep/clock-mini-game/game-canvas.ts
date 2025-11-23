@@ -113,39 +113,75 @@ export const createPocketWatchGame = (
         ctx.fillRect(radius, -thickness / 2, length, thickness);
         ctx.restore();
     };
-
     // --- PIXEL ART DRAWING HELPERS ---
-    const drawPixelLine = (x0: number, y0: number, x1: number, y1: number, color: string, pixelSize: number, thickness: number) => {
-        ctx.fillStyle = color;
 
-        const roundToPixel = (v: number) => Math.round(v / pixelSize) * pixelSize;
+    const drawPixelLine = (
+        x0: number,
+        y0: number,
+        x1: number,
+        y1: number,
+        color: string,
+        pixelSize: number,
+        thickness: number
+    ) => {
+        // 1. Convert raw canvas coordinates to "Pixel Grid" coordinates
+        let x = Math.round(x0 / pixelSize);
+        let y = Math.round(y0 / pixelSize);
+        const endX = Math.round(x1 / pixelSize);
+        const endY = Math.round(y1 / pixelSize);
 
-        // Round start/end to ensure we snap to the pixel grid
-        let x = roundToPixel(x0);
-        let y = roundToPixel(y0);
-        const endX = roundToPixel(x1);
-        const endY = roundToPixel(y1);
+        // 2. Bresenham's Line Algorithm Setup
+        const dx = Math.abs(endX - x);
+        const dy = Math.abs(endY - y);
+        const sx = (x < endX) ? 1 : -1;
+        const sy = (y < endY) ? 1 : -1;
+        let err = dx - dy;
 
-        // Calculate differences
-        const dx = endX - x;
-        const dy = endY - y;
+        // 3. Use a Set to store unique grid coordinates.
+        // This solves the shadow problem: even if our math touches a pixel twice,
+        // the Set ensures we only DRAW it once, so opacity doesn't accumulate.
+        const pixelsToDraw = new Set<string>();
 
-        // Determine how many steps we need (the longer axis controls the loop)
-        const steps = 1 + (Math.max(Math.abs(dx), Math.abs(dy)) / pixelSize);
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            // Add the main pixel
+            pixelsToDraw.add(`${x},${y}`);
 
-        // Calculate increment per step
-        const xInc = dx / steps;
-        const yInc = dy / steps;
+            // Handle Thickness
+            // For a clock hand, a "thick" line usually means a 2x2 brush 
+            // rather than just 1x1. This makes the hour hand look "heavy".
+            if (thickness > 1) {
+                pixelsToDraw.add(`${x + 1},${y}`);     // Right
+                pixelsToDraw.add(`${x},${y + 1}`);     // Bottom
+                pixelsToDraw.add(`${x + 1},${y + 1}`); // Bottom-Right
+            }
 
-        // Draw the points
-        for (let i = 0; i <= steps; i++) {
-            // Draw a rectangle at the current integer coordinate
-            // Thickness > 1 creates a "blocky" line
-            ctx.fillRect(roundToPixel(x), roundToPixel(y), pixelSize, pixelSize);
+            if (x === endX && y === endY) break;
 
-            x += xInc;
-            y += yInc;
+            const e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y += sy;
+            }
         }
+
+        // 4. Render
+        ctx.fillStyle = color;
+        pixelsToDraw.forEach(key => {
+            const [gx, gy] = key.split(`,`).map(Number) as [number, number];
+
+            // Convert back to canvas coordinates
+            ctx.fillRect(
+                gx * pixelSize,
+                gy * pixelSize,
+                pixelSize,
+                pixelSize
+            );
+        });
     };
 
     const drawPixelHand = (
@@ -157,21 +193,18 @@ export const createPocketWatchGame = (
         color: string,
         type: `hour` | `minute`
     ) => {
-        // 1. Calculate the Endpoint using Trig
-        // Note: 'angle' coming in assumes 0 = 12 o'clock (-PI/2 in trig terms)
-        // But our math relies on standard trig (0 = 3 o'clock). 
-        // We assume the incoming angle already has the OFFSET (-PI/2) applied? 
-        // Yes, currentHourAngle calculation includes OFFSET. 
-        // So we can pass it directly to cos/sin.
-
+        // Calculate the Endpoint using Trig
         const endX = centerX + Math.cos(angle) * length;
         const endY = centerY + Math.sin(angle) * length;
 
+        // Ensure we pass the thickness (width) correctly
+        // Hour hand usually width=2, Minute hand width=1
         const thickness = width;
+
+        // Get the global pixel size (ensure these variables are accessible in this scope)
         const pixelSize = backgroundImagePixelSize * backgroundImageScale;
 
-        // 2. Draw Shadow
-        // We shift the start AND end points
+        // 1. Draw Shadow
         drawPixelLine(
             centerX + SHADOW_OFFSET_X,
             centerY + SHADOW_OFFSET_Y,
@@ -182,8 +215,16 @@ export const createPocketWatchGame = (
             thickness
         );
 
-        // 3. Draw Actual Hand
-        drawPixelLine(centerX, centerY, endX, endY, color, pixelSize, thickness);
+        // 2. Draw Actual Hand
+        drawPixelLine(
+            centerX,
+            centerY,
+            endX,
+            endY,
+            color,
+            pixelSize,
+            thickness
+        );
     };
 
     // --- Interaction Handlers ---
