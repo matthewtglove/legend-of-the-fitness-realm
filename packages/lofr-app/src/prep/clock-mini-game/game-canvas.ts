@@ -15,7 +15,7 @@ export interface TimeTarget {
 export const createPocketWatchGame = (
     canvas: HTMLCanvasElement,
     targetTime: TimeTarget,
-    onSuccess?: () => void
+    onSetTime?: (isCorrect: boolean) => void
 ): GameControl => {
     const ctx = canvas.getContext(`2d`);
 
@@ -47,10 +47,7 @@ export const createPocketWatchGame = (
     let targetCenterX = 0;
     let targetCenterY = 0;
 
-    // SINGLE SOURCE OF TRUTH:
-    // timeMin represents the current time in minutes (0 to 720)
-    // 0 = 12:00, 360 = 6:00, 720 = 12:00
-    let timeMin = Math.random() * 720;
+
 
     // Interaction State
     let isDragging = false;
@@ -62,8 +59,13 @@ export const createPocketWatchGame = (
     const tM = targetTime.minute;
     const targetTotalMinutes = (tH * 60) + tM;
 
+    // SINGLE SOURCE OF TRUTH:
+    // timeMin represents the current time in minutes (0 to 720)
+    // 0 = 12:00, 360 = 6:00, 720 = 12:00
+    let timeMin = (targetTotalMinutes + Math.random() * 660 + 60) % 720; // Start 1-6 hours away from target
+
     // Tolerance: +/- 3 minutes to win
-    const WIN_TOLERANCE_MINUTES = 3;
+    const WIN_TOLERANCE_MINUTES = 1;
 
     // --- Helpers ---
     const normalizeMinutes = (m: number) => {
@@ -172,10 +174,7 @@ export const createPocketWatchGame = (
 
         // Win Condition: Check if current timeMin is close to targetTotalMinutes
         const diff = getMinuteDiff(timeMin, targetTotalMinutes);
-
-        if (diff < WIN_TOLERANCE_MINUTES) {
-            if (onSuccess) onSuccess();
-        }
+        onSetTime?.(diff < WIN_TOLERANCE_MINUTES)
     };
 
     const handleMove = (e: MouseEvent | TouchEvent) => {
