@@ -5,9 +5,13 @@ export const MiniGame_PocketWatch = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isSuccess, setIsSuccess] = useState(false);
 
-    const [targetTime, setTargetTime] = useState({ hour: 6, minute: 0 });
+    const HOUR_DEFAULT = 6;
+    const MINUTE_DEFAULT = 0;
+    const [targetTime, setTargetTime] = useState(undefined as undefined | { hour: number; minute: number });
 
     useEffect(() => {
+        if (!targetTime) return;
+
         const canvas = canvasRef.current;
         if (!canvas) return;
 
@@ -38,8 +42,13 @@ export const MiniGame_PocketWatch = () => {
                 <div>
                     <label>Time </label>
                     <select
-                        value={targetTime.hour}
-                        onChange={(e) => setTargetTime({ ...targetTime, hour: Number(e.target.value) })}
+                        value={targetTime?.hour ?? HOUR_DEFAULT}
+                        onChange={(e) =>
+                            setTargetTime({
+                                ...(targetTime ?? { minute: MINUTE_DEFAULT }),
+                                hour: Number(e.target.value),
+                            })
+                        }
                     >
                         {[...Array(12)].map((_, i) => (
                             <option key={i} value={i + 1}>
@@ -49,8 +58,10 @@ export const MiniGame_PocketWatch = () => {
                     </select>
                     <label> : </label>
                     <select
-                        value={targetTime.minute}
-                        onChange={(e) => setTargetTime({ ...targetTime, minute: Number(e.target.value) })}
+                        value={targetTime?.minute ?? MINUTE_DEFAULT}
+                        onChange={(e) =>
+                            setTargetTime({ ...(targetTime ?? { hour: HOUR_DEFAULT }), minute: Number(e.target.value) })
+                        }
                     >
                         {[...Array(60)].map((_, i) => (
                             <option key={i} value={i}>
@@ -61,38 +72,49 @@ export const MiniGame_PocketWatch = () => {
                 </div>
             </div>
 
-            <div style={{ position: `relative`, width: `100%`, height: `400px`, background: `#111` }}>
-                <canvas
-                    ref={canvasRef}
-                    style={{
-                        width: `100%`,
-                        height: `100%`,
-                        display: `block`,
-                        cursor: `pointer`,
-                    }}
-                />
-
-                {/* Narrative Overlay on Success */}
-                {isSuccess && (
-                    <div
-                        style={{
-                            position: `absolute`,
-                            top: `10%`,
-                            left: `50%`,
-                            transform: `translate(-50%, -50%)`,
-                            textAlign: `center`,
-                            color: `#FFD700`,
-                            backgroundColor: `rgba(0, 0, 0, 0.5)`,
-                            padding: `4px`,
-                            fontFamily: `monospace`,
-                            fontSize: `2rem`,
-                            textShadow: `0px 0px 10px rgba(0,0,0,0.8)`,
-                            pointerEvents: `none`,
-                        }}
-                    >
-                        Alarm Set
+            <div>
+                {targetTime && (
+                    <div className="text-center mt-4">
+                        <div className="font-bold">Now set the pocketwatch to:</div>
+                        <div className="text-2xl font-bold">{`${targetTime.hour}:${targetTime.minute
+                            .toFixed(0)
+                            .padStart(2, `0`)}`}</div>
                     </div>
                 )}
+
+                <div style={{ position: `relative`, width: `100%`, height: `400px`, background: `#111` }}>
+                    <canvas
+                        ref={canvasRef}
+                        style={{
+                            width: `100%`,
+                            height: `100%`,
+                            display: `block`,
+                            cursor: `pointer`,
+                        }}
+                    />
+
+                    {/* Narrative Overlay on Success */}
+                    {isSuccess && (
+                        <div
+                            style={{
+                                position: `absolute`,
+                                top: `10%`,
+                                left: `50%`,
+                                transform: `translate(-50%, -50%)`,
+                                textAlign: `center`,
+                                color: `#FFD700`,
+                                backgroundColor: `rgba(0, 0, 0, 0.5)`,
+                                padding: `4px`,
+                                fontFamily: `monospace`,
+                                fontSize: `2rem`,
+                                textShadow: `0px 0px 10px rgba(0,0,0,0.8)`,
+                                pointerEvents: `none`,
+                            }}
+                        >
+                            Alarm Set
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
