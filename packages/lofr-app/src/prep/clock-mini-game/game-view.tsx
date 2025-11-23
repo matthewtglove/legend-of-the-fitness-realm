@@ -55,7 +55,7 @@ export const MiniGame_PocketWatch = () => {
                         transform: `translate(-50%, -50%)`,
                         color: `#FFD700`,
                         fontFamily: `monospace`,
-                        fontSize: `5rem`,
+                        fontSize: `4rem`,
                         textShadow: `0px 0px 10px rgba(0,0,0,0.8)`,
                         pointerEvents: `none`, // Let clicks pass through if needed
                     }}
