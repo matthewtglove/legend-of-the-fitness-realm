@@ -10,12 +10,19 @@ export const MiniGame_PocketWatch = () => {
         if (!canvas) return;
 
         // Initialize the game logic
-        const game: GameControl = createPocketWatchGame(canvas, () => {
-            // Callback when user wins (sets alarm correctly)
-            setIsSuccess(true);
-            // Optional: Vibrate phone
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-        });
+        const game: GameControl = createPocketWatchGame(
+            canvas,
+            {
+                hour: 6,
+                minute: 25,
+            },
+            () => {
+                // Callback when user wins (sets alarm correctly)
+                setIsSuccess(true);
+                // Optional: Vibrate phone
+                if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+            },
+        );
 
         // Start the game loop and listeners
         game.start();
@@ -43,17 +50,17 @@ export const MiniGame_PocketWatch = () => {
                 <div
                     style={{
                         position: `absolute`,
-                        top: `50%`,
+                        top: `20%`,
                         left: `50%`,
                         transform: `translate(-50%, -50%)`,
                         color: `#FFD700`,
                         fontFamily: `monospace`,
-                        fontSize: `2rem`,
+                        fontSize: `5rem`,
                         textShadow: `0px 0px 10px rgba(0,0,0,0.8)`,
                         pointerEvents: `none`, // Let clicks pass through if needed
                     }}
                 >
-                    ALARM SET
+                    Alarm Set
                 </div>
             )}
         </div>

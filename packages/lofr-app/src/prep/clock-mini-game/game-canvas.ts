@@ -27,12 +27,18 @@ export const createPocketWatchGame = (
     bgImage.src = watchImage;
 
     // --- Configuration ---
-    // Adjust these based on your specific PNG asset to center the rotation point
     const bgWatchCenterX = 508;
     const bgWatchCenterY = 618;
     const bgWatchRatioX = bgWatchCenterX / 1024;
     const bgWatchRatioY = bgWatchCenterY / 1024;
     const watchRadiusRatio = 0.4;
+
+    const SHADOW_OFFSET_X = 6;
+    const SHADOW_OFFSET_Y = 6;
+
+    // --- Math Constants ---
+    const TWO_PI = Math.PI * 2;
+    const OFFSET = -Math.PI / 2; // -90deg to make 0rad = 12 o'clock
 
     // --- Game State ---
     let animationId: number;
@@ -41,44 +47,33 @@ export const createPocketWatchGame = (
     let targetCenterX = 0;
     let targetCenterY = 0;
 
-    // Hand State
-    let currentHourAngle = Math.random() * Math.PI * 2; // Start random
-    let currentMinuteAngle = Math.random() * Math.PI * 2;
+    // SINGLE SOURCE OF TRUTH:
+    // timeMin represents the current time in minutes (0 to 720)
+    // 0 = 12:00, 360 = 6:00, 720 = 12:00
+    let timeMin = Math.random() * 720;
 
     // Interaction State
     let isDragging = false;
     let draggingHand: `hour` | `minute` | null = null;
+    let lastDragAngle = 0;
 
-    // Calculate Target Angles (Correcting for Canvas 0-angle being 3 o'clock)
-    // 0 rad = 3 o'clock. 
-    // -PI/2 = 12 o'clock.
-    const RAD_PER_HOUR = (Math.PI * 2) / 12;
-    const RAD_PER_MIN = (Math.PI * 2) / 60;
-    const OFFSET = -Math.PI / 2; // Rotate so 0 is at 12 o'clock for calculation, then apply
-
-    // Target Math
+    // Target Calculation (Converted to 0-720 scale)
     const tH = targetTime.hour % 12;
     const tM = targetTime.minute;
+    const targetTotalMinutes = (tH * 60) + tM;
 
-    // Important: Hour hand includes minute offset (e.g. at 6:30, hour hand is halfway between 6 and 7)
-    const targetHourAngle = (tH * RAD_PER_HOUR) + (tM / 60) * RAD_PER_HOUR + OFFSET;
-    const targetMinuteAngle = (tM * RAD_PER_MIN) + OFFSET;
-
-    const MARGIN_ERROR = 0.15; // Radians (~8 degrees)
+    // Tolerance: +/- 3 minutes to win
+    const WIN_TOLERANCE_MINUTES = 3;
 
     // --- Helpers ---
-
-    // Normalize angle to -PI to PI for easier comparison
-    const normalizeAngle = (a: number) => {
-        let angle = a % (Math.PI * 2);
-        if (angle > Math.PI) angle -= Math.PI * 2;
-        if (angle < -Math.PI) angle += Math.PI * 2;
-        return angle;
+    const normalizeMinutes = (m: number) => {
+        return ((m % 720) + 720) % 720;
     };
 
-    const getAngleDiff = (a1: number, a2: number) => {
-        const diff = Math.abs(normalizeAngle(a1) - normalizeAngle(a2));
-        return Math.min(diff, Math.PI * 2 - diff); // Handle wrap-around
+    // Calculate shortest distance between two times on a 12h clock
+    const getMinuteDiff = (m1: number, m2: number) => {
+        const diff = Math.abs(normalizeMinutes(m1) - normalizeMinutes(m2));
+        return Math.min(diff, 720 - diff);
     };
 
     const resize = () => {
@@ -103,17 +98,32 @@ export const createPocketWatchGame = (
     };
 
     // --- Rendering Helpers ---
-
     const drawTargetTick = (angle: number, length: number, thickness: number, color: string, radius: number) => {
         ctx.save();
+        ctx.translate(targetCenterX, targetCenterY);
         ctx.rotate(angle);
         ctx.fillStyle = color;
-        // Draw a marker at the edge of the radius
         ctx.fillRect(radius, -thickness / 2, length, thickness);
         ctx.restore();
     };
 
+    const drawHandShape = (length: number, width: number, type: `hour` | `minute`) => {
+        if (type === `minute`) {
+            // Long Sword Style
+            ctx.fillRect(0, -width / 2, length - 10, width);
+            ctx.fillRect(length - 10, -width / 2 + 2, 10, width - 4);
+            ctx.fillRect(-15, -width / 2 - 2, 15, width + 4);
+        } else {
+            // Stout Diamond Style
+            ctx.fillRect(0, -width / 2, length - 15, width);
+            ctx.fillRect(length - 15, -width, 15, width * 2);
+            ctx.fillRect(length, -width / 2, 4, width);
+        }
+    };
+
     const drawPixelHand = (
+        x: number,
+        y: number,
         angle: number,
         length: number,
         width: number,
@@ -121,26 +131,17 @@ export const createPocketWatchGame = (
         type: `hour` | `minute`
     ) => {
         ctx.save();
+        ctx.translate(x + SHADOW_OFFSET_X, y + SHADOW_OFFSET_Y);
         ctx.rotate(angle);
+        ctx.fillStyle = `rgba(0, 0, 0, 0.4)`;
+        drawHandShape(length, width, type);
+        ctx.restore();
 
-        ctx.fillStyle = `rgba(0,0,0,0.5)`; // Shadow
-        ctx.fillRect(4, 4, length, width);
-
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
         ctx.fillStyle = color;
-
-        if (type === `minute`) {
-            // Long Sword Style
-            ctx.fillRect(0, -width / 2, length - 10, width); // Shaft
-            ctx.fillRect(length - 10, -width / 2 + 2, 10, width - 4); // Tip
-            ctx.fillRect(-15, -width / 2 - 2, 15, width + 4); // Counterweight
-        } else {
-            // Stout Diamond Style
-            ctx.fillRect(0, -width / 2, length - 15, width); // Shaft
-            // Diamond Tip
-            ctx.fillRect(length - 15, -width, 15, width * 2);
-            ctx.fillRect(length, -width / 2, 4, width);
-        }
-
+        drawHandShape(length, width, type);
         ctx.restore();
     };
 
@@ -151,32 +152,28 @@ export const createPocketWatchGame = (
         const dy = y - targetCenterY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Logic: Distance determines which hand you grab
-        // Scale distance based on canvas size for responsiveness
         const minDim = Math.min(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
         const touchRadius = 0.5 * minDim * watchRadiusRatio;
 
-        // If touching near center -> Hour Hand
-        // If touching near edge -> Minute Hand
+        isDragging = true;
+        lastDragAngle = Math.atan2(dy, dx);
+
+        // Logic: Grab Hour hand if close to center, Minute hand if further out
         if (dist < touchRadius * 0.5) {
             draggingHand = `hour`;
         } else {
             draggingHand = `minute`;
         }
-
-        isDragging = true;
-        handleMove(e); // Snap immediately to touch
     };
 
     const handleEnd = () => {
         isDragging = false;
         draggingHand = null;
 
-        // Win Condition: Both hands must be close to target
-        const hDiff = getAngleDiff(currentHourAngle, targetHourAngle);
-        const mDiff = getAngleDiff(currentMinuteAngle, targetMinuteAngle);
+        // Win Condition: Check if current timeMin is close to targetTotalMinutes
+        const diff = getMinuteDiff(timeMin, targetTotalMinutes);
 
-        if (hDiff < MARGIN_ERROR && mDiff < MARGIN_ERROR) {
+        if (diff < WIN_TOLERANCE_MINUTES) {
             if (onSuccess) onSuccess();
         }
     };
@@ -186,69 +183,104 @@ export const createPocketWatchGame = (
         if (e.type === `touchmove`) e.preventDefault();
 
         const { x, y } = getPointerPos(e);
-        const angle = Math.atan2(y - targetCenterY, x - targetCenterX);
+        const currentDragAngle = Math.atan2(y - targetCenterY, x - targetCenterX);
+
+        // 1. Calculate how much the FINGER moved in Radians
+        let deltaRads = currentDragAngle - lastDragAngle;
+
+        // Handle logical wrap-around (e.g., crossing from PI to -PI)
+        while (deltaRads > Math.PI) deltaRads -= TWO_PI;
+        while (deltaRads < -Math.PI) deltaRads += TWO_PI;
+
+        // 2. Convert Radians to Minutes
+        // If we drag the minute hand: 2PI (360deg) = 60 minutes
+        // If we drag the hour hand:   2PI (360deg) = 720 minutes (12 hours)
+        let deltaMinutes = 0;
 
         if (draggingHand === `minute`) {
-            currentMinuteAngle = angle;
+            deltaMinutes = (deltaRads / TWO_PI) * 60;
         } else {
-            currentHourAngle = angle;
+            deltaMinutes = (deltaRads / TWO_PI) * 720;
         }
+
+        // 3. Update State
+        timeMin += deltaMinutes;
+        timeMin = normalizeMinutes(timeMin); // Keep it 0-720
+
+        lastDragAngle = currentDragAngle;
     };
 
     // --- Main Draw Loop ---
     const draw = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Responsive Calculation
         const minDim = Math.min(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
-        const drawSize = minDim * 0.9; // 90% of screen
+        const drawSize = minDim * 0.9;
 
-        // Calculate the visual center where hands should attach
         targetCenterX = canvasCenterX + (bgWatchRatioX - 0.5) * drawSize;
         targetCenterY = canvasCenterY + (bgWatchRatioY - 0.5) * drawSize;
 
-        // 1. Draw Background
+        // 1. Background
         if (bgImage.complete && bgImage.naturalWidth > 0) {
             ctx.save();
             ctx.translate(canvasCenterX, canvasCenterY);
             ctx.drawImage(bgImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
             ctx.restore();
         } else {
-            // Fallback
             ctx.beginPath();
-            ctx.arc(targetCenterX, targetCenterY, drawSize / 2.5, 0, Math.PI * 2);
+            ctx.arc(targetCenterX, targetCenterY, drawSize / 2.5, 0, TWO_PI);
             ctx.fillStyle = `#222`;
             ctx.fill();
         }
 
-        ctx.save();
-        ctx.translate(targetCenterX, targetCenterY);
+        // 2. Render Targets
+        // Convert Target Minutes -> Radians
+        const targetMinuteAngle = ((targetTotalMinutes % 60) / 60) * TWO_PI + OFFSET;
+        const targetHourAngle = (targetTotalMinutes / 720) * TWO_PI + OFFSET;
 
-        // 2. Draw Target Ticks (Underlay)
-        // Minute Tick (Long, Outer)
         const radius = drawSize * 0.5 * watchRadiusRatio;
         drawTargetTick(targetMinuteAngle, 20, 6, `#4caf50`, radius);
-
-        // Hour Tick (Short, Inner)
         drawTargetTick(targetHourAngle, 15, 8, `#81c784`, radius * 0.6);
 
-        // 3. Draw Hands
-        // Hour Hand (Short, Thick)
-        drawPixelHand(currentHourAngle, radius * 0.6, 12, `#FFD700`, `hour`);
+        // 3. Render Current Hands from timeMin
 
-        // Minute Hand (Long, Thin)
-        drawPixelHand(currentMinuteAngle, radius, 8, `#FFF`, `minute`);
+        // Minute Hand Angle: (Minutes component only / 60) * 360deg
+        const currentMinuteAngle = ((timeMin % 60) / 60) * TWO_PI + OFFSET;
+
+        // Hour Hand Angle: (Total Minutes / 720) * 360deg
+        const currentHourAngle = (timeMin / 720) * TWO_PI + OFFSET;
+
+        drawPixelHand(
+            targetCenterX,
+            targetCenterY,
+            currentHourAngle,
+            radius * 0.6,
+            12,
+            `#cb9c63`,
+            `hour`
+        );
+
+        drawPixelHand(
+            targetCenterX,
+            targetCenterY,
+            currentMinuteAngle,
+            radius,
+            8,
+            `#384847`,
+            `minute`
+        );
 
         // 4. Center Pin
+        ctx.save();
+        ctx.translate(targetCenterX, targetCenterY);
         ctx.fillStyle = `#111`;
         ctx.beginPath();
-        ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.arc(0, 0, 6, 0, TWO_PI);
         ctx.fill();
-        ctx.fillStyle = `#555`; // Highlight
+        ctx.fillStyle = `#555`;
         ctx.beginPath();
-        ctx.arc(-2, -2, 2, 0, Math.PI * 2);
+        ctx.arc(-2, -2, 2, 0, TWO_PI);
         ctx.fill();
-
         ctx.restore();
     };
 
