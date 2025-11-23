@@ -35,6 +35,8 @@ export const createPocketWatchGame = (
     const bgWatchRatioY = bgWatchCenterY / 1024;
     const watchRadiusRatio = 0.4;
     const WATCH_IMAGE_SIZE_RATIO = 1.0;
+    let backgroundImageScale = 1;
+    const backgroundImagePixelSize = 4;
 
     const SHADOW_OFFSET_X = 6;
     const SHADOW_OFFSET_Y = 6;
@@ -112,48 +114,76 @@ export const createPocketWatchGame = (
         ctx.restore();
     };
 
-    const drawHandShape = (length: number, width: number, type: `hour` | `minute`) => {
-        if (type === `minute`) {
-            // Long Sword Style
-            ctx.fillRect(0, -width / 2, length - 10, width);
-            ctx.fillRect(length - 10, -width / 2 + 2, 10, width - 4);
-            ctx.fillRect(-15, -width / 2 - 2, 15, width + 4);
-        } else {
-            // Stout Diamond Style
-            ctx.fillRect(0, -width / 2, length - 15 - width * 2, width);
-            ctx.save();
-            ctx.translate(length - 15 + width * 0, 0);
-            ctx.scale(1.5, 0.75);
-            ctx.rotate(Math.PI / 4);
-            ctx.fillRect(-width, -width, width * 2, width * 2);
-            ctx.restore();
-            // ctx.fillRect(length - 15, -width, 15, width * 2);
-            // ctx.fillRect(length, -width / 2, 4, width);
+    // --- PIXEL ART DRAWING HELPERS ---
+    const drawPixelLine = (x0: number, y0: number, x1: number, y1: number, color: string, pixelSize: number, thickness: number) => {
+        ctx.fillStyle = color;
+
+        const roundToPixel = (v: number) => Math.round(v / pixelSize) * pixelSize;
+
+        // Round start/end to ensure we snap to the pixel grid
+        let x = roundToPixel(x0);
+        let y = roundToPixel(y0);
+        const endX = roundToPixel(x1);
+        const endY = roundToPixel(y1);
+
+        // Calculate differences
+        const dx = endX - x;
+        const dy = endY - y;
+
+        // Determine how many steps we need (the longer axis controls the loop)
+        const steps = 1 + (Math.max(Math.abs(dx), Math.abs(dy)) / pixelSize);
+
+        // Calculate increment per step
+        const xInc = dx / steps;
+        const yInc = dy / steps;
+
+        // Draw the points
+        for (let i = 0; i <= steps; i++) {
+            // Draw a rectangle at the current integer coordinate
+            // Thickness > 1 creates a "blocky" line
+            ctx.fillRect(roundToPixel(x), roundToPixel(y), pixelSize, pixelSize);
+
+            x += xInc;
+            y += yInc;
         }
     };
 
     const drawPixelHand = (
-        x: number,
-        y: number,
+        centerX: number,
+        centerY: number,
         angle: number,
         length: number,
         width: number,
         color: string,
         type: `hour` | `minute`
     ) => {
-        ctx.save();
-        ctx.translate(x + SHADOW_OFFSET_X, y + SHADOW_OFFSET_Y);
-        ctx.rotate(angle);
-        ctx.fillStyle = `rgba(0, 0, 0, 0.4)`;
-        drawHandShape(length, width, type);
-        ctx.restore();
+        // 1. Calculate the Endpoint using Trig
+        // Note: 'angle' coming in assumes 0 = 12 o'clock (-PI/2 in trig terms)
+        // But our math relies on standard trig (0 = 3 o'clock). 
+        // We assume the incoming angle already has the OFFSET (-PI/2) applied? 
+        // Yes, currentHourAngle calculation includes OFFSET. 
+        // So we can pass it directly to cos/sin.
 
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(angle);
-        ctx.fillStyle = color;
-        drawHandShape(length, width, type);
-        ctx.restore();
+        const endX = centerX + Math.cos(angle) * length;
+        const endY = centerY + Math.sin(angle) * length;
+
+        const thickness = width;
+        const pixelSize = backgroundImagePixelSize * backgroundImageScale;
+
+        // 2. Draw Shadow
+        // We shift the start AND end points
+        drawPixelLine(
+            centerX + SHADOW_OFFSET_X,
+            centerY + SHADOW_OFFSET_Y,
+            endX + SHADOW_OFFSET_X,
+            endY + SHADOW_OFFSET_Y,
+            `rgba(0,0,0,0.4)`,
+            pixelSize,
+            thickness
+        );
+
+        // 3. Draw Actual Hand
+        drawPixelLine(centerX, centerY, endX, endY, color, pixelSize, thickness);
     };
 
     // --- Interaction Handlers ---
@@ -164,6 +194,7 @@ export const createPocketWatchGame = (
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         const minDim = Math.min(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+        backgroundImageScale = Math.min(bgImage.width / canvas.width, bgImage.height / canvas.height);
         const touchRadius = 0.5 * minDim * watchRadiusRatio;
 
         isDragging = true;
@@ -272,7 +303,7 @@ export const createPocketWatchGame = (
             targetCenterY,
             currentHourAngle,
             radius * 0.6,
-            8,
+            3,
             `#182827`,
             `hour`
         );
@@ -282,7 +313,7 @@ export const createPocketWatchGame = (
             targetCenterY,
             currentMinuteAngle,
             radius,
-            6,
+            2,
             `#182827`,
             `minute`
         );
