@@ -98,7 +98,7 @@ export const MiniGame_PocketWatch = () => {
                         <div
                             style={{
                                 position: `absolute`,
-                                top: `10%`,
+                                top: `20%`,
                                 left: `50%`,
                                 transform: `translate(-50%, -50%)`,
                                 textAlign: `center`,
