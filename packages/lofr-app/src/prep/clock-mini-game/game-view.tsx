@@ -34,7 +34,7 @@ export const MiniGame_PocketWatch = () => {
     }, []);
 
     return (
-        <div style={{ position: `relative`, width: `100%`, height: `1000px`, background: `#111` }}>
+        <div style={{ position: `relative`, width: `100%`, height: `400px`, background: `#111` }}>
             <canvas
                 ref={canvasRef}
                 style={{
