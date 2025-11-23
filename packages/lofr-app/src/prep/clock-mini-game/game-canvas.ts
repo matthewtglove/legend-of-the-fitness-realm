@@ -23,6 +23,8 @@ export const createPocketWatchGame = (
         throw new Error(`Could not get 2D context`);
     }
 
+    let attempts = 0
+
     const bgImage = new Image();
     bgImage.src = watchImage;
 
@@ -118,9 +120,15 @@ export const createPocketWatchGame = (
             ctx.fillRect(-15, -width / 2 - 2, 15, width + 4);
         } else {
             // Stout Diamond Style
-            ctx.fillRect(0, -width / 2, length - 15, width);
-            ctx.fillRect(length - 15, -width, 15, width * 2);
-            ctx.fillRect(length, -width / 2, 4, width);
+            ctx.fillRect(0, -width / 2, length - 15 - width * 2, width);
+            ctx.save();
+            ctx.translate(length - 15 + width * 0, 0);
+            ctx.scale(1.5, 0.75);
+            ctx.rotate(Math.PI / 4);
+            ctx.fillRect(-width, -width, width * 2, width * 2);
+            ctx.restore();
+            // ctx.fillRect(length - 15, -width, 15, width * 2);
+            // ctx.fillRect(length, -width / 2, 4, width);
         }
     };
 
@@ -173,9 +181,15 @@ export const createPocketWatchGame = (
         isDragging = false;
         draggingHand = null;
 
-        // Win Condition: Check if current timeMin is close to targetTotalMinutes
+        attempts++;
+
         const diff = getMinuteDiff(timeMin, targetTotalMinutes);
-        onSetTime?.(diff < WIN_TOLERANCE_MINUTES)
+        const isCorrect = diff < WIN_TOLERANCE_MINUTES;
+        onSetTime?.(isCorrect)
+        if (isCorrect) {
+            timeMin = targetTotalMinutes;
+            attempts = 0;
+        }
     };
 
     const handleMove = (e: MouseEvent | TouchEvent) => {
@@ -239,8 +253,11 @@ export const createPocketWatchGame = (
         const targetHourAngle = (targetTotalMinutes / 720) * TWO_PI + OFFSET;
 
         const radius = drawSize * 0.5 * watchRadiusRatio;
-        drawTargetTick(targetMinuteAngle, 20, 6, `#4caf50`, radius);
-        drawTargetTick(targetHourAngle, 15, 8, `#81c784`, radius * 0.6);
+
+        if (attempts > 3) {
+            drawTargetTick(targetMinuteAngle, 20, 6, `#4caf50`, radius);
+            drawTargetTick(targetHourAngle, 15, 8, `#81c784`, radius * 0.6);
+        }
 
         // 3. Render Current Hands from timeMin
 
@@ -255,8 +272,8 @@ export const createPocketWatchGame = (
             targetCenterY,
             currentHourAngle,
             radius * 0.6,
-            12,
-            `#cb9c63`,
+            8,
+            `#182827`,
             `hour`
         );
 
@@ -265,8 +282,8 @@ export const createPocketWatchGame = (
             targetCenterY,
             currentMinuteAngle,
             radius,
-            8,
-            `#384847`,
+            6,
+            `#182827`,
             `minute`
         );
 
