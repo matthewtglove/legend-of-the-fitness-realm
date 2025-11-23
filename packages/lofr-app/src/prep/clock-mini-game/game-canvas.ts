@@ -117,12 +117,11 @@ export const createPocketWatchGame = (
 
     // --- PIXEL ART DRAWING HELPERS ---
 
-    const drawPixelLine = (
+    const markPixelLine = (
         x0: number,
         y0: number,
         x1: number,
         y1: number,
-        color: string,
         pixelSize: number,
         thickness: number
     ) => {
@@ -143,7 +142,10 @@ export const createPocketWatchGame = (
         // This solves the "Darker Shadow" overlap issue perfectly.
         const pixelsToDraw = new Set<string>();
 
-        while (true) {
+        // eslint-disable-next-line no-constant-condition
+        let attempts = 0
+
+        while (attempts < 10000) {
             for (let tx = 0; tx < thickness; tx++) {
                 for (let ty = 0; ty < thickness; ty++) {
                     pixelsToDraw.add(`${x + tx},${y + ty}`);
@@ -161,13 +163,21 @@ export const createPocketWatchGame = (
                 err += dx;
                 y += sy;
             }
+
+            attempts++;
         }
 
+        return pixelsToDraw;
+    };
+
+    const drawPixels = (pixelsToDraw: Set<string>, color: string, pixelSize: number, offset: [number, number]) => {
         // 4. Render with "Snap-to-Neighbor" Logic
         ctx.fillStyle = color;
 
         pixelsToDraw.forEach(key => {
-            const [gx, gy] = key.split(`,`).map(Number);
+            const [gxRaw, gyRaw] = key.split(`,`).map(Number) as [number, number];
+            const gx = gxRaw + offset[0];
+            const gy = gyRaw + offset[1];
 
             // THE FIX FOR GRAY LINES:
             // Instead of: ctx.fillRect(gx * size, gy * size, size, size)
@@ -203,27 +213,89 @@ export const createPocketWatchGame = (
         // Ensure these match your external scope variables
         const pixelSize = backgroundImagePixelSize * backgroundImageScale;
 
+        const pixelsToDraw = type === `minute` ? (() => {
+            // diamond shape for hour hand
+            const halfXA = centerX + Math.cos(angle + Math.PI * 0.05) * length * 0.25;
+            const halfXB = centerX + Math.cos(angle - Math.PI * 0.05) * length * 0.25;
+            const halfYA = centerY + Math.sin(angle + Math.PI * 0.05) * length * 0.25;
+            const halfYB = centerY + Math.sin(angle - Math.PI * 0.05) * length * 0.25;
+
+            const p1 = markPixelLine(
+                centerX,
+                centerY,
+                halfXA,
+                halfYA,
+                pixelSize,
+                thickness);
+            const p2 = markPixelLine(
+                halfXA,
+                halfYA,
+                endX,
+                endY,
+                pixelSize,
+                thickness);
+            const p3 = markPixelLine(
+                centerX,
+                centerY,
+                halfXB,
+                halfYB,
+                pixelSize,
+                thickness);
+            const p4 = markPixelLine(
+                halfXB,
+                halfYB,
+                endX,
+                endY,
+                pixelSize,
+                thickness);
+
+            const combined = new Set<string>([...p1, ...p2, ...p3, ...p4]);
+            return combined;
+        })() : (() => {
+            // diamond shape for hour hand
+            const halfXA = centerX + Math.cos(angle + Math.PI * 0.05) * length * 0.5;
+            const halfXB = centerX + Math.cos(angle - Math.PI * 0.05) * length * 0.5;
+            const halfYA = centerY + Math.sin(angle + Math.PI * 0.05) * length * 0.5;
+            const halfYB = centerY + Math.sin(angle - Math.PI * 0.05) * length * 0.5;
+
+            const p1 = markPixelLine(
+                centerX,
+                centerY,
+                halfXA,
+                halfYA,
+                pixelSize,
+                thickness);
+            const p2 = markPixelLine(
+                halfXA,
+                halfYA,
+                endX,
+                endY,
+                pixelSize,
+                thickness);
+            const p3 = markPixelLine(
+                centerX,
+                centerY,
+                halfXB,
+                halfYB,
+                pixelSize,
+                thickness);
+            const p4 = markPixelLine(
+                halfXB,
+                halfYB,
+                endX,
+                endY,
+                pixelSize,
+                thickness);
+
+            const combined = new Set<string>([...p1, ...p2, ...p3, ...p4]);
+            return combined;
+        })();
+
         // 1. Draw Shadow
-        drawPixelLine(
-            centerX + SHADOW_OFFSET_X,
-            centerY + SHADOW_OFFSET_Y,
-            endX + SHADOW_OFFSET_X,
-            endY + SHADOW_OFFSET_Y,
-            `rgba(0,0,0,0.4)`,
-            pixelSize,
-            thickness
-        );
+        drawPixels(pixelsToDraw, `rgba(0,0,0,0.4)`, pixelSize, [SHADOW_OFFSET_X / pixelSize, SHADOW_OFFSET_Y / pixelSize]);
 
         // 2. Draw Actual Hand
-        drawPixelLine(
-            centerX,
-            centerY,
-            endX,
-            endY,
-            color,
-            pixelSize,
-            thickness
-        );
+        drawPixels(pixelsToDraw, color, pixelSize, [0, 0]);
     };
 
     // --- Interaction Handlers ---
@@ -234,7 +306,6 @@ export const createPocketWatchGame = (
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         const minDim = Math.min(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
-        backgroundImageScale = Math.min(bgImage.width / canvas.width, bgImage.height / canvas.height);
         const touchRadius = 0.5 * minDim * watchRadiusRatio;
 
         isDragging = true;
@@ -300,6 +371,7 @@ export const createPocketWatchGame = (
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const minDim = Math.min(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+        backgroundImageScale = Math.min(bgImage.width / canvas.width, bgImage.height / canvas.height);
         const drawSize = minDim * WATCH_IMAGE_SIZE_RATIO;
 
         targetCenterX = canvasCenterX + (bgWatchRatioX - 0.5) * drawSize;
@@ -343,7 +415,7 @@ export const createPocketWatchGame = (
             targetCenterY,
             currentHourAngle,
             radius * 0.6,
-            3,
+            2,
             `#182827`,
             `hour`
         );
