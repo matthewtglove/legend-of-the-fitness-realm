@@ -22,3 +22,18 @@
     -   [ ] Recording data
         -   [ ] Exporting
     -   [ ] Reports
+
+---
+
+# Fun
+
+-   [ ] Make the exercise fun
+    -   [ ] Randomize the next exercise
+    -   [ ] Add random challenges to the exercise to push the user to the next level
+-   [ ] Make the personal progress fun
+    -   [ ] Visualize progress charts in fun ways
+        -   [ ] Individual exercise progress (reps)
+        -   [ ] Exercise Goals / Fitness Standards
+    -   [ ] Visualize personal health in fun ways
+        -   [ ] AI character image
+-   [ ] Make the game fun

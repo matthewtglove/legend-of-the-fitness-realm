@@ -10,6 +10,7 @@ import { GameDebugger } from './story/game-debugger';
 import { KeepAwake } from './components/wake-lock';
 import { DungeonMap } from './story/dungeon-map';
 import { StoryHistoryView } from './story/story-history';
+import { MiniGame_PocketWatch } from './prep/clock-mini-game/game-view';
 
 const appVersion = `v1.0.${buildNumber}`;
 
@@ -53,6 +54,9 @@ export const App = () => {
                     />
                 </div> */}
                 </div>
+                <ExpandableView mode="hide" title="Prep Game" expanded={true}>
+                    <MiniGame_PocketWatch />
+                </ExpandableView>
                 <ExpandableView mode="hide" title="Dungeon Map" expanded={true}>
                     <DungeonMap storyRuntime={storyRuntimeRef.current} />
                 </ExpandableView>
