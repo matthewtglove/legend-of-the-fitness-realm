@@ -32,6 +32,7 @@ export const createPocketWatchGame = (
     const bgWatchRatioX = bgWatchCenterX / 1024;
     const bgWatchRatioY = bgWatchCenterY / 1024;
     const watchRadiusRatio = 0.4;
+    const WATCH_IMAGE_SIZE_RATIO = 1.0;
 
     const SHADOW_OFFSET_X = 6;
     const SHADOW_OFFSET_Y = 6;
@@ -214,7 +215,7 @@ export const createPocketWatchGame = (
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const minDim = Math.min(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
-        const drawSize = minDim * 0.9;
+        const drawSize = minDim * WATCH_IMAGE_SIZE_RATIO;
 
         targetCenterX = canvasCenterX + (bgWatchRatioX - 0.5) * drawSize;
         targetCenterY = canvasCenterY + (bgWatchRatioY - 0.5) * drawSize;

@@ -32,7 +32,7 @@ export const MiniGame_PocketWatch = () => {
     }, [targetTime]);
 
     return (
-        <div>
+        <div className="flex flex-col flex-1">
             <div className="flex flex-col items-center gap-2">
                 <div>What time is your next workout?</div>
                 <div>
@@ -77,14 +77,17 @@ export const MiniGame_PocketWatch = () => {
                     <div
                         style={{
                             position: `absolute`,
-                            top: `20%`,
+                            top: `10%`,
                             left: `50%`,
                             transform: `translate(-50%, -50%)`,
+                            textAlign: `center`,
                             color: `#FFD700`,
+                            backgroundColor: `rgba(0, 0, 0, 0.5)`,
+                            padding: `4px`,
                             fontFamily: `monospace`,
-                            fontSize: `4rem`,
+                            fontSize: `2rem`,
                             textShadow: `0px 0px 10px rgba(0,0,0,0.8)`,
-                            pointerEvents: `none`, // Let clicks pass through if needed
+                            pointerEvents: `none`,
                         }}
                     >
                         Alarm Set
