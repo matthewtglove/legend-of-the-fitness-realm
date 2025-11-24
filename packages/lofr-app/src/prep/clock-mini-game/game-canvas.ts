@@ -360,7 +360,7 @@ export const createPocketWatchGame = (
             // draw sleep cycle indicator (every 90 minutes backwards from alarmTimeMin)
             for (let cycle = 1; cycle <= 6; cycle++) {
                 const sleepCycleTime = normalizeMinutes(alarmTimeMin - cycle * 90);
-                if (normalizeMinutes(sleepCycleTime - timeMin) > 360) break;
+                if (normalizeMinutes(sleepCycleTime - alarmTimeMin) < normalizeMinutes(timeMin - alarmTimeMin)) break;
 
                 const sleepCycleAngle = (sleepCycleTime / 720) * TWO_PI + OFFSET;
                 drawTargetTick(sleepCycleAngle, 8, 2, `#4c4c4c`, radius * 0.5);
