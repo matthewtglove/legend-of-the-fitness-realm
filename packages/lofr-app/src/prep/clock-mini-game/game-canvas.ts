@@ -41,8 +41,8 @@ export const createPocketWatchGame = (
 
     // --- Configuration ---
     // Ratios based on the original 1024px source image
-    const bgWatchCenterX = 506;
-    const bgWatchCenterY = 614;
+    const bgWatchCenterX = 500;
+    const bgWatchCenterY = 612;
     const bgWatchRatioX = bgWatchCenterX / 1024;
     const bgWatchRatioY = bgWatchCenterY / 1024;
     const watchRadiusRatio = 0.4; // 40% of the game size
@@ -213,6 +213,9 @@ export const createPocketWatchGame = (
         color: string,
         type: `hour` | `minute`
     ) => {
+        const startX = centerX - Math.cos(angle) * length * 0.15;
+        const startY = centerY - Math.sin(angle) * length * 0.15;
+
         const endX = centerX + Math.cos(angle) * length;
         const endY = centerY + Math.sin(angle) * length;
 
@@ -225,9 +228,9 @@ export const createPocketWatchGame = (
             const halfYA = centerY + Math.sin(angle + radOffset) * length * spread;
             const halfYB = centerY + Math.sin(angle - radOffset) * length * spread;
 
-            const p1 = markPixelLine(centerX, centerY, halfXA, halfYA, width);
+            const p1 = markPixelLine(startX, startY, halfXA, halfYA, width);
             const p2 = markPixelLine(halfXA, halfYA, endX, endY, width);
-            const p3 = markPixelLine(centerX, centerY, halfXB, halfYB, width);
+            const p3 = markPixelLine(startX, startY, halfXB, halfYB, width);
             const p4 = markPixelLine(halfXB, halfYB, endX, endY, width);
 
             return new Set<string>([...p1, ...p2, ...p3, ...p4]);
@@ -360,7 +363,7 @@ export const createPocketWatchGame = (
 
         // 5. Center Pin
         bufferCtx.save();
-        bufferCtx.translate(targetCenterX, targetCenterY);
+        bufferCtx.translate(targetCenterX + 2, targetCenterY + 2);
         bufferCtx.fillStyle = `#111`;
         bufferCtx.beginPath();
         bufferCtx.arc(0, 0, 3, 0, TWO_PI);
