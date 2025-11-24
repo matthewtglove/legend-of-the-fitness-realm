@@ -76,6 +76,8 @@ export const createPocketWatchGame = (
     // timeMin represents the current time in minutes (0 to 720)
     let timeMin = (targetTotalMinutes + Math.random() * 660 + 60) % 720;
 
+    let alarmTimeMin = 0;
+
     // Tolerance: +/- 3 minutes to win
     const WIN_TOLERANCE_MINUTES = 3;
 
@@ -268,12 +270,14 @@ export const createPocketWatchGame = (
         draggingHand = null;
 
         attempts++;
+        alarmTimeMin = 0;
 
         const diff = getMinuteDiff(timeMin, targetTotalMinutes);
         const isCorrect = diff < WIN_TOLERANCE_MINUTES;
         onSetTime?.(isCorrect);
         if (isCorrect) {
             timeMin = targetTotalMinutes;
+            alarmTimeMin = targetTotalMinutes;
             attempts = 0;
         }
     };
@@ -335,6 +339,33 @@ export const createPocketWatchGame = (
         if (attempts > 3) {
             drawTargetTick(targetMinuteAngle, 8, 2, `#4caf50`, radius);
             drawTargetTick(targetHourAngle, 6, 3, `#81c784`, radius * 0.6);
+        }
+
+        if (alarmTimeMin) {
+            const targetHourAngle = (alarmTimeMin / 720) * TWO_PI + OFFSET;
+            drawTargetTick(targetHourAngle, 12, 4, `#af4c50`, radius * 0.6);
+
+            // slowly move timeMin to actual time
+            const actualTimeMin = normalizeMinutes(new Date().getHours() * 60 + new Date().getMinutes());
+            // console.log({ actualTimeMin, timeMin });
+            if (Math.abs(timeMin - actualTimeMin) <= 2) {
+                timeMin = actualTimeMin;
+            }
+
+            if (timeMin !== actualTimeMin) {
+                timeMin--;
+                timeMin = normalizeMinutes(timeMin);
+            }
+
+            // draw sleep cycle indicator (every 90 minutes backwards from alarmTimeMin)
+            for (let cycle = 1; cycle <= 6; cycle++) {
+                const sleepCycleTime = normalizeMinutes(alarmTimeMin - cycle * 90);
+                if (normalizeMinutes(sleepCycleTime - timeMin) > 360) break;
+
+                const sleepCycleAngle = (sleepCycleTime / 720) * TWO_PI + OFFSET;
+                drawTargetTick(sleepCycleAngle, 8, 2, `#4c4c4c`, radius * 0.5);
+            }
+
         }
 
         // 4. Render Current Hands
