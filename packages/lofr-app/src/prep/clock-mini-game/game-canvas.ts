@@ -23,23 +23,33 @@ export const createPocketWatchGame = (
         throw new Error(`Could not get 2D context`);
     }
 
-    let attempts = 0
+    // --- Buffer Setup (Pixel Perfect) ---
+    const GAME_SIZE = 256;
+    const bufferCanvas = document.createElement(`canvas`);
+    bufferCanvas.width = GAME_SIZE;
+    bufferCanvas.height = GAME_SIZE;
+    const bufferCtx = bufferCanvas.getContext(`2d`);
+
+    if (!bufferCtx) {
+        throw new Error(`Could not get Buffer 2D context`);
+    }
+
+    let attempts = 0;
 
     const bgImage = new Image();
     bgImage.src = watchImage;
 
     // --- Configuration ---
+    // Ratios based on the original 1024px source image
     const bgWatchCenterX = 506;
     const bgWatchCenterY = 614;
     const bgWatchRatioX = bgWatchCenterX / 1024;
     const bgWatchRatioY = bgWatchCenterY / 1024;
-    const watchRadiusRatio = 0.4;
-    const WATCH_IMAGE_SIZE_RATIO = 1.0;
-    let backgroundImageScale = 1;
-    const backgroundImagePixelSize = 4;
+    const watchRadiusRatio = 0.4; // 40% of the game size
 
-    const SHADOW_OFFSET_X = 6;
-    const SHADOW_OFFSET_Y = 6;
+    // Shadow offset in Buffer Pixels
+    const SHADOW_OFFSET_X = 2;
+    const SHADOW_OFFSET_Y = 3;
 
     // --- Math Constants ---
     const TWO_PI = Math.PI * 2;
@@ -47,12 +57,10 @@ export const createPocketWatchGame = (
 
     // --- Game State ---
     let animationId: number;
-    let canvasCenterX = 0;
-    let canvasCenterY = 0;
+
+    // Buffer Coordinates
     let targetCenterX = 0;
     let targetCenterY = 0;
-
-
 
     // Interaction State
     let isDragging = false;
@@ -66,18 +74,16 @@ export const createPocketWatchGame = (
 
     // SINGLE SOURCE OF TRUTH:
     // timeMin represents the current time in minutes (0 to 720)
-    // 0 = 12:00, 360 = 6:00, 720 = 12:00
-    let timeMin = (targetTotalMinutes + Math.random() * 660 + 60) % 720; // Start 1-6 hours away from target
+    let timeMin = (targetTotalMinutes + Math.random() * 660 + 60) % 720;
 
     // Tolerance: +/- 3 minutes to win
-    const WIN_TOLERANCE_MINUTES = 1;
+    const WIN_TOLERANCE_MINUTES = 3;
 
     // --- Helpers ---
     const normalizeMinutes = (m: number) => {
         return ((m % 720) + 720) % 720;
     };
 
-    // Calculate shortest distance between two times on a 12h clock
     const getMinuteDiff = (m1: number, m2: number) => {
         const diff = Math.abs(normalizeMinutes(m1) - normalizeMinutes(m2));
         return Math.min(diff, 720 - diff);
@@ -88,64 +94,84 @@ export const createPocketWatchGame = (
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
-        ctx.scale(dpr, dpr);
+
+        // Ensure Main Canvas keeps sharp edges when scaling up the buffer
         ctx.imageSmoothingEnabled = false;
-        canvasCenterX = rect.width / 2;
-        canvasCenterY = rect.height / 2;
+    };
+
+    // Helper to get the visual layout on the screen
+    // We need this for both Drawing and Input mapping
+    const getLayout = () => {
+        const scale = Math.min(canvas.width / GAME_SIZE, canvas.height / GAME_SIZE);
+        const width = GAME_SIZE * scale;
+        const height = GAME_SIZE * scale;
+        const x = (canvas.width - width) / 2;
+        const y = (canvas.height - height) / 2;
+        return { x, y, width, height, scale };
     };
 
     const getPointerPos = (e: MouseEvent | TouchEvent) => {
         const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+
+        // 1. Get raw client coordinates
         const clientX = `touches` in e ? e.touches[0]?.clientX ?? 0 : (e as MouseEvent).clientX;
         const clientY = `touches` in e ? e.touches[0]?.clientY ?? 0 : (e as MouseEvent).clientY;
+
+        // 2. Convert to Physical Canvas Coordinates (accounting for DPR)
+        const physicalX = (clientX - rect.left) * dpr;
+        const physicalY = (clientY - rect.top) * dpr;
+
+        // 3. Map Physical Coords to Buffer Coords using the Aspect Ratio Layout
+        const layout = getLayout();
+
+        // (Physical Mouse - Offset) / Scale = Buffer Coordinate
+        const bufferX = (physicalX - layout.x) / layout.scale;
+        const bufferY = (physicalY - layout.y) / layout.scale;
+
         return {
-            x: clientX - rect.left,
-            y: clientY - rect.top,
+            x: bufferX,
+            y: bufferY,
         };
     };
 
-    // --- Rendering Helpers ---
+    // --- Rendering Helpers (Targeting Buffer) ---
     const drawTargetTick = (angle: number, length: number, thickness: number, color: string, radius: number) => {
-        ctx.save();
-        ctx.translate(targetCenterX, targetCenterY);
-        ctx.rotate(angle);
-        ctx.fillStyle = color;
-        ctx.fillRect(radius, -thickness / 2, length, thickness);
-        ctx.restore();
+        bufferCtx.save();
+        bufferCtx.translate(targetCenterX, targetCenterY);
+        bufferCtx.rotate(angle);
+        bufferCtx.fillStyle = color;
+        bufferCtx.fillRect(radius, -thickness / 2, length, thickness);
+        bufferCtx.restore();
     };
-
 
     // --- PIXEL ART DRAWING HELPERS ---
 
+    // Bresenham's Line Algorithm for integers
     const markPixelLine = (
         x0: number,
         y0: number,
         x1: number,
         y1: number,
-        pixelSize: number,
         thickness: number
     ) => {
-        // 1. Convert raw canvas coordinates to "Logical Grid" coordinates
-        let x = Math.round(x0 / pixelSize);
-        let y = Math.round(y0 / pixelSize);
-        const endX = Math.round(x1 / pixelSize);
-        const endY = Math.round(y1 / pixelSize);
+        // Round to align with buffer grid
+        let x = Math.round(x0);
+        let y = Math.round(y0);
+        const endX = Math.round(x1);
+        const endY = Math.round(y1);
 
-        // 2. Bresenham's Line Algorithm Setup
         const dx = Math.abs(endX - x);
         const dy = Math.abs(endY - y);
         const sx = (x < endX) ? 1 : -1;
         const sy = (y < endY) ? 1 : -1;
         let err = dx - dy;
 
-        // 3. Use a Set to store unique grid coordinates
-        // This solves the "Darker Shadow" overlap issue perfectly.
         const pixelsToDraw = new Set<string>();
+        let loops = 0;
 
-        // eslint-disable-next-line no-constant-condition
-        let attempts = 0
-
-        while (attempts < 10000) {
+        while (loops < 1000) {
+            // Add thickness
             for (let tx = 0; tx < thickness; tx++) {
                 for (let ty = 0; ty < thickness; ty++) {
                     pixelsToDraw.add(`${x + tx},${y + ty}`);
@@ -163,36 +189,18 @@ export const createPocketWatchGame = (
                 err += dx;
                 y += sy;
             }
-
-            attempts++;
+            loops++;
         }
 
         return pixelsToDraw;
     };
 
-    const drawPixels = (pixelsToDraw: Set<string>, color: string, pixelSize: number, offset: [number, number]) => {
-        // 4. Render with "Snap-to-Neighbor" Logic
-        ctx.fillStyle = color;
-
+    const drawPixels = (pixelsToDraw: Set<string>, color: string, offset: [number, number]) => {
+        bufferCtx.fillStyle = color;
         pixelsToDraw.forEach(key => {
-            const [gxRaw, gyRaw] = key.split(`,`).map(Number) as [number, number];
-            const gx = gxRaw + offset[0];
-            const gy = gyRaw + offset[1];
-
-            // THE FIX FOR GRAY LINES:
-            // Instead of: ctx.fillRect(gx * size, gy * size, size, size)
-            // We calculate the exact Integer start and the exact Integer end.
-            // This forces the browser to fill every pixel between them with no gaps.
-
-            const xStart = Math.floor(gx * pixelSize);
-            const yStart = Math.floor(gy * pixelSize);
-
-            // Calculate where the NEXT pixel would start, and subtract current start
-            // This handles cases where pixelSize is a float (e.g. 3.333)
-            const width = Math.floor((gx + 1) * pixelSize) - xStart;
-            const height = Math.floor((gy + 1) * pixelSize) - yStart;
-
-            ctx.fillRect(xStart, yStart, width, height);
+            const [gx, gy] = key.split(`,`).map(Number) as [number, number];
+            // Draw 1x1 pixel on the buffer
+            bufferCtx.fillRect(gx + offset[0], gy + offset[1], 1, 1);
         });
     };
 
@@ -208,110 +216,43 @@ export const createPocketWatchGame = (
         const endX = centerX + Math.cos(angle) * length;
         const endY = centerY + Math.sin(angle) * length;
 
-        const thickness = width;
+        const pixelsToDraw = (() => {
+            const spread = type === `minute` ? 0.25 : 0.5;
+            const radOffset = 0.05 * Math.PI;
 
-        // Ensure these match your external scope variables
-        const pixelSize = backgroundImagePixelSize * backgroundImageScale;
+            const halfXA = centerX + Math.cos(angle + radOffset) * length * spread;
+            const halfXB = centerX + Math.cos(angle - radOffset) * length * spread;
+            const halfYA = centerY + Math.sin(angle + radOffset) * length * spread;
+            const halfYB = centerY + Math.sin(angle - radOffset) * length * spread;
 
-        const pixelsToDraw = type === `minute` ? (() => {
-            // diamond shape for hour hand
-            const halfXA = centerX + Math.cos(angle + Math.PI * 0.05) * length * 0.25;
-            const halfXB = centerX + Math.cos(angle - Math.PI * 0.05) * length * 0.25;
-            const halfYA = centerY + Math.sin(angle + Math.PI * 0.05) * length * 0.25;
-            const halfYB = centerY + Math.sin(angle - Math.PI * 0.05) * length * 0.25;
+            const p1 = markPixelLine(centerX, centerY, halfXA, halfYA, width);
+            const p2 = markPixelLine(halfXA, halfYA, endX, endY, width);
+            const p3 = markPixelLine(centerX, centerY, halfXB, halfYB, width);
+            const p4 = markPixelLine(halfXB, halfYB, endX, endY, width);
 
-            const p1 = markPixelLine(
-                centerX,
-                centerY,
-                halfXA,
-                halfYA,
-                pixelSize,
-                thickness);
-            const p2 = markPixelLine(
-                halfXA,
-                halfYA,
-                endX,
-                endY,
-                pixelSize,
-                thickness);
-            const p3 = markPixelLine(
-                centerX,
-                centerY,
-                halfXB,
-                halfYB,
-                pixelSize,
-                thickness);
-            const p4 = markPixelLine(
-                halfXB,
-                halfYB,
-                endX,
-                endY,
-                pixelSize,
-                thickness);
-
-            const combined = new Set<string>([...p1, ...p2, ...p3, ...p4]);
-            return combined;
-        })() : (() => {
-            // diamond shape for hour hand
-            const halfXA = centerX + Math.cos(angle + Math.PI * 0.05) * length * 0.5;
-            const halfXB = centerX + Math.cos(angle - Math.PI * 0.05) * length * 0.5;
-            const halfYA = centerY + Math.sin(angle + Math.PI * 0.05) * length * 0.5;
-            const halfYB = centerY + Math.sin(angle - Math.PI * 0.05) * length * 0.5;
-
-            const p1 = markPixelLine(
-                centerX,
-                centerY,
-                halfXA,
-                halfYA,
-                pixelSize,
-                thickness);
-            const p2 = markPixelLine(
-                halfXA,
-                halfYA,
-                endX,
-                endY,
-                pixelSize,
-                thickness);
-            const p3 = markPixelLine(
-                centerX,
-                centerY,
-                halfXB,
-                halfYB,
-                pixelSize,
-                thickness);
-            const p4 = markPixelLine(
-                halfXB,
-                halfYB,
-                endX,
-                endY,
-                pixelSize,
-                thickness);
-
-            const combined = new Set<string>([...p1, ...p2, ...p3, ...p4]);
-            return combined;
+            return new Set<string>([...p1, ...p2, ...p3, ...p4]);
         })();
 
         // 1. Draw Shadow
-        drawPixels(pixelsToDraw, `rgba(0,0,0,0.4)`, pixelSize, [SHADOW_OFFSET_X / pixelSize, SHADOW_OFFSET_Y / pixelSize]);
+        drawPixels(pixelsToDraw, `rgba(0,0,0,0.4)`, [SHADOW_OFFSET_X, SHADOW_OFFSET_Y]);
 
         // 2. Draw Actual Hand
-        drawPixels(pixelsToDraw, color, pixelSize, [0, 0]);
+        drawPixels(pixelsToDraw, color, [0, 0]);
     };
 
     // --- Interaction Handlers ---
     const handleStart = (e: MouseEvent | TouchEvent) => {
-        const { x, y } = getPointerPos(e);
+        const { x, y } = getPointerPos(e); // returns Buffer Coordinates
         const dx = x - targetCenterX;
         const dy = y - targetCenterY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        const minDim = Math.min(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
-        const touchRadius = 0.5 * minDim * watchRadiusRatio;
+        // Touch radius relative to Buffer Size
+        const touchRadius = 0.5 * GAME_SIZE * watchRadiusRatio;
 
         isDragging = true;
         lastDragAngle = Math.atan2(dy, dx);
 
-        // Logic: Grab Hour hand if close to center, Minute hand if further out
         if (dist < touchRadius * 0.5) {
             draggingHand = `hour`;
         } else {
@@ -327,7 +268,7 @@ export const createPocketWatchGame = (
 
         const diff = getMinuteDiff(timeMin, targetTotalMinutes);
         const isCorrect = diff < WIN_TOLERANCE_MINUTES;
-        onSetTime?.(isCorrect)
+        onSetTime?.(isCorrect);
         if (isCorrect) {
             timeMin = targetTotalMinutes;
             attempts = 0;
@@ -341,16 +282,11 @@ export const createPocketWatchGame = (
         const { x, y } = getPointerPos(e);
         const currentDragAngle = Math.atan2(y - targetCenterY, x - targetCenterX);
 
-        // 1. Calculate how much the FINGER moved in Radians
         let deltaRads = currentDragAngle - lastDragAngle;
 
-        // Handle logical wrap-around (e.g., crossing from PI to -PI)
         while (deltaRads > Math.PI) deltaRads -= TWO_PI;
         while (deltaRads < -Math.PI) deltaRads += TWO_PI;
 
-        // 2. Convert Radians to Minutes
-        // If we drag the minute hand: 2PI (360deg) = 60 minutes
-        // If we drag the hour hand:   2PI (360deg) = 720 minutes (12 hours)
         let deltaMinutes = 0;
 
         if (draggingHand === `minute`) {
@@ -359,55 +295,47 @@ export const createPocketWatchGame = (
             deltaMinutes = (deltaRads / TWO_PI) * 720;
         }
 
-        // 3. Update State
         timeMin += deltaMinutes;
-        timeMin = normalizeMinutes(timeMin); // Keep it 0-720
+        timeMin = normalizeMinutes(timeMin);
 
         lastDragAngle = currentDragAngle;
     };
 
     // --- Main Draw Loop ---
     const draw = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // 1. CLEAR BUFFER
+        bufferCtx.clearRect(0, 0, GAME_SIZE, GAME_SIZE);
 
-        const minDim = Math.min(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
-        backgroundImageScale = Math.min(bgImage.width / canvas.width, bgImage.height / canvas.height);
-        const drawSize = minDim * WATCH_IMAGE_SIZE_RATIO;
+        // Calculate Layout on Buffer
+        targetCenterX = GAME_SIZE * bgWatchRatioX;
+        targetCenterY = GAME_SIZE * bgWatchRatioY;
+        const drawSize = GAME_SIZE;
 
-        targetCenterX = canvasCenterX + (bgWatchRatioX - 0.5) * drawSize;
-        targetCenterY = canvasCenterY + (bgWatchRatioY - 0.5) * drawSize;
-
-        // 1. Background
+        // 2. DRAW BACKGROUND TO BUFFER
         if (bgImage.complete && bgImage.naturalWidth > 0) {
-            ctx.save();
-            ctx.translate(canvasCenterX, canvasCenterY);
-            ctx.drawImage(bgImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
-            ctx.restore();
+            bufferCtx.save();
+            bufferCtx.translate(GAME_SIZE / 2, GAME_SIZE / 2);
+            bufferCtx.drawImage(bgImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+            bufferCtx.restore();
         } else {
-            ctx.beginPath();
-            ctx.arc(targetCenterX, targetCenterY, drawSize / 2.5, 0, TWO_PI);
-            ctx.fillStyle = `#222`;
-            ctx.fill();
+            bufferCtx.beginPath();
+            bufferCtx.arc(targetCenterX, targetCenterY, drawSize * 0.4, 0, TWO_PI);
+            bufferCtx.fillStyle = `#222`;
+            bufferCtx.fill();
         }
 
-        // 2. Render Targets
-        // Convert Target Minutes -> Radians
+        // 3. Render Targets
         const targetMinuteAngle = ((targetTotalMinutes % 60) / 60) * TWO_PI + OFFSET;
         const targetHourAngle = (targetTotalMinutes / 720) * TWO_PI + OFFSET;
-
         const radius = drawSize * 0.5 * watchRadiusRatio;
 
         if (attempts > 3) {
-            drawTargetTick(targetMinuteAngle, 20, 6, `#4caf50`, radius);
-            drawTargetTick(targetHourAngle, 15, 8, `#81c784`, radius * 0.6);
+            drawTargetTick(targetMinuteAngle, 8, 2, `#4caf50`, radius);
+            drawTargetTick(targetHourAngle, 6, 3, `#81c784`, radius * 0.6);
         }
 
-        // 3. Render Current Hands from timeMin
-
-        // Minute Hand Angle: (Minutes component only / 60) * 360deg
+        // 4. Render Current Hands
         const currentMinuteAngle = ((timeMin % 60) / 60) * TWO_PI + OFFSET;
-
-        // Hour Hand Angle: (Total Minutes / 720) * 360deg
         const currentHourAngle = (timeMin / 720) * TWO_PI + OFFSET;
 
         drawPixelHand(
@@ -425,23 +353,39 @@ export const createPocketWatchGame = (
             targetCenterY,
             currentMinuteAngle,
             radius,
-            2,
+            1,
             `#182827`,
             `minute`
         );
 
-        // 4. Center Pin
-        ctx.save();
-        ctx.translate(targetCenterX + 2, targetCenterY + 2);
-        ctx.fillStyle = `#111`;
-        ctx.beginPath();
-        ctx.arc(0, 0, 6, 0, TWO_PI);
-        ctx.fill();
-        ctx.fillStyle = `#555`;
-        ctx.beginPath();
-        ctx.arc(-2, -2, 2, 0, TWO_PI);
-        ctx.fill();
-        ctx.restore();
+        // 5. Center Pin
+        bufferCtx.save();
+        bufferCtx.translate(targetCenterX, targetCenterY);
+        bufferCtx.fillStyle = `#111`;
+        bufferCtx.beginPath();
+        bufferCtx.arc(0, 0, 3, 0, TWO_PI);
+        bufferCtx.fill();
+        bufferCtx.fillStyle = `#555`;
+        bufferCtx.beginPath();
+        bufferCtx.arc(-1, -1, 1, 0, TWO_PI);
+        bufferCtx.fill();
+        bufferCtx.restore();
+
+        // --- FINAL STEP: BLIT TO SCREEN ---
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Calculate aspect-ratio fit
+        const layout = getLayout();
+
+        // Draw the buffer centered and scaled
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(
+            bufferCanvas,
+            layout.x,
+            layout.y,
+            layout.width,
+            layout.height
+        );
     };
 
     const loop = () => {
