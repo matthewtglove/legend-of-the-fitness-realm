@@ -387,7 +387,7 @@ export const createPocketWatchGame = (
             targetCenterY,
             currentMinuteAngle,
             radius,
-            1,
+            2,
             `#182827`,
             `minute`
         );
