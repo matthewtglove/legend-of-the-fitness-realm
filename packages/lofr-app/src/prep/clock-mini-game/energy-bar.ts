@@ -11,6 +11,9 @@ export const renderEnergyScene = (
     config: EnergyBarConfig
 ) => {
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const c = canvas;
+
     const logicalWidth = config.width;
     const logicalHeight = config.height;
 
