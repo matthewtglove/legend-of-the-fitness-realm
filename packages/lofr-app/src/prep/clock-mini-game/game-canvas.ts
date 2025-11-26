@@ -1,6 +1,7 @@
 // pocketWatchGame.ts
 
 import watchImage from './assets/watch.png';
+import { renderEnergyScene } from './energy-bar';
 
 export interface GameControl {
     start: () => void;
@@ -77,6 +78,10 @@ export const createPocketWatchGame = (
     let timeMin = (targetTotalMinutes + Math.random() * 660 + 60) % 720;
 
     let alarmTimeMin = 0;
+
+    let mode = `clock` as `clock` | `energy` | `energy-done`;
+    // let mode = `energy` as `clock` | `energy`;
+    let energyLevel = 0;
 
     // Tolerance: +/- 3 minutes to win
     const WIN_TOLERANCE_MINUTES = 3;
@@ -252,6 +257,20 @@ export const createPocketWatchGame = (
         const dy = y - targetCenterY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
+        // switch to energy mode if already turned back from alarm mode
+        const actualTimeMin = normalizeMinutes(new Date().getHours() * 60 + new Date().getMinutes());
+        if (mode === `energy-done`) {
+            timeMin = 0;
+            mode = `clock`;
+            return;
+        }
+
+        if (Math.abs(timeMin - actualTimeMin) <= 2) {
+            energyLevel = 0;
+            mode = `energy`;
+            return;
+        }
+
         // Touch radius relative to Buffer Size
         const touchRadius = 0.5 * GAME_SIZE * watchRadiusRatio;
 
@@ -357,6 +376,7 @@ export const createPocketWatchGame = (
                 timeMin = normalizeMinutes(timeMin);
             }
 
+
             // draw sleep cycle indicator (every 90 minutes backwards from alarmTimeMin)
             for (let cycle = 1; cycle <= 6; cycle++) {
                 const sleepCycleTime = normalizeMinutes(alarmTimeMin - cycle * 90);
@@ -404,6 +424,28 @@ export const createPocketWatchGame = (
         bufferCtx.arc(-1, -1, 1, 0, TWO_PI);
         bufferCtx.fill();
         bufferCtx.restore();
+
+        const drawEnergyBar = mode === `energy` || mode === `energy-done`;
+        if (drawEnergyBar) {
+            const maxEnergyLevel = 100;
+
+            if (energyLevel < maxEnergyLevel) {
+                energyLevel += 0.5;
+            } else {
+                mode = `energy-done`;
+            }
+
+
+            bufferCtx.save();
+            bufferCtx.globalAlpha = 0.2 + 0.8 * (energyLevel / maxEnergyLevel);
+            renderEnergyScene(bufferCanvas, bufferCtx, {
+                width: bufferCanvas.width,
+                height: bufferCanvas.height,
+                percentage: energyLevel,
+                jitterIntensity: 3 * (energyLevel / 100),
+            });
+            bufferCtx.restore();
+        }
 
         // --- FINAL STEP: BLIT TO SCREEN ---
         ctx.clearRect(0, 0, canvas.width, canvas.height);
