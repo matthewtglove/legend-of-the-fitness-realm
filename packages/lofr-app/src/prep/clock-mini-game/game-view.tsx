@@ -9,6 +9,8 @@ export const MiniGame_PocketWatch = () => {
     const MINUTE_DEFAULT = 0;
     const [targetTime, setTargetTime] = useState(undefined as undefined | { hour: number; minute: number });
 
+    const gameRef = useRef<GameControl | null>(null);
+
     useEffect(() => {
         if (!targetTime) return;
 
@@ -18,13 +20,13 @@ export const MiniGame_PocketWatch = () => {
         setIsSuccess(false);
 
         // Initialize the game logic
-        const game: GameControl = createPocketWatchGame(canvas, targetTime, (isCorrect: boolean) => {
+        const game = (gameRef.current = createPocketWatchGame(canvas, targetTime, (isCorrect: boolean) => {
             setIsSuccess(isCorrect);
             if (!isCorrect) return;
 
             // Optional: Vibrate phone
             if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-        });
+        }));
 
         // Start the game loop and listeners
         game.start();
@@ -69,6 +71,14 @@ export const MiniGame_PocketWatch = () => {
                             </option>
                         ))}
                     </select>
+                </div>
+                <div>
+                    <button
+                        className="bg-blue-200 text-blue-600 p-2 border-blue-600"
+                        onClick={() => gameRef.current?.toggleMode()}
+                    >
+                        Wake Up!
+                    </button>
                 </div>
             </div>
 

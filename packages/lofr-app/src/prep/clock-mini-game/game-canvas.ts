@@ -3,10 +3,7 @@
 import watchImage from './assets/watch.png';
 import { renderEnergyScene } from './energy-bar';
 
-export interface GameControl {
-    start: () => void;
-    stop: () => void;
-}
+export type GameControl = ReturnType<typeof createPocketWatchGame>;
 
 export interface TimeTarget {
     hour: number;   // 1-12 or 0-23
@@ -17,7 +14,7 @@ export const createPocketWatchGame = (
     canvas: HTMLCanvasElement,
     targetTime: TimeTarget,
     onSetTime?: (isCorrect: boolean) => void
-): GameControl => {
+) => {
     const ctx = canvas.getContext(`2d`);
 
     if (!ctx) {
@@ -491,5 +488,9 @@ export const createPocketWatchGame = (
             canvas.removeEventListener(`touchmove`, handleMove);
             window.removeEventListener(`touchend`, handleEnd);
         },
+        toggleMode: () => {
+            mode = mode === `energy` || mode === `energy-done` ? `clock` : `energy`;
+            energyLevel = 0;
+        }
     };
 };
