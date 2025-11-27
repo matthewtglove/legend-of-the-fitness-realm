@@ -52,6 +52,19 @@ export const calculateQuestStatus = (quest: LofrQuestBase<string>, now: Date = n
 
 export type LoftQuestProvider<TKind extends string> = {
     kind: TKind;
+
+    /** Calls this when app starts for any active quest, and when a quest becomes active, and when any game event occurs */
+    handleQuestEvent: (event: {
+        kind: string,
+        summary: string,
+        data: Record<string, unknown>,
+    }, quest: LofrQuestBase<TKind>) => void;
+
+    /** Should it render the component, called when? */
+    shouldShowAppViewForQuest: (quest: LofrQuestBase<TKind>) => boolean;
+
+    /** Render the app */
+    ActiveQuestAppViewComponent: (quest: LofrQuestBase<TKind>) => JSX.Element;
 }
 
 export type LofrQuestRegistry = {
