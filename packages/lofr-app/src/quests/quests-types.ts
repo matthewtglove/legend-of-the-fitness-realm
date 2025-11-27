@@ -11,47 +11,53 @@ export type LofrQuestBase<T extends string> = {
     /** The kind of quest */
     kind: T;
 
-    /** When the quest will become active (if it has a valid time range) */
-    timeStart?: Date;
+    /** When the quest will become available (if it has a valid time range) */
+    timeAvailableStart?: Date;
 
     /** When the quest will expire (if it has a valid time range) */
-    timeEnd?: Date;
+    timeAvailableEnd?: Date;
 
-    /** When the quest was completed */
+    /** When the quest was activated */
+    timeStarted?: Date;
+
+    /** When the quest was completed (shows a positive icon in quest log) */
     timeCompleted?: Date;
 
-    /** When the quest was failed */
+    /** When the quest was failed (shows a negative icon in quest log) */
     timeFailed?: Date;
 
     /** Additional data related to the quest kind */
     data: Record<string, never>;
 };
 
-export const calculateQuestStatus = (quest: LofrQuestBase<string>, now: Date = new Date()): `future` | `active` | `expired` | `completed` | `failed` => {
+export const calculateQuestStatus = (quest: LofrQuestBase<string>, now: Date = new Date()): `future` | `available` | `active` | `expired` | `completed` | `failed` => {
     if (quest.timeFailed) {
         return `failed`;
     }
     if (quest.timeCompleted) {
         return `completed`;
     }
-    if (quest.timeEnd && now > quest.timeEnd) {
+    if (quest.timeStarted) {
+        return `active`;
+    }
+    if (quest.timeAvailableEnd && now > quest.timeAvailableEnd) {
         return `expired`;
     }
-    if (quest.timeStart && now < quest.timeStart) {
+    if (quest.timeAvailableStart && now < quest.timeAvailableStart) {
         return `future`;
     }
 
-    return `active`;
+    return `available`;
 }
 
-export type LoftQuestImplementation<T extends string> = {
+export type LoftQuestProvider<T extends string> = {
     kind: T;
 }
 
 export type LofrQuestRegistry = {
-    registerQuestImplementation: (implementation: LoftQuestImplementation<string>) => void;
-    getImplementations: () => LoftQuestImplementation<string>[];
-    getImplementation: (kind: string) => LoftQuestImplementation<string> | undefined;
+    registerQuestImplementation: (implementation: LoftQuestProvider<string>) => void;
+    getImplementations: () => LoftQuestProvider<string>[];
+    getImplementation: (kind: string) => LoftQuestProvider<string> | undefined;
 };
 
 export type LofrQuest_NightPrep = LofrQuestBase<`night-prep`> & {
