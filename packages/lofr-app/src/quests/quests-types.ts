@@ -44,6 +44,16 @@ export const calculateQuestStatus = (quest: LofrQuestBase<string>, now: Date = n
     return `active`;
 }
 
+export type LoftQuestImplementation<T extends string> = {
+    kind: T;
+}
+
+export type LofrQuestRegistry = {
+    registerQuestImplementation: (implementation: LoftQuestImplementation<string>) => void;
+    getImplementations: () => LoftQuestImplementation<string>[];
+    getImplementation: (kind: string) => LoftQuestImplementation<string> | undefined;
+};
+
 export type LofrQuest_NightPrep = LofrQuestBase<`night-prep`> & {
     data: {
         sleepCycleTargetCount?: number;
