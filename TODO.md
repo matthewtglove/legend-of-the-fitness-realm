@@ -37,3 +37,46 @@
     -   [ ] Visualize personal health in fun ways
         -   [ ] AI character image
 -   [ ] Make the game fun
+
+---
+
+# Lofr Quest System
+
+-   [x] Prep Prototypes
+    -   [x] Night before (plan game - set alarm clock, sleep cycles)
+    -   [x] Wake up (energize animation)
+-   [ ] Quest System
+    -   [ ] Regular Quests: Prep, Wakeup, Workout
+    -   [ ] Special Quests:
+        -   [ ] Weigh In
+        -   [ ] Max / Challenge
+        -   [ ]
+    -   [ ] Quest State
+        -   [ ] Store/load quest state
+        -   [ ] Cloud state storage
+        -   [ ] Quest Logic
+            -   [ ] Require interaction at specific time
+                -   [ ] Night before to plan sleep cycles
+                -   [ ] Morning to track wake time
+                -   [ ] At workout
+
+## Quest Ideas:
+
+-   should the quest types be defined with their implementation with some kind of registerQuestType function?
+    -   quest plugin system
+-   what can the system do with the base quest data alone?
+    -   the quests can be listed (title), in a tree structure (parentId)
+    -   the quest status can be displayed (and filtered by status)
+    -   quests can be sorted
+        -   scheduled for today on top (active/future today)
+        -   unscheduled next
+        -   scheduled after today next
+    -   active quests can query the implementation for priority?
+-   how will quests be created?
+    -   the root game can generate new quests (if it knows their type)
+    -   a quest can generate new quests
+    -   it must be possible for the quest type registry to have some way to generate quests of a new kind
+-   how are quests triggered?
+    -   what quest events can occur?
+        -   start?
+        -   stop/cancel/fail?
