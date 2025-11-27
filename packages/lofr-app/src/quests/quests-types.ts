@@ -1,4 +1,4 @@
-export type LofrQuestBase<T extends string> = {
+export type LofrQuestBase<TKind extends string> = {
     /** Unique id for the quest */
     id: string;
 
@@ -9,7 +9,7 @@ export type LofrQuestBase<T extends string> = {
     title: string;
 
     /** The kind of quest */
-    kind: T;
+    kind: TKind;
 
     /** When the quest will become available (if it has a valid time range) */
     timeAvailableStart?: Date;
@@ -50,8 +50,8 @@ export const calculateQuestStatus = (quest: LofrQuestBase<string>, now: Date = n
     return `available`;
 }
 
-export type LoftQuestProvider<T extends string> = {
-    kind: T;
+export type LoftQuestProvider<TKind extends string> = {
+    kind: TKind;
 }
 
 export type LofrQuestRegistry = {
@@ -91,10 +91,19 @@ export type LofrQuest_WorkoutSession = LofrQuestBase<`workout-session`> & {
 };
 
 export type DayOfWeek = `sunday` | `monday` | `tuesday` | `wednesday` | `thursday` | `friday` | `saturday`;
+export type HourMinuteTime = string & { __format: `HH:mm` };
+export const createHourMinuteTime = (hour: number, minute: number): HourMinuteTime => {
+    const hh = hour.toString().padStart(2, `0`);
+    const mm = minute.toString().padStart(2, `0`);
+    return `${hh}:${mm}` as HourMinuteTime;
+}
 export type LofrQuest_WorkoutCampaign = LofrQuestBase<`workout-campaign`> & {
     data: {
         targetWeeksLength?: number;
-        targetDaysOfWeek?: DayOfWeek[];
+        targetWorkoutTimes?: {
+            dayOfWeek: DayOfWeek;
+            timeOfDay: HourMinuteTime;
+        }[];
         notes?: string;
         workoutCampaignData?: unknown;
     };
