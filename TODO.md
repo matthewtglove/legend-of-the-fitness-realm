@@ -80,3 +80,51 @@
     -   what quest events can occur?
         -   start?
         -   stop/cancel/fail?
+
+---
+
+## User Stories
+
+### First Time User
+
+pixel art playful sequence to introduce the concept and get the user started
+
+-   black screen
+-   you feel trapped inside a box and feel a wood panel in front of you, quick push the box open
+-   do push-ups for the next 30 seconds (or wall push ups) to escape
+-   it turns out you fell asleep on your couch and your mighty attempts to escape were simply a great effort to push yourself up
+-   scene changes to a top down pixel art room with an old trainer talking to you
+-   wake up lofr, when I am done with you, I will transform you from a lofr to a legend
+
+### First Workout Campaign
+
+-   the trainer says, let's get started with a short 2 week workout campaign to get you moving again
+-   the workout builder opens with the following defaults:
+    -   2 weeks
+    -   workout 3 days a week (monday, wednesday, friday)
+    -   7:00 AM
+    -   basic program
+    -   plus daily sleep tracking and morning strech
+-   the user can change any of these parameters and customize their initial workout, but defaults are chosen for an average overweight person
+-   until the first monday, the daily routine helps the user establish a healthy sleep schedule and morning stretch
+-   while the default lofr narrative is running, the trainer is giving you encouragement and progress updates during a workout and coaching you like a personal trianer
+-   you can customize your character for the lofr narrative, changing your name and avatar
+
+### Narrative Campaign
+
+-   In the app main experience (outside a workout), you can select a narrative
+-   The lofr personal trainer will occasionally suggest choosing a narrative
+-   Once selecting a narrative, the game events will be given to the narrative engine to translate to suitable narrative fitting into the narrative plotline
+    -   during a workout, exercise instructions will weave into the narrative
+    -   trianier encourage and progress updates will also be provided to the narrative engine to put these into a narrative context
+    -   the goal is to maintain narrative emersion rather than sounding like a personal trainer, so the narrative engine should prioritize the plotline
+-   It is possible to pause or change to a different narrative in the app main experience
+    -   The lofr narrative would be the default if no other narrative is active
+
+### The App Main Experience
+
+-   the app will have a main experience when not in an active workout
+-   this main experience will allow changing settings like the narrative campaign
+-   this will also allow you to access your quests and quest log
+-   this will host other quest experiences like the night plan session and morning wakeup routine and any other quest
+-   the main app exerience will essentially delegate the ui when a quest experience is running (like a workout session or the wakeup routine)
