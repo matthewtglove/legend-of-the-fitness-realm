@@ -50,7 +50,7 @@ export const calculateQuestStatus = (quest: LofrQuestBase<string>, now: Date = n
     return `available`;
 }
 
-export type LoftQuestProvider<TKind extends string> = {
+export type LofrQuestProvider<TKind extends string> = {
     kind: TKind;
 
     /** Calls this when app starts for any active quest, and when a quest becomes active, and when any game event occurs */
@@ -68,9 +68,9 @@ export type LoftQuestProvider<TKind extends string> = {
 }
 
 export type LofrQuestRegistry = {
-    registerQuestImplementation: (implementation: LoftQuestProvider<string>) => void;
-    getImplementations: () => LoftQuestProvider<string>[];
-    getImplementation: (kind: string) => LoftQuestProvider<string> | undefined;
+    registerQuestImplementation: (implementation: LofrQuestProvider<string>) => void;
+    getImplementations: () => LofrQuestProvider<string>[];
+    getImplementation: (kind: string) => LofrQuestProvider<string> | undefined;
 };
 
 export type LofrQuest_NightPrep = LofrQuestBase<`night-prep`> & {
