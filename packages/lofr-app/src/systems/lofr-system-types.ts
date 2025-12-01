@@ -134,6 +134,7 @@ export type LofrWorkoutGame = {
             userState: LofrUserStateBase,
             workoutTimer: LofrWorkoutTimer,
             directorState: LofrDirectorState,
+            narrativeService: LofrNarrativeService,
         }>;
     }>
 };
@@ -145,6 +146,7 @@ export type LofrMiniGame = {
         GameComponent: React.ComponentType<{
             userState: LofrUserStateBase,
             directorState: LofrDirectorState,
+            narrativeService: LofrNarrativeService,
         }>;
     }>
 };
@@ -157,6 +159,7 @@ export type LofrWorkoutBuilder = {
             value: undefined | WorkoutSession,
             onChange: (workoutSession: WorkoutSession) => void,
             directorState: LofrDirectorState,
+            narrativeService: LofrNarrativeService,
         }>;
     }>
 };
@@ -180,6 +183,17 @@ export type LofrDirectorControl = LofrDirectorState & {
     setTheme: (theme: LofrWorkoutGameTheme) => void;
 };
 
+export type LofrNarrativeIntent = {
+    kind: `start-workout` | `end-workout` | `encourage-user` | `notify-milestone`;
+    defaultDialog: string;
+    data: Record<string, unknown>;
+};
+
+export type LofrNarrativeService = {
+    say: (intent: LofrNarrativeIntent) => void;
+    observe: () => Observable<LofrNarrativeIntent>;
+};
+
 export type LofrNarrativeEngine = {
     title: string;
     defaultTheme: LofrWorkoutGameTheme;
@@ -187,6 +201,7 @@ export type LofrNarrativeEngine = {
         OverlayComponent: React.ComponentType<{
             userState: LofrUserStateBase,
             directorControl: LofrDirectorControl,
+            narrativeService: LofrNarrativeService,
             workoutTimer?: LofrWorkoutTimer,
             theme?: LofrWorkoutGameTheme,
         }>;
