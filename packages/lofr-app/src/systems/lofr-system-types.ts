@@ -109,6 +109,13 @@ export type LofrWorkoutTimer = {
     observeNextSubStep: () => Observable<undefined | LofrWorkoutSubStepInfo>;
 };
 
+export type LofrUserState<T extends Record<string, unknown>> = {
+    readonly data: T;
+    update: (changed: Partial<T>) => void;
+    observe: () => Observable<undefined | { newData: T, changed: Partial<T>, }>;
+};
+type LofrUserStateBase = LofrUserState<Record<string, unknown>>;
+
 export type LofrWorkoutGameTheme = {
     assets: {
         key: string;
@@ -123,6 +130,7 @@ export type LofrWorkoutGame = {
     defaultTheme: LofrWorkoutGameTheme;
     load: () => Promise<{
         GameComponent: React.ComponentType<{
+            userState: LofrUserStateBase,
             workoutTimer: LofrWorkoutTimer,
             theme?: LofrWorkoutGameTheme,
         }>;
@@ -134,6 +142,7 @@ export type LofrMiniGame = {
     defaultTheme: LofrWorkoutGameTheme;
     load: () => Promise<{
         GameComponent: React.ComponentType<{
+            userState: LofrUserStateBase,
             theme?: LofrWorkoutGameTheme,
         }>;
     }>
