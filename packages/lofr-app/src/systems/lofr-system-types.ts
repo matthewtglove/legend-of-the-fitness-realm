@@ -84,7 +84,8 @@ export type LofrWorkoutTimer = {
 
     run: () => void;
     pause: () => void;
-    observeRunState: () => Observable<`idle` | `running` | `paused` | `completed`>;
+    pauseForNarrative: () => void;
+    observeRunState: () => Observable<`idle` | `running` | `paused` | `paused-narrative` | `completed`>;
 
     gotoSubStep: (subStepIndex: number) => void;
     previousSubStep: () => void;
@@ -132,7 +133,7 @@ export type LofrWorkoutGame = {
         GameComponent: React.ComponentType<{
             userState: LofrUserStateBase,
             workoutTimer: LofrWorkoutTimer,
-            theme?: LofrWorkoutGameTheme,
+            directorState: LofrDirectorState,
         }>;
     }>
 };
@@ -143,7 +144,7 @@ export type LofrMiniGame = {
     load: () => Promise<{
         GameComponent: React.ComponentType<{
             userState: LofrUserStateBase,
-            theme?: LofrWorkoutGameTheme,
+            directorState: LofrDirectorState,
         }>;
     }>
 };
@@ -155,9 +156,45 @@ export type LofrWorkoutBuilder = {
         GameComponent: React.ComponentType<{
             value: undefined | WorkoutSession,
             onChange: (workoutSession: WorkoutSession) => void,
+            directorState: LofrDirectorState,
+        }>;
+    }>
+};
+
+export type LofrDirectorState = {
+    observeGamePaused: () => Observable<boolean>;
+    observeTheme: () => Observable<undefined | LofrWorkoutGameTheme>;
+};
+
+export type LofrDirectorControl = LofrDirectorState & {
+    /** 
+     * Narrative requests the active game to freeze logic.
+     * (e.g. Stop enemies, pause physics, but keep rendering)
+     */
+    setGamePaused: (paused: boolean) => void;
+
+    /**
+     * Narrative requests to switch the theme dynamically.
+     * (e.g. Entering a new zone)
+     */
+    setTheme: (theme: LofrWorkoutGameTheme) => void;
+};
+
+export type LofrNarrativeEngine = {
+    title: string;
+    defaultTheme: LofrWorkoutGameTheme;
+    load: () => Promise<{
+        OverlayComponent: React.ComponentType<{
+            userState: LofrUserStateBase,
+            directorControl: LofrDirectorControl,
+            workoutTimer?: LofrWorkoutTimer,
             theme?: LofrWorkoutGameTheme,
         }>;
     }>
 };
 
-// TODO: add narrative engine types
+/** This is all the data for a specific story */
+export type LofrNarrativeDataset = {
+    theme: LofrWorkoutGameTheme;
+    narrativeData: Record<string, unknown>;
+};
