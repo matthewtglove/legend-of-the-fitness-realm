@@ -135,6 +135,7 @@ export type LofrWorkoutGame = {
             workoutTimer: LofrWorkoutTimer,
             directorState: LofrDirectorState,
             narrativeService: LofrNarrativeService,
+            onDone: () => void,
         }>;
     }>
 };
@@ -147,6 +148,7 @@ export type LofrMiniGame = {
             userState: LofrUserStateBase,
             directorState: LofrDirectorState,
             narrativeService: LofrNarrativeService,
+            onDone: () => void,
         }>;
     }>
 };
@@ -160,16 +162,23 @@ export type LofrWorkoutBuilder = {
             onChange: (workoutSession: WorkoutSession) => void,
             directorState: LofrDirectorState,
             narrativeService: LofrNarrativeService,
+            onDone: () => void,
         }>;
     }>
 };
 
 export type LofrDirectorState = {
+    observeGameActivity: () => Observable<`main` | `mini-game` | `workout-game` | `workout-builder`>;
     observeGamePaused: () => Observable<boolean>;
     observeTheme: () => Observable<undefined | LofrWorkoutGameTheme>;
 };
 
 export type LofrDirectorControl = LofrDirectorState & {
+    /**
+     * Director switches the game activity.
+     */
+    setGameActivity: (activity: `main` | `mini-game` | `workout-game` | `workout-builder`) => void;
+
     /** 
      * Narrative requests the active game to freeze logic.
      * (e.g. Stop enemies, pause physics, but keep rendering)
@@ -184,7 +193,7 @@ export type LofrDirectorControl = LofrDirectorState & {
 };
 
 export type LofrNarrativeIntent = {
-    kind: `start-workout` | `end-workout` | `encourage-user` | `notify-milestone`;
+    key: string;
     defaultDialog: string;
     data: Record<string, unknown>;
 };
