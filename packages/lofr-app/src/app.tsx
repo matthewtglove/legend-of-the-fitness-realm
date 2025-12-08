@@ -11,13 +11,34 @@ import { KeepAwake } from './components/wake-lock';
 import { DungeonMap } from './story/dungeon-map';
 import { StoryHistoryView } from './story/story-history';
 import { MiniGame_PocketWatch } from './prep/clock-mini-game/game-view';
+import { WorkflowEditorView } from './workflow/workflow-editor/workflow-editor-view';
+import { loadLofrWorkflow } from './workflow/lofr-workflow/workflow';
 
 const appVersion = `v1.0.${buildNumber}`;
+const isDev = import.meta.env.DEV;
 
 export const App = () => {
     const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
     const [workoutSession, setWorkoutSession] = useState(undefined as undefined | WorkoutSession);
     const storyRuntimeRef = useRef(createGameStoryRuntime());
+
+    const [mode, setMode] = useState(isDev ? `workflow` : `app`);
+
+    if (mode === `workflow`) {
+        return (
+            <>
+                <div className="p-1 bg-gray-300">
+                    <button
+                        className={`p-1 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70`}
+                        onClick={() => setMode(`app`)}
+                    >
+                        Switch to App
+                    </button>
+                </div>
+                <WorkflowEditorView loader={loadLofrWorkflow} />
+            </>
+        );
+    }
 
     // console.log(`App`, {
     //     questContext: storyRuntimeRef.current.questContext,
