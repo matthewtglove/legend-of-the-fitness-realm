@@ -169,7 +169,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     },
                 ]);
             },
-            addComponent: ({ id, path }: { id: string; path: string }) => {
+            addComponent: ({ id, path, exportName }: { id: string; path: string; exportName?: string }) => {
                 console.log(`Adding text file node for path: ${path}`);
 
                 const m = metadataRef.current[id];
@@ -185,7 +185,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                         },
                         width: m?.width ?? undefined,
                         height: m?.height ?? undefined,
-                        data: { path },
+                        data: { path, exportName },
                     },
                 ]);
             },
@@ -307,7 +307,7 @@ const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: strin
     );
 };
 
-const ComponentNode = ({ data }: { data: { path: string } }) => {
+const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }) => {
     const [reloadId, setReloadId] = useState(0);
     const reload = () => {
         setReloadId((id) => id + 1);
@@ -319,7 +319,7 @@ const ComponentNode = ({ data }: { data: { path: string } }) => {
         setComponent({
             Component: React.lazy(() =>
                 import(data.path).then((mod) => ({
-                    default: mod.default,
+                    default: mod[data.exportName ?? `default`] ?? mod.default,
                 })),
             ),
         });
