@@ -1,4 +1,6 @@
 export type WorkflowEditorController = {
-    addTextConstantNode: (content: string) => void;
-    addTextFileNode: (path: string) => void;
+    setWorkflowServerUrl: (url: string) => void;
+    setWorkflowMetadataPath: (path: string) => Promise<void>;
+    addTextConstantNode: (args: { id: string, content: string }) => void;
+    addTextFileNode: (args: { id: string, path: string }) => void;
 };
