@@ -27,15 +27,17 @@ export const App = () => {
     if (mode === `workflow`) {
         return (
             <>
-                <div className="p-1 bg-gray-300">
-                    <button
-                        className={`p-1 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70`}
-                        onClick={() => setMode(`app`)}
-                    >
-                        Switch to App
-                    </button>
+                <div className="flex flex-col w-screen h-screen">
+                    <div className="p-1 bg-gray-300">
+                        <button
+                            className={`p-1 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70`}
+                            onClick={() => setMode(`app`)}
+                        >
+                            Switch to App
+                        </button>
+                    </div>
+                    <WorkflowEditorView loader={loadLofrWorkflow} />
                 </div>
-                <WorkflowEditorView loader={loadLofrWorkflow} />
             </>
         );
     }
