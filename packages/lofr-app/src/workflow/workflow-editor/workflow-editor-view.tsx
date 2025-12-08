@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { WorkflowEditorController } from './types';
 import '@xyflow/react/dist/style.css';
 import {
@@ -169,6 +169,26 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     },
                 ]);
             },
+            addComponent: ({ id, path }: { id: string; path: string }) => {
+                console.log(`Adding text file node for path: ${path}`);
+
+                const m = metadataRef.current[id];
+
+                setNodes((s) => [
+                    ...s,
+                    {
+                        type: `component`,
+                        id,
+                        position: {
+                            x: m?.x ?? Math.random() * 400,
+                            y: m?.y ?? Math.random() * 400,
+                        },
+                        width: m?.width ?? undefined,
+                        height: m?.height ?? undefined,
+                        data: { path },
+                    },
+                ]);
+            },
         };
         setNodes([]);
         setEdges([]);
@@ -185,6 +205,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 fitView
+                minZoom={0.1}
             >
                 <MiniMap nodeStrokeWidth={3} />
             </ReactFlow>
@@ -286,6 +307,50 @@ const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: strin
     );
 };
 
+const ComponentNode = ({ data }: { data: { path: string } }) => {
+    const [reloadId, setReloadId] = useState(0);
+    const reload = () => {
+        setReloadId((id) => id + 1);
+    };
+
+    // lazy load react component from path
+    const [component, setComponent] = useState({ Component: (() => null) as React.ComponentType });
+    useEffect(() => {
+        setComponent({
+            Component: React.lazy(() =>
+                import(data.path).then((mod) => ({
+                    default: mod.default,
+                })),
+            ),
+        });
+    }, [data.path, reloadId]);
+
+    return (
+        <>
+            <NodeResizer minWidth={100} minHeight={30} />
+            <div className="w-full h-full bg-white border border-gray-400 rounded shadow-md">
+                <div className="flex flex-row p-1 bg-gray-200 border-b border-gray-800">
+                    <div className="font-mono text-sm">{data.path}</div>
+                    <button
+                        className="px-2 py-1 mt-2 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                        onClick={() => {
+                            reload();
+                        }}
+                    >
+                        Reload Component
+                    </button>
+                </div>
+                <div className="nodrag nopan nowheel">
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                        <component.Component />
+                    </React.Suspense>
+                </div>
+            </div>
+        </>
+    );
+};
+
 const nodeTypes: NodeTypes = {
     textFile: TextFileNode,
+    component: ComponentNode,
 };

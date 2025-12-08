@@ -74,7 +74,7 @@ export const MiniGame_PocketWatch = () => {
                 </div>
                 <div>
                     <button
-                        className="bg-blue-200 text-blue-600 p-2 border-blue-600"
+                        className="p-2 text-blue-600 bg-blue-200 border-blue-600"
                         onClick={() => gameRef.current?.toggleMode()}
                     >
                         Wake Up!
@@ -84,7 +84,7 @@ export const MiniGame_PocketWatch = () => {
 
             <div>
                 {targetTime && (
-                    <div className="text-center mt-4">
+                    <div className="mt-4 text-center">
                         <div className="font-bold">Now set the pocketwatch to:</div>
                         <div className="text-2xl font-bold">{`${targetTime.hour}:${targetTime.minute
                             .toFixed(0)
@@ -129,3 +129,5 @@ export const MiniGame_PocketWatch = () => {
         </div>
     );
 };
+
+export default MiniGame_PocketWatch;
