@@ -1,3 +1,3 @@
 export const exampleFun = () => {
-    return `This is fun 06!`;
+    return `This is fun ${Math.random()}!`;
 }

@@ -9,6 +9,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     workflowEditorController.setWorkflowServerUrl(workflowServerUrl);
     await workflowEditorController.setWorkflowMetadataPath(`workflow/lofr-workflow/workflow.metadata.json`);
     workflowEditorController.addTextFileNode({ id: `n-workflow`, path: `workflow/lofr-workflow/workflow.ts` });
+    workflowEditorController.addTextFileNode({ id: `n-workflow-metadata`, path: `workflow/lofr-workflow/workflow.metadata.json` });
     workflowEditorController.addTextFileNode({ id: `n-todo`, path: `workflow/todo.md` });
     workflowEditorController.addTextFileNode({ id: `n-example-fun`, path: `workflow/lofr-workflow/example-fun.ts` });
     workflowEditorController.addTextConstantNode({ id: `n-constant`, content: exampleFun() });
