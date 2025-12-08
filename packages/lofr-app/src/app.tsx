@@ -18,10 +18,6 @@ const appVersion = `v1.0.${buildNumber}`;
 const isDev = import.meta.env.DEV;
 
 export const App = () => {
-    const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
-    const [workoutSession, setWorkoutSession] = useState(undefined as undefined | WorkoutSession);
-    const storyRuntimeRef = useRef(createGameStoryRuntime());
-
     const [mode, setMode] = useState(isDev ? `workflow` : `app`);
 
     if (mode === `workflow`) {
@@ -41,6 +37,14 @@ export const App = () => {
             </>
         );
     }
+
+    return <AppInner />;
+};
+
+export const AppInner = () => {
+    const [workoutProgram, setWorkoutProgram] = useState(undefined as undefined | WorkoutProgram);
+    const [workoutSession, setWorkoutSession] = useState(undefined as undefined | WorkoutSession);
+    const storyRuntimeRef = useRef(createGameStoryRuntime());
 
     // console.log(`App`, {
     //     questContext: storyRuntimeRef.current.questContext,
