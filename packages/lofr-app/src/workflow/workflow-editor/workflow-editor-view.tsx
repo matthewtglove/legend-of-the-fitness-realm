@@ -71,6 +71,17 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     },
                 ]);
             },
+            addTextConstantNode: (content: string) => {
+                console.log(`Adding text constant node with content: ${content}`);
+                setNodes((s) => [
+                    ...s,
+                    {
+                        id: `node-${s.length}-${Math.random().toString(16).slice(2)}`,
+                        position: { x: Math.random() * 400, y: Math.random() * 400 },
+                        data: { label: `Constant: ${content.slice(0, 20)}...` },
+                    },
+                ]);
+            },
         };
         setNodes([]);
         setEdges([]);
