@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     createNamedObject,
+    createRegistry,
     toObservable,
     WorkflowEditorController,
-    WorkflowNodeAddResult,
-    WorkflowNodeTypes,
     WorkflowObservable,
     WorkflowObservableLike,
-    WorkflowRegistry,
 } from './types';
 import '@xyflow/react/dist/style.css';
 import {
@@ -162,11 +160,11 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     },
                 ]);
             },
-            addTextNode: ({ id, content }: { id: string; content: WorkflowObservableLike<string> }) => {
+            addTextNode: ({ id, content }) => {
                 console.log(`Adding text constant node with content: ${content}`);
                 const m = metadataRef.current[id];
 
-                const data = registry.nodeTypes[`text`]!.load({ content });
+                const data = textNodeType.load({ content });
 
                 setNodes((s) => [
                     ...s,
@@ -183,7 +181,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     },
                 ]);
 
-                return data as unknown as WorkflowNodeAddResult<{ content: WorkflowObservable<string> }>;
+                return data;
             },
             addComponent: ({ id, path, exportName }: { id: string; path: string; exportName?: string }) => {
                 console.log(`Adding text file node for path: ${path}`);
@@ -257,37 +255,6 @@ const saveMetadata = async (
     console.log(`Saved workflow metadata.`);
 };
 
-const createRegistry = (): WorkflowRegistry => {
-    const nodeTypes = {} as WorkflowNodeTypes;
-
-    return {
-        get nodeTypes() {
-            return nodeTypes;
-        },
-        registerNodeType: <
-            TArgs extends Record<string, unknown>,
-            TInputs extends Record<string, WorkflowObservable<unknown>>,
-            TOutputs extends Record<string, WorkflowObservable<unknown>>,
-        >(
-            type: string,
-            args: {
-                load: (args: TArgs) => {
-                    inputs: TInputs;
-                    outputs: TOutputs;
-                };
-                Component: React.ComponentType<{
-                    data: {
-                        inputs: TInputs;
-                        outputs: TOutputs;
-                    };
-                }>;
-            },
-        ) => {
-            console.log(`Registered node type: ${type}`, args);
-            nodeTypes[type] = args as unknown as WorkflowNodeTypes[string];
-        },
-    };
-};
 const registry = createRegistry();
 
 registry.registerNodeType(`textFile`, {
@@ -455,7 +422,7 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
     );
 };
 
-registry.registerNodeType(`text`, {
+const textNodeType = registry.registerNodeType(`text`, {
     load: (args: {
         content: WorkflowObservableLike<string>;
         startAtLine?: WorkflowObservable<string>;

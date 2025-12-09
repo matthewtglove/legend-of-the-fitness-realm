@@ -70,7 +70,12 @@ export type WorkflowNodeTypeArgs<
     }>;
 };
 
-export type WorkflowNodeTypes = Record<string, WorkflowNodeTypeArgs<Record<string, unknown>, Record<string, WorkflowObservable<unknown>>, Record<string, WorkflowObservable<unknown>>>>;
+export type WorkflowNodeType<
+    TArgs extends Record<string, unknown>,
+    TInputs extends Record<string, WorkflowObservable<unknown>>,
+    TOutputs extends Record<string, WorkflowObservable<unknown>>,
+> = WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>;
+export type WorkflowNodeTypes = Record<string, WorkflowNodeType<Record<string, unknown>, Record<string, WorkflowObservable<unknown>>, Record<string, WorkflowObservable<unknown>>>>;
 
 export type WorkflowRegistry = {
     nodeTypes: WorkflowNodeTypes;
@@ -78,5 +83,20 @@ export type WorkflowRegistry = {
         TArgs extends Record<string, unknown>,
         TInputs extends Record<string, WorkflowObservable<unknown>>,
         TOutputs extends Record<string, WorkflowObservable<unknown>>,
-    >(type: string, args: WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>) => void;
+    >(type: string, args: WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>) => WorkflowNodeType<TArgs, TInputs, TOutputs>;
+};
+export const createRegistry = (): WorkflowRegistry => {
+    const nodeTypes = {} as WorkflowNodeTypes;
+
+    return {
+        get nodeTypes() {
+            return nodeTypes;
+        },
+        registerNodeType: (type, args) => {
+            console.log(`Registered node type: ${type}`, args);
+            const nodeType = args;
+            nodeTypes[type] = args as unknown as WorkflowNodeTypes[string];
+            return nodeType;
+        },
+    };
 };
