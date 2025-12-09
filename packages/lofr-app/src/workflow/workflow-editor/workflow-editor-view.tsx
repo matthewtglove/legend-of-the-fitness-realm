@@ -150,7 +150,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                 },
             ]);
 
-            return data;
+            return data.outputs;
         };
 
         const controller: WorkflowEditorController = {

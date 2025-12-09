@@ -10,19 +10,20 @@
     -   [x] {10 mins} make a node to display raw text file from workflow-server (input relative path)
     -   [x] {10 mins} make a node to run a string function and display results from workflow-server (input relative path, function name)
     -   [x] {10 mins} make a node to display rendered js react component from workflow-server (input relative path, function name)
--   [ ] {1 hour} connected nodes
+-   [x] {1 hour} node registry
     -   [x] {5 mins} plan hour
     -   [x] {5 mins} define observable
     -   [x] {5 mins} define component registry
     -   [x] {5 mins} register existing node types
     -   [x] {5 mins} create inputs
     -   [x] {5 mins} create outputs
-    -   [] {5 mins} name outputs
     -   [x] {5 mins} connect some nodes
+    -   [x] {5 mins} name outputs
+-   [ ] {1 hour} connected nodes
+    -   [] {5 mins} plan hour
     -   [] {5 mins} add text startAtLine and endAtLine
     -   [] {5 mins} create generateWorkflow
     -   [] {5 mins} create generateWorkflow preview node
-    -   [] {5 mins} plan next hour
 -   [ ] {1 hour} complete MiniGame_NightPrep as LofrMiniGame
     -   [] {5 mins} plan 1st hour
     -   [] {5 mins} plan 2nd hour

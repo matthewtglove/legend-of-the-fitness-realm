@@ -14,9 +14,9 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutTimer` });
     workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutGame` });
     workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `MiniGame` });
-    const a = workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `NarrativeEngine` });
-    a.name = `a_narrativeEngine`;
-    workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: a.outputs.content });
+    const { content: a_narrativeEngine } = workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `NarrativeEngine` });
+    a_narrativeEngine.name = `a_narrativeEngine`;
+    workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: a_narrativeEngine });
 
     workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
 

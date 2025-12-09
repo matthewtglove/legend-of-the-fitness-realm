@@ -50,11 +50,7 @@ export type WorkflowNodeTypeLoadResult<
 
 export type WorkflowNodeAddResult<
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
-> = {
-    get name(): string;
-    set name(value: string);
-    outputs: TOutputs,
-};
+> = TOutputs;
 
 export type WorkflowNodeTypeArgs<
     TArgs extends Record<string, unknown>,
