@@ -3,21 +3,42 @@ export type WorkflowObservable<T> = {
     lastValue: T;
     subscribe: (callback: (data: T) => void) => { unsubscribe: () => void };
 };
+export type WorkflowSubject<T> = WorkflowObservable<T> & {
+    next: (data: T) => void;
+};
 
 export type WorkflowObservableLike<T> = T | WorkflowObservable<T>;
 export const toObservable = <T>(value: WorkflowObservableLike<T>): WorkflowObservable<T> => {
     if (typeof value === `object` && value !== null && `subscribe` in value && typeof value.subscribe === `function`) {
         return value as WorkflowObservable<T>;
     }
+    return createObservable(value as T);
+}
+
+export const createObservable = <T>(initialValue: T): WorkflowSubject<T> => {
+    let lastValue = initialValue;
+    const subscribers = [] as (undefined | ((data: T) => void))[];
     return {
         ...createObservableName(),
-        lastValue: value as T,
+        get lastValue() { return lastValue; },
         subscribe: (callback: (data: T) => void) => {
-            callback(value as T);
-            return { unsubscribe: () => { } };
+            const iCallback = subscribers.length;
+            subscribers.push(callback);
+            callback(lastValue);
+            return {
+                unsubscribe: () => {
+                    subscribers[iCallback] = undefined;
+                }
+            };
+        },
+        next: (data: T) => {
+            lastValue = data;
+            for (const callback of subscribers) {
+                callback?.(data);
+            }
         },
     };
-}
+};
 
 let uniqueIdCounter = 0;
 export const createObservableName = (defaultValue?: string) => {
@@ -31,10 +52,17 @@ export const createObservableName = (defaultValue?: string) => {
 export type WorkflowEditorController = {
     setWorkflowServerUrl: (url: string) => void;
     setWorkflowMetadataPath: (path: string) => Promise<void>;
-    addTextNode: (args: { id: string, content: WorkflowObservableLike<string> }) => WorkflowNodeAddResult<{
+    addTextNode: (args: {
+        id: string,
+        content: WorkflowObservableLike<string>,
+        startAtLine?: undefined | WorkflowObservableLike<undefined | string>,
+        endAtLine?: undefined | WorkflowObservableLike<undefined | string>
+    }) => WorkflowNodeAddResult<{
         content: WorkflowObservable<string>;
     }>;
-    addTextFileNode: (args: { id: string, path: string }) => void;
+    addTextFileNode: (args: { id: string, path: string }) => WorkflowNodeAddResult<{
+        content: WorkflowObservable<string>;
+    }>
     addComponent: (args: { id: string, path: string, exportName: string }) => void;
 };
 
@@ -65,6 +93,34 @@ export type WorkflowNodeTypeArgs<
     }>;
 };
 
+type ObservableOf<T> = {
+    [K in keyof T]: T[K] extends WorkflowObservable<infer U> ? WorkflowObservable<U> : T[K] extends PromiseLike<infer U> ? WorkflowObservable<U> : WorkflowObservable<T[K]>;
+};
+type ObservableLikeOf<T> = {
+    [K in keyof T]: T[K] extends WorkflowObservable<infer U> ? WorkflowObservable<U> : T[K] extends PromiseLike<infer U> ? WorkflowObservable<U> : WorkflowObservableLike<T[K]>;
+};
+type SubjectsOf<T> = {
+    [K in keyof T]: T[K] extends WorkflowObservable<infer U> ? WorkflowSubject<U> : T[K] extends PromiseLike<infer U> ? WorkflowSubject<U> : WorkflowSubject<T[K]>;
+};
+
+export type WorkflowNodeTypeSimpleArgs<
+    TInputs extends Record<string, unknown>,
+    TOutputs extends Record<string, unknown>,
+> = {
+    typeName: string,
+    defaults: {
+        inputs: TInputs,
+        outputs: TOutputs,
+    },
+    execute: (inputs: TInputs) => PromiseLike<TOutputs>,
+    Component: React.ComponentType<{
+        data: {
+            inputs: ObservableOf<TInputs>,
+            outputs: ObservableOf<TOutputs>,
+        }
+    }>;
+}
+
 export type WorkflowNodeType<
     TArgs extends Record<string, unknown>,
     TInputs extends Record<string, WorkflowObservable<unknown>>,
@@ -74,11 +130,15 @@ export type WorkflowNodeTypes = Record<string, WorkflowNodeType<Record<string, u
 
 export type WorkflowRegistry = {
     nodeTypes: WorkflowNodeTypes;
-    registerNodeType: <
-        TArgs extends Record<string, unknown>,
-        TInputs extends Record<string, WorkflowObservable<unknown>>,
-        TOutputs extends Record<string, WorkflowObservable<unknown>>,
-    >(args: WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>) => WorkflowNodeType<TArgs, TInputs, TOutputs>;
+    // registerNodeType: <
+    //     TArgs extends Record<string, unknown>,
+    //     TInputs extends Record<string, WorkflowObservable<unknown>>,
+    //     TOutputs extends Record<string, WorkflowObservable<unknown>>,
+    // >(args: WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>) => WorkflowNodeType<TArgs, TInputs, TOutputs>;
+    registerSimpleNodeType: <
+        TInputs extends Record<string, unknown>,
+        TOutputs extends Record<string, unknown>,
+    >(args: WorkflowNodeTypeSimpleArgs<TInputs, TOutputs>) => WorkflowNodeType<ObservableLikeOf<TInputs>, ObservableOf<TInputs>, ObservableOf<TOutputs>>;
 };
 export const createRegistry = (): WorkflowRegistry => {
     const nodeTypes = {} as WorkflowNodeTypes;
@@ -87,11 +147,64 @@ export const createRegistry = (): WorkflowRegistry => {
         get nodeTypes() {
             return nodeTypes;
         },
-        registerNodeType: (args) => {
-            console.log(`Registered node type: ${args.typeName}`, args);
-            const nodeType = args;
-            nodeTypes[args.typeName] = args as unknown as WorkflowNodeTypes[string];
+        // registerNodeType: (args) => {
+        //     console.log(`Registered node type: ${args.typeName}`, args);
+        //     const nodeType = args;
+        //     nodeTypes[args.typeName] = args as unknown as WorkflowNodeTypes[string];
+        //     return nodeType;
+        // },
+        registerSimpleNodeType: <
+            TInputs extends Record<string, unknown>,
+            TOutputs extends Record<string, unknown>,
+        >(nodeTypeArgs: WorkflowNodeTypeSimpleArgs<TInputs, TOutputs>) => {
+            console.log(`[registerSimpleNodeType] Registering simple node type: ${nodeTypeArgs.typeName}`, { nodeTypeArgs });
+            const nodeType: WorkflowNodeType<Record<string, unknown>, ObservableOf<TInputs>, ObservableOf<TOutputs>> = {
+                typeName: nodeTypeArgs.typeName,
+                // execute: nodeTypeArgs.execute,
+                load: (loadArgs: Record<string, unknown>) => {
+                    console.log(`[registerSimpleNodeType:load] loading called with args:`, { loadArgs, nodeTypeArgs });
+                    const inputs = Object.fromEntries(Object.entries(nodeTypeArgs.defaults.inputs).map(([key, value]) => [key, loadArgs[key] ? toObservable(loadArgs[key]) : toObservable(value)])) as ObservableOf<TInputs>;
+                    const outputs = Object.fromEntries(Object.entries(nodeTypeArgs.defaults.outputs).map(([key, value]) => [key, createObservable(value)])) as SubjectsOf<TOutputs>;
+
+                    const update = async () => {
+                        try {
+                            const inputValues = Object.fromEntries(Object.entries(inputs).map(([key, value]) => [key, value.lastValue])) as TInputs;
+                            const outputValues = await nodeTypeArgs.execute(inputValues);
+                            for (const key in outputValues) {
+                                if (outputs[key]) {
+                                    outputs[key].next(outputValues[key]);
+                                    continue;
+                                }
+                                outputs[key] = createObservable(outputValues[key]) as typeof outputs[typeof key];
+                            }
+
+                        } catch (e) {
+                            console.error(`[registerSimpleNodeType] Error getting input values`, e);
+                        }
+                    };
+                    let updateTimeout = 0 as unknown as ReturnType<typeof setTimeout>;
+                    for (const key in inputs) {
+                        inputs[key].subscribe(() => {
+                            clearTimeout(updateTimeout);
+                            updateTimeout = setTimeout(update, 0);
+                        });
+                    }
+
+                    // initialize outputs
+                    setTimeout(update, 0);
+
+                    console.log(`[registerSimpleNodeType:load] loaded called with args:`, { inputs, outputs, loadArgs, nodeTypeArgs });
+                    return {
+                        inputs,
+                        outputs,
+                    };
+                },
+                Component: nodeTypeArgs.Component,
+            };
+            nodeTypes[nodeTypeArgs.typeName] = nodeType as unknown as WorkflowNodeTypes[string];
+
+            console.log(`[registerSimpleNodeType] Registered simple node type: ${nodeTypeArgs.typeName}`, { nodeTypeArgs, nodeType, nodeTypes });
             return nodeType;
         },
     };
-};
+}

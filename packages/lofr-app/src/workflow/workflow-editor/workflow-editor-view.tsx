@@ -1,12 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-    createRegistry,
-    toObservable,
-    WorkflowEditorController,
-    WorkflowNodeType,
-    WorkflowObservable,
-    WorkflowObservableLike,
-} from './types';
+import { createRegistry, WorkflowEditorController, WorkflowNodeType, WorkflowObservable } from './types';
 import '@xyflow/react/dist/style.css';
 import {
     ReactFlow,
@@ -129,7 +122,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
             nodeType: WorkflowNodeType<TArgs, TInputs, TOutputs>,
             args: TArgs,
         ) => {
-            console.log(`[addNode] ${nodeType.typeName}`);
+            console.log(`[addNode] adding ${nodeType.typeName}`, { nodeType, args });
 
             const m = metadataRef.current[args.id];
             const data = nodeType.load(args);
@@ -149,6 +142,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                 },
             ]);
 
+            console.log(`[addNode] added ${nodeType.typeName}`, { nodeType, args, data });
             return data.outputs;
         };
 
@@ -171,7 +165,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                 console.log(`Workflow metadata loaded:`, metadataRef.current);
             },
             addTextFileNode: (args) => addNode(textFileNodeType, { ...args, workflowServerUrl }),
-            addTextNode: (args) => addNode(textNodeType, args),
+            addTextNode: (args) => addNode(textNodeType, args as Required<typeof args>),
             addComponent: (args) => addNode(componentNodeType, args),
         };
         setNodes([]);
@@ -226,21 +220,51 @@ const saveMetadata = async (
 
 const registry = createRegistry();
 
-const textFileNodeType = registry.registerNodeType({
+// const textFileNodeType = registry.registerNodeType({
+//     typeName: `textFile`,
+//     load: (args: { workflowServerUrl: WorkflowObservableLike<string>; path: WorkflowObservableLike<string> }) => {
+//         return {
+//             inputs: {
+//                 workflowServerUrl: toObservable(args.workflowServerUrl),
+//                 path: toObservable(args.path),
+//             },
+//             outputs: {},
+//         };
+//     },
+//     Component: (props) => {
+//         const workflowServerUrl = useObservable(props.data.inputs.workflowServerUrl);
+//         const path = useObservable(props.data.inputs.path);
+
+//         return (
+//             <TextFileNode
+//                 {...props}
+//                 data={{
+//                     workflowServerUrl,
+//                     path,
+//                 }}
+//             />
+//         );
+//     },
+// });
+
+const textFileNodeType = registry.registerSimpleNodeType({
     typeName: `textFile`,
-    load: (args: { workflowServerUrl: WorkflowObservableLike<string>; path: WorkflowObservableLike<string> }) => {
-        return {
-            inputs: {
-                workflowServerUrl: toObservable(args.workflowServerUrl),
-                path: toObservable(args.path),
-            },
-            outputs: {},
-        };
+    defaults: {
+        inputs: {
+            workflowServerUrl: ``,
+            path: ``,
+        },
+        outputs: {
+            content: ``,
+        },
+    },
+    execute: async (inputs: { workflowServerUrl: string; path: string }) => {
+        const content = await loadFileText(inputs);
+        return { content: content ?? `` };
     },
     Component: (props) => {
         const workflowServerUrl = useObservable(props.data.inputs.workflowServerUrl);
         const path = useObservable(props.data.inputs.path);
-
         return (
             <TextFileNode
                 {...props}
@@ -253,31 +277,41 @@ const textFileNodeType = registry.registerNodeType({
     },
 });
 
+const loadFileText = async (data: { workflowServerUrl: string; path: string }) => {
+    const response = await fetch(`${data.workflowServerUrl}/load?path=${encodeURIComponent(data.path)}`);
+    if (!response.ok) {
+        console.error(`Failed to load file: ${response.status} ${response.statusText}`);
+        return;
+    }
+    const fileContent = await response.text();
+    console.log(`Loaded file content: ${fileContent}`);
+    return fileContent;
+};
+const saveFileText = async (data: { workflowServerUrl: string; path: string }, fileContent: string) => {
+    const response = await fetch(`${data.workflowServerUrl}/save?path=${encodeURIComponent(data.path)}`, {
+        method: `POST`,
+        headers: {
+            'Content-Type': `text/plain`,
+        },
+        body: fileContent,
+    });
+    if (!response.ok) {
+        console.error(`Failed to save file: ${response.status} ${response.statusText}`);
+    }
+    console.log(`Saved file content.`);
+};
+
 const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: string } }) => {
     const [fileContent, setFileContent] = useState(``);
 
     const loadFile = async () => {
-        const response = await fetch(`${data.workflowServerUrl}/load?path=${encodeURIComponent(data.path)}`);
-        if (!response.ok) {
-            console.error(`Failed to load file: ${response.status} ${response.statusText}`);
-            return;
-        }
-        const fileContent = await response.text();
-        console.log(`Loaded file content: ${fileContent}`);
-        setFileContent(fileContent);
+        const content = await loadFileText(data);
+        if (!content) return;
+        setFileContent(content);
     };
+
     const saveFile = async () => {
-        const response = await fetch(`${data.workflowServerUrl}/save?path=${encodeURIComponent(data.path)}`, {
-            method: `POST`,
-            headers: {
-                'Content-Type': `text/plain`,
-            },
-            body: fileContent,
-        });
-        if (!response.ok) {
-            console.error(`Failed to save file: ${response.status} ${response.statusText}`);
-        }
-        console.log(`Saved file content.`);
+        await saveFileText(data, fileContent);
     };
 
     useEffect(() => {
@@ -320,21 +354,49 @@ const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: strin
     );
 };
 
-const componentNodeType = registry.registerNodeType({
+// const componentNodeType = registry.registerNodeType({
+//     typeName: `component`,
+//     load: (args: { path: WorkflowObservableLike<string>; exportName?: WorkflowObservableLike<string> }) => {
+//         return {
+//             inputs: {
+//                 path: toObservable(args.path),
+//                 exportName: toObservable(args.exportName),
+//             },
+//             outputs: {},
+//         };
+//     },
+//     Component: (props) => {
+//         const path = useObservable(props.data.inputs.path);
+//         const exportName = useObservable(props.data.inputs.exportName);
+
+//         return (
+//             <ComponentNode
+//                 {...props}
+//                 data={{
+//                     path,
+//                     exportName,
+//                 }}
+//             />
+//         );
+//     },
+// });
+
+const componentNodeType = registry.registerSimpleNodeType({
     typeName: `component`,
-    load: (args: { path: WorkflowObservableLike<string>; exportName?: WorkflowObservableLike<string> }) => {
-        return {
-            inputs: {
-                path: toObservable(args.path),
-                exportName: toObservable(args.exportName),
-            },
-            outputs: {},
-        };
+    defaults: {
+        inputs: {
+            path: ``,
+            exportName: undefined as undefined | string,
+        },
+        outputs: {},
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    execute: async (inputs: { path: string; exportName?: string }) => {
+        return {};
     },
     Component: (props) => {
         const path = useObservable(props.data.inputs.path);
         const exportName = useObservable(props.data.inputs.exportName);
-
         return (
             <ComponentNode
                 {...props}
@@ -391,45 +453,162 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
     );
 };
 
-const textNodeType = registry.registerNodeType({
-    typeName: `text`,
-    load: (args: {
-        content: WorkflowObservableLike<string>;
-        startAtLine?: WorkflowObservable<string>;
-        endAtLine?: WorkflowObservable<string>;
-    }) => {
-        // TODO: implement line range extraction
-        // const result = createObservable(args.value);
+// const textNodeType = registry.registerNodeType({
+//     typeName: `text`,
+//     load: (args: {
+//         content: WorkflowObservableLike<string>;
+//         startAtLine?: WorkflowObservable<string>;
+//         endAtLine?: WorkflowObservable<string>;
+//     }) => {
+//         // TODO: implement line range extraction
+//         // const result = createObservable(args.value);
 
+//         return {
+//             inputs: {
+//                 content: toObservable(args.content),
+//             },
+//             outputs: {
+//                 content: toObservable(args.content),
+//             },
+//         };
+//     },
+//     Component: (props) => {
+//         const content = useObservable(props.data.inputs.content);
+
+//         return (
+//             <TextNode
+//                 {...props}
+//                 data={{
+//                     content,
+//                 }}
+//             />
+//         );
+//     },
+// });
+
+const textNodeType = registry.registerSimpleNodeType({
+    typeName: `textSimple`,
+    defaults: {
+        inputs: {
+            content: ``,
+            startAtLine: undefined as undefined | string,
+            endAtLine: undefined as undefined | string,
+        },
+        outputs: {
+            content: ``,
+        },
+    },
+    execute: async (inputs: { content: string; startAtLine: undefined | string; endAtLine: undefined | string }) => {
+        console.log(`[textNodeType:execute] START`, { inputs });
+        const startText = !inputs.startAtLine
+            ? inputs.content
+            : (() => {
+                  const text = inputs.content;
+                  const iStart = text.indexOf(`\n` + inputs.startAtLine);
+                  if (iStart === -1) {
+                      return text;
+                  }
+                  return text.substring(iStart);
+              })();
+        const result = !inputs.endAtLine
+            ? startText
+            : (() => {
+                  const iEndLine = startText.indexOf(`\n` + inputs.endAtLine);
+                  if (iEndLine === -1) {
+                      return startText;
+                  }
+                  const iEndLineNewLine = startText.indexOf(`\n`, iEndLine + inputs.endAtLine.length);
+                  if (iEndLineNewLine === -1) {
+                      return startText.substring(0, startText.length);
+                  }
+                  return startText.substring(0, iEndLineNewLine);
+              })();
+
+        console.log(`[textNodeType:execute] DONE`, { inputs, result });
         return {
-            inputs: {
-                content: toObservable(args.content),
-            },
-            outputs: {
-                content: toObservable(args.content),
-            },
+            content: result,
         };
     },
     Component: (props) => {
-        const content = useObservable(props.data.inputs.content);
+        const inputContent = useObservable(props.data.inputs.content);
+        const outputContent = useObservable(props.data.outputs.content);
+        const startAtLine = useObservable(props.data.inputs.startAtLine);
+        const endAtLine = useObservable(props.data.inputs.endAtLine);
 
         return (
             <TextNode
                 {...props}
                 data={{
-                    content,
+                    startAtLine,
+                    endAtLine,
+                    content: outputContent ?? inputContent,
+                    before: outputContent ? inputContent.substring(0, inputContent.indexOf(outputContent)) : undefined,
+                    after: outputContent
+                        ? inputContent.substring(inputContent.indexOf(outputContent) + outputContent.length)
+                        : undefined,
                 }}
             />
         );
     },
 });
 
-const TextNode = ({ data }: { data: { content: string } }) => {
+const TextNode = ({
+    data,
+}: {
+    data: { content: string; before?: string; after?: string; startAtLine?: string; endAtLine?: string };
+}) => {
+    const isLong = data.content.split(`\n`).length > 2;
+
+    useEffect(() => {
+        if (!isLong) return;
+        if (!scrollTargerRef.current) return;
+        scrollTargerRef.current.scrollIntoView({ behavior: `instant` });
+    }, [isLong, data.content]);
+    const scrollTargerRef = useRef<HTMLDivElement>(null);
+
     return (
         <>
             <NodeResizer minWidth={100} minHeight={30} />
-            <div className="flex items-center justify-center w-full h-full bg-white border border-gray-400 rounded shadow-md">
-                {data.content}
+            <div className="flex flex-col w-full h-full p-1 whitespace-pre-wrap bg-white border border-gray-400 rounded shadow-md">
+                {isLong && (
+                    <>
+                        {data.startAtLine && (
+                            <div className="flex flex-row items-center gap-1">
+                                <input
+                                    type="text"
+                                    placeholder="Start At Line"
+                                    value={data.startAtLine}
+                                    readOnly
+                                    className="flex-1 px-1 font-mono text-xs bg-gray-100 border border-gray-300 rounded nopan nodrag nowheel"
+                                />
+                            </div>
+                        )}
+
+                        <div className="overflow-auto nowheel">
+                            {data.before && <div className="text-gray-400">{data.before}</div>}
+                            <div ref={scrollTargerRef} className="">
+                                {data.content}
+                            </div>
+                            {data.after && <div className="text-gray-400">{data.after}</div>}
+                        </div>
+                        {data.endAtLine && (
+                            <div className="flex flex-row items-center gap-1">
+                                <input
+                                    type="text"
+                                    placeholder="End At Line"
+                                    value={data.endAtLine}
+                                    readOnly
+                                    className="flex-1 px-1 font-mono text-xs bg-gray-100 border border-gray-300 rounded nopan nodrag nowheel"
+                                />
+                            </div>
+                        )}
+                    </>
+                )}
+                {!isLong && (
+                    <>
+                        <div className="flex flex-col items-center justify-center">{data.content}</div>
+                    </>
+                )}
             </div>
         </>
     );

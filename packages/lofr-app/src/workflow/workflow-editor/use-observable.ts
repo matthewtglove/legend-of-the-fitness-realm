@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { WorkflowObservable } from "./types";
 
-export const useObservable = <T>(value: WorkflowObservable<T>): T => {
-    const [state, setState] = useState(value.lastValue);
+type MaybeLike<T> = T extends undefined ? undefined | T : NonNullable<T>;
+export const useObservable = <T>(value: undefined | WorkflowObservable<T>): MaybeLike<T> => {
+    const [state, setState] = useState(value?.lastValue);
 
     useEffect(() => {
-        const subscription = value.subscribe((data: T) => {
+        const subscription = value?.subscribe((data: T) => {
             setState(data);
         });
         return () => {
@@ -13,5 +14,5 @@ export const useObservable = <T>(value: WorkflowObservable<T>): T => {
         };
     }, [value]);
 
-    return state;
+    return state as MaybeLike<T>;
 }

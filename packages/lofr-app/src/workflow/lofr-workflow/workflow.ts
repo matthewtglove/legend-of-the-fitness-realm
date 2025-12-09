@@ -18,7 +18,40 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     a_narrativeEngine.name = `a_narrativeEngine`;
     workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: a_narrativeEngine });
 
-    workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
+    const { content: b_systemTypes } = workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
+    b_systemTypes.name = `b_systemTypes`;
+    workflowEditorController.addTextNode({
+        id: `n-title-${iTitle++}`,
+        content: b_systemTypes,
+        startAtLine: `export type LofrWorkoutTimer`,
+        endAtLine: `};`
+    });
+    workflowEditorController.addTextNode({
+        id: `n-title-${iTitle++}`,
+        content: b_systemTypes,
+        startAtLine: `export type LofrWorkoutBuilder`,
+        endAtLine: `};`
+    });
+    workflowEditorController.addTextNode({
+        id: `n-title-${iTitle++}`,
+        content: b_systemTypes,
+        startAtLine: `export type LofrWorkoutGame`,
+        endAtLine: `};`
+    });
+    workflowEditorController.addTextNode({
+        id: `n-title-${iTitle++}`,
+        content: b_systemTypes,
+        startAtLine: `export type LofrMiniGame`,
+        endAtLine: `};`
+    });
+    const { content: c_narrativeEngineTrimmed } = workflowEditorController.addTextNode({
+        id: `n-title-${iTitle++}`,
+        content: b_systemTypes,
+        startAtLine: `export type LofrNarrativeEngine`,
+        endAtLine: `};`
+    });
+    c_narrativeEngineTrimmed.name = `c_narrativeEngineTrimmed`;
+    workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: c_narrativeEngineTrimmed });
 
     workflowEditorController.addTextFileNode({ id: `n-workflow`, path: `workflow/lofr-workflow/workflow.ts` });
     workflowEditorController.addTextFileNode({ id: `n-workflow-metadata`, path: `workflow/lofr-workflow/workflow.metadata.json` });
