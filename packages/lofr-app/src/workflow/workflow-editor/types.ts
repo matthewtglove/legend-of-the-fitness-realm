@@ -10,7 +10,7 @@ export const toObservable = <T>(value: WorkflowObservableLike<T>): WorkflowObser
         return value as WorkflowObservable<T>;
     }
     return {
-        ...createNamedObject(),
+        ...createObservableName(),
         lastValue: value as T,
         subscribe: (callback: (data: T) => void) => {
             callback(value as T);
@@ -20,8 +20,8 @@ export const toObservable = <T>(value: WorkflowObservableLike<T>): WorkflowObser
 }
 
 let uniqueIdCounter = 0;
-export const createNamedObject = (defaultValue?: string) => {
-    let name = defaultValue ?? `n_${uniqueIdCounter++}`;
+export const createObservableName = (defaultValue?: string) => {
+    let name = defaultValue ?? `o_${uniqueIdCounter++}`;
     return {
         get name() { return name; },
         set name(n: string) { name = n; },
@@ -42,8 +42,6 @@ export type WorkflowNodeTypeLoadResult<
     TInputs extends Record<string, WorkflowObservable<unknown>>,
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
 > = {
-    get name(): string;
-    set name(value: string);
     inputs: TInputs,
     outputs: TOutputs,
 };

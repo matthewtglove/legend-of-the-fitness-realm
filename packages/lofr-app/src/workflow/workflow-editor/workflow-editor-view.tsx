@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    createNamedObject,
     createRegistry,
     toObservable,
     WorkflowEditorController,
@@ -231,7 +230,6 @@ const textFileNodeType = registry.registerNodeType({
     typeName: `textFile`,
     load: (args: { workflowServerUrl: WorkflowObservableLike<string>; path: WorkflowObservableLike<string> }) => {
         return {
-            ...createNamedObject(),
             inputs: {
                 workflowServerUrl: toObservable(args.workflowServerUrl),
                 path: toObservable(args.path),
@@ -326,7 +324,6 @@ const componentNodeType = registry.registerNodeType({
     typeName: `component`,
     load: (args: { path: WorkflowObservableLike<string>; exportName?: WorkflowObservableLike<string> }) => {
         return {
-            ...createNamedObject(),
             inputs: {
                 path: toObservable(args.path),
                 exportName: toObservable(args.exportName),
@@ -405,7 +402,6 @@ const textNodeType = registry.registerNodeType({
         // const result = createObservable(args.value);
 
         return {
-            ...createNamedObject(),
             inputs: {
                 content: toObservable(args.content),
             },

@@ -22,6 +22,10 @@
 -   [ ] {1 hour} connected nodes
     -   [] {5 mins} plan hour
     -   [] {5 mins} add text startAtLine and endAtLine
+    -   [] {5 mins} output text using startAtLine and endAtLine
+    -   [] {5 mins} display connection edges
+    -   [] {5 mins} display edge variable names
+    -   [] {5 mins} hide edge lines until hover
     -   [] {5 mins} create generateWorkflow
     -   [] {5 mins} create generateWorkflow preview node
 -   [ ] {1 hour} complete MiniGame_NightPrep as LofrMiniGame
