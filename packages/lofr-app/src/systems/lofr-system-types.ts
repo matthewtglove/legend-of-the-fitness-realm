@@ -117,7 +117,7 @@ export type LofrUserState<T extends Record<string, unknown>> = {
 };
 type LofrUserStateBase = LofrUserState<Record<string, unknown>>;
 
-export type LofrWorkoutGameTheme = {
+export type LofrGameTheme = {
     assets: {
         key: string;
         url: string;
@@ -128,7 +128,7 @@ export type LofrWorkoutGameTheme = {
 
 export type LofrWorkoutGame = {
     title: string;
-    defaultTheme: LofrWorkoutGameTheme;
+    defaultTheme: LofrGameTheme;
     load: () => Promise<{
         GameComponent: React.ComponentType<{
             userState: LofrUserStateBase,
@@ -142,7 +142,7 @@ export type LofrWorkoutGame = {
 
 export type LofrMiniGame = {
     title: string;
-    defaultTheme: LofrWorkoutGameTheme;
+    defaultTheme: LofrGameTheme;
     load: () => Promise<{
         GameComponent: React.ComponentType<{
             userState: LofrUserStateBase,
@@ -155,7 +155,7 @@ export type LofrMiniGame = {
 
 export type LofrWorkoutBuilder = {
     title: string;
-    defaultTheme: LofrWorkoutGameTheme;
+    defaultTheme: LofrGameTheme;
     load: () => Promise<{
         GameComponent: React.ComponentType<{
             value: undefined | WorkoutSession,
@@ -170,7 +170,7 @@ export type LofrWorkoutBuilder = {
 export type LofrDirectorState = {
     observeGameActivity: () => Observable<`main` | `mini-game` | `workout-game` | `workout-builder`>;
     observeGamePaused: () => Observable<boolean>;
-    observeTheme: () => Observable<undefined | LofrWorkoutGameTheme>;
+    observeTheme: () => Observable<undefined | LofrGameTheme>;
 };
 
 export type LofrDirectorControl = LofrDirectorState & {
@@ -189,7 +189,7 @@ export type LofrDirectorControl = LofrDirectorState & {
      * Narrative requests to switch the theme dynamically.
      * (e.g. Entering a new zone)
      */
-    setTheme: (theme: LofrWorkoutGameTheme) => void;
+    setTheme: (theme: LofrGameTheme) => void;
 };
 
 export type LofrNarrativeIntent = {
@@ -205,20 +205,20 @@ export type LofrNarrativeService = {
 
 export type LofrNarrativeEngine = {
     title: string;
-    defaultTheme: LofrWorkoutGameTheme;
+    defaultTheme: LofrGameTheme;
     load: () => Promise<{
         OverlayComponent: React.ComponentType<{
             userState: LofrUserStateBase,
             directorControl: LofrDirectorControl,
             narrativeService: LofrNarrativeService,
             workoutTimer?: LofrWorkoutTimer,
-            theme?: LofrWorkoutGameTheme,
+            theme?: LofrGameTheme,
         }>;
     }>
 };
 
 /** This is all the data for a specific story */
 export type LofrNarrativeDataset = {
-    theme: LofrWorkoutGameTheme;
+    theme: LofrGameTheme;
     narrativeData: Record<string, unknown>;
 };

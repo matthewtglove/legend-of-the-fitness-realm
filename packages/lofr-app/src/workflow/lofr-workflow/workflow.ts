@@ -9,6 +9,15 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     workflowEditorController.setWorkflowServerUrl(workflowServerUrl);
     await workflowEditorController.setWorkflowMetadataPath(`workflow/lofr-workflow/workflow.metadata.json`);
 
+    let iTitle = 0;
+    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `WorkoutBuilder` });
+    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `WorkoutTimer` });
+    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `WorkoutGame` });
+    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `MiniGame` });
+    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `NarrativeEngine` });
+
+    workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
+
     workflowEditorController.addTextFileNode({ id: `n-workflow`, path: `workflow/lofr-workflow/workflow.ts` });
     workflowEditorController.addTextFileNode({ id: `n-workflow-metadata`, path: `workflow/lofr-workflow/workflow.metadata.json` });
 

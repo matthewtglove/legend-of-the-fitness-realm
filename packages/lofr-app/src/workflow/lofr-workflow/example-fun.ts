@@ -1,3 +1,5 @@
 export const exampleFun = () => {
-    return `This is fun ${Math.random()}!`;
+    const a = 42;
+
+    return `This is fun ${a} b ${Math.random()}!`;
 }

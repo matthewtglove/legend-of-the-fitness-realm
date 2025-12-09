@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { WorkflowEditorController } from './types';
+import {
+    toObservable,
+    WorkflowEditorController,
+    WorkflowNodeTypes,
+    WorkflowObservable,
+    WorkflowObservableLike,
+    WorkflowRegistry,
+} from './types';
 import '@xyflow/react/dist/style.css';
 import {
     ReactFlow,
@@ -15,6 +22,7 @@ import {
     NodeTypes,
     NodeResizer,
 } from '@xyflow/react';
+import { useObservable } from './use-observable';
 
 export const WorkflowEditorView = (props: {
     loader: undefined | ((controller: WorkflowEditorController) => Promise<void>);
@@ -147,7 +155,8 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                         },
                         width: m?.width ?? undefined,
                         height: m?.height ?? undefined,
-                        data: { workflowServerUrl, path },
+                        data: registry.nodeTypes[`textFile`]?.load({ path }) ?? {},
+                        // data: { workflowServerUrl, path },
                     },
                 ]);
             },
@@ -158,6 +167,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                 setNodes((s) => [
                     ...s,
                     {
+                        type: `text`,
                         id,
                         position: {
                             x: m?.x ?? Math.random() * 400,
@@ -165,7 +175,8 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                         },
                         width: m?.width ?? undefined,
                         height: m?.height ?? undefined,
-                        data: { label: `Constant: ${content.slice(0, 20)}...` },
+                        data: registry.nodeTypes[`text`]?.load({ content }) ?? {},
+                        // data: { content },
                     },
                 ]);
             },
@@ -185,7 +196,8 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                         },
                         width: m?.width ?? undefined,
                         height: m?.height ?? undefined,
-                        data: { path, exportName },
+                        data: registry.nodeTypes[`component`]?.load({ path, exportName }) ?? {},
+                        // data: { path, exportName },
                     },
                 ]);
             },
@@ -239,6 +251,65 @@ const saveMetadata = async (
     }
     console.log(`Saved workflow metadata.`);
 };
+
+const createRegistry = (): WorkflowRegistry => {
+    const nodeTypes = {} as WorkflowNodeTypes;
+
+    return {
+        get nodeTypes() {
+            return nodeTypes;
+        },
+        registerNodeType: <
+            TArgs extends Record<string, unknown>,
+            TInputs extends Record<string, WorkflowObservable<unknown>>,
+            TOutputs extends Record<string, WorkflowObservable<unknown>>,
+        >(
+            type: string,
+            args: {
+                load: (args: TArgs) => {
+                    inputs: TInputs;
+                    outputs: TOutputs;
+                };
+                Component: React.ComponentType<{
+                    data: {
+                        inputs: TInputs;
+                        outputs: TOutputs;
+                    };
+                }>;
+            },
+        ) => {
+            console.log(`Registered node type: ${type}`, args);
+            nodeTypes[type] = args as unknown as WorkflowNodeTypes[string];
+        },
+    };
+};
+const registry = createRegistry();
+
+registry.registerNodeType(`textFile`, {
+    load: (args: { workflowServerUrl: WorkflowObservableLike<string>; path: WorkflowObservableLike<string> }) => {
+        return {
+            inputs: {
+                workflowServerUrl: toObservable(args.workflowServerUrl),
+                path: toObservable(args.path),
+            },
+            outputs: {},
+        };
+    },
+    Component: (props) => {
+        const workflowServerUrl = useObservable(props.data.inputs.workflowServerUrl);
+        const path = useObservable(props.data.inputs.path);
+
+        return (
+            <TextFileNode
+                {...props}
+                data={{
+                    workflowServerUrl,
+                    path,
+                }}
+            />
+        );
+    },
+});
 
 const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: string } }) => {
     const [fileContent, setFileContent] = useState(``);
@@ -307,6 +378,32 @@ const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: strin
     );
 };
 
+registry.registerNodeType(`component`, {
+    load: (args: { path: WorkflowObservableLike<string>; exportName?: WorkflowObservable<string> }) => {
+        return {
+            inputs: {
+                path: toObservable(args.path),
+                exportName: toObservable(args.exportName),
+            },
+            outputs: {},
+        };
+    },
+    Component: (props) => {
+        const path = useObservable(props.data.inputs.path);
+        const exportName = useObservable(props.data.inputs.exportName);
+
+        return (
+            <ComponentNode
+                {...props}
+                data={{
+                    path,
+                    exportName,
+                }}
+            />
+        );
+    },
+});
+
 const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }) => {
     const [reloadId, setReloadId] = useState(0);
     const reload = () => {
@@ -351,7 +448,52 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
     );
 };
 
+registry.registerNodeType(`text`, {
+    load: (args: {
+        content: WorkflowObservableLike<string>;
+        startAtLine?: WorkflowObservable<string>;
+        endAtLine?: WorkflowObservable<string>;
+    }) => {
+        // TODO: implement line range extraction
+        // const result = createObservable(args.value);
+
+        return {
+            inputs: {
+                content: toObservable(args.content),
+            },
+            outputs: {
+                content: toObservable(args.content),
+            },
+        };
+    },
+    Component: (props) => {
+        const content = useObservable(props.data.inputs.content);
+
+        return (
+            <TextNode
+                {...props}
+                data={{
+                    content,
+                }}
+            />
+        );
+    },
+});
+
+const TextNode = ({ data }: { data: { content: string } }) => {
+    return (
+        <>
+            <NodeResizer minWidth={100} minHeight={30} />
+            <div className="flex items-center justify-center w-full h-full bg-white border border-gray-400 rounded shadow-md">
+                {data.content}
+            </div>
+        </>
+    );
+};
+
 const nodeTypes: NodeTypes = {
-    textFile: TextFileNode,
-    component: ComponentNode,
+    ...(Object.fromEntries(Object.entries(registry.nodeTypes).map(([k, x]) => [k, x.Component])) as NodeTypes),
+    // text: TextNode,
+    // textFile: TextFileNode,
+    // component: ComponentNode,
 };
