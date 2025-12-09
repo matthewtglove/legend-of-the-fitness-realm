@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+    createNamedObject,
     toObservable,
     WorkflowEditorController,
+    WorkflowNodeAddResult,
     WorkflowNodeTypes,
     WorkflowObservable,
     WorkflowObservableLike,
@@ -160,9 +162,11 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     },
                 ]);
             },
-            addTextConstantNode: ({ id, content }: { id: string; content: string }) => {
+            addTextNode: ({ id, content }: { id: string; content: WorkflowObservableLike<string> }) => {
                 console.log(`Adding text constant node with content: ${content}`);
                 const m = metadataRef.current[id];
+
+                const data = registry.nodeTypes[`text`]!.load({ content });
 
                 setNodes((s) => [
                     ...s,
@@ -175,10 +179,11 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                         },
                         width: m?.width ?? undefined,
                         height: m?.height ?? undefined,
-                        data: registry.nodeTypes[`text`]?.load({ content }) ?? {},
-                        // data: { content },
+                        data,
                     },
                 ]);
+
+                return data as unknown as WorkflowNodeAddResult<{ content: WorkflowObservable<string> }>;
             },
             addComponent: ({ id, path, exportName }: { id: string; path: string; exportName?: string }) => {
                 console.log(`Adding text file node for path: ${path}`);
@@ -288,6 +293,7 @@ const registry = createRegistry();
 registry.registerNodeType(`textFile`, {
     load: (args: { workflowServerUrl: WorkflowObservableLike<string>; path: WorkflowObservableLike<string> }) => {
         return {
+            ...createNamedObject(),
             inputs: {
                 workflowServerUrl: toObservable(args.workflowServerUrl),
                 path: toObservable(args.path),
@@ -381,6 +387,7 @@ const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: strin
 registry.registerNodeType(`component`, {
     load: (args: { path: WorkflowObservableLike<string>; exportName?: WorkflowObservable<string> }) => {
         return {
+            ...createNamedObject(),
             inputs: {
                 path: toObservable(args.path),
                 exportName: toObservable(args.exportName),
@@ -458,6 +465,7 @@ registry.registerNodeType(`text`, {
         // const result = createObservable(args.value);
 
         return {
+            ...createNamedObject(),
             inputs: {
                 content: toObservable(args.content),
             },

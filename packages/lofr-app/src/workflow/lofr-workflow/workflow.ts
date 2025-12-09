@@ -10,11 +10,13 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     await workflowEditorController.setWorkflowMetadataPath(`workflow/lofr-workflow/workflow.metadata.json`);
 
     let iTitle = 0;
-    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `WorkoutBuilder` });
-    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `WorkoutTimer` });
-    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `WorkoutGame` });
-    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `MiniGame` });
-    workflowEditorController.addTextConstantNode({ id: `n-title-${iTitle++}`, content: `NarrativeEngine` });
+    workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutBuilder` });
+    workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutTimer` });
+    workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutGame` });
+    workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `MiniGame` });
+    const a = workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `NarrativeEngine` });
+    a.name = `a_narrativeEngine`;
+    workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: a.outputs.content });
 
     workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
 
@@ -24,7 +26,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     workflowEditorController.addTextFileNode({ id: `n-todo`, path: `workflow/todo.md` });
 
     workflowEditorController.addTextFileNode({ id: `n-example-fun`, path: `workflow/lofr-workflow/example-fun.ts` });
-    workflowEditorController.addTextConstantNode({ id: `n-example-fun-result`, content: exampleFun() });
+    workflowEditorController.addTextNode({ id: `n-example-fun-result`, content: exampleFun() });
 
     workflowEditorController.addTextFileNode({ id: `n-clock-mini-game-code`, path: `prep/clock-mini-game/game-view.tsx` });
     workflowEditorController.addComponent({

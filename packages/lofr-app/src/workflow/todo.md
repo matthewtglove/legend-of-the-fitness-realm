@@ -18,7 +18,7 @@
     -   [x] {5 mins} create inputs
     -   [x] {5 mins} create outputs
     -   [] {5 mins} name outputs
-    -   [] {5 mins} connect some nodes
+    -   [x] {5 mins} connect some nodes
     -   [] {5 mins} add text startAtLine and endAtLine
     -   [] {5 mins} create generateWorkflow
     -   [] {5 mins} create generateWorkflow preview node
