@@ -61,6 +61,7 @@ export type WorkflowNodeTypeArgs<
     TInputs extends Record<string, WorkflowObservable<unknown>>,
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
 > = {
+    typeName: string,
     load: (args: TArgs) => WorkflowNodeTypeLoadResult<TInputs, TOutputs>,
     Component: React.ComponentType<{
         data: {
@@ -83,7 +84,7 @@ export type WorkflowRegistry = {
         TArgs extends Record<string, unknown>,
         TInputs extends Record<string, WorkflowObservable<unknown>>,
         TOutputs extends Record<string, WorkflowObservable<unknown>>,
-    >(type: string, args: WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>) => WorkflowNodeType<TArgs, TInputs, TOutputs>;
+    >(args: WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>) => WorkflowNodeType<TArgs, TInputs, TOutputs>;
 };
 export const createRegistry = (): WorkflowRegistry => {
     const nodeTypes = {} as WorkflowNodeTypes;
@@ -92,10 +93,10 @@ export const createRegistry = (): WorkflowRegistry => {
         get nodeTypes() {
             return nodeTypes;
         },
-        registerNodeType: (type, args) => {
-            console.log(`Registered node type: ${type}`, args);
+        registerNodeType: (args) => {
+            console.log(`Registered node type: ${args.typeName}`, args);
             const nodeType = args;
-            nodeTypes[type] = args as unknown as WorkflowNodeTypes[string];
+            nodeTypes[args.typeName] = args as unknown as WorkflowNodeTypes[string];
             return nodeType;
         },
     };

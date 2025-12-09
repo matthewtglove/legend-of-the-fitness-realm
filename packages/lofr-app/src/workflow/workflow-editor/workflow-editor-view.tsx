@@ -4,6 +4,7 @@ import {
     createRegistry,
     toObservable,
     WorkflowEditorController,
+    WorkflowNodeType,
     WorkflowObservable,
     WorkflowObservableLike,
 } from './types';
@@ -121,6 +122,37 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
     useEffect(() => {
         if (!props.loader) return;
 
+        const addNode = <
+            TArgs extends Record<string, unknown> & { id: string },
+            TInputs extends Record<string, WorkflowObservable<unknown>>,
+            TOutputs extends Record<string, WorkflowObservable<unknown>>,
+        >(
+            nodeType: WorkflowNodeType<TArgs, TInputs, TOutputs>,
+            args: TArgs,
+        ) => {
+            console.log(`[addNode] ${nodeType.typeName}`);
+
+            const m = metadataRef.current[args.id];
+            const data = nodeType.load(args);
+
+            setNodes((s) => [
+                ...s,
+                {
+                    type: nodeType.typeName,
+                    id: args.id,
+                    position: {
+                        x: m?.x ?? Math.random() * 400,
+                        y: m?.y ?? Math.random() * 400,
+                    },
+                    width: m?.width ?? undefined,
+                    height: m?.height ?? undefined,
+                    data,
+                },
+            ]);
+
+            return data;
+        };
+
         const controller: WorkflowEditorController = {
             setWorkflowServerUrl: (url: string) => {
                 console.log(`Setting workflow server URL to: ${url}`);
@@ -139,71 +171,9 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                 metadataRef.current = loadedMetadata as typeof metadataRef.current;
                 console.log(`Workflow metadata loaded:`, metadataRef.current);
             },
-            addTextFileNode: ({ id, path }: { id: string; path: string }) => {
-                console.log(`Adding text file node for path: ${path}`);
-
-                const m = metadataRef.current[id];
-
-                setNodes((s) => [
-                    ...s,
-                    {
-                        type: `textFile`,
-                        id,
-                        position: {
-                            x: m?.x ?? Math.random() * 400,
-                            y: m?.y ?? Math.random() * 400,
-                        },
-                        width: m?.width ?? undefined,
-                        height: m?.height ?? undefined,
-                        data: registry.nodeTypes[`textFile`]?.load({ path }) ?? {},
-                        // data: { workflowServerUrl, path },
-                    },
-                ]);
-            },
-            addTextNode: ({ id, content }) => {
-                console.log(`Adding text constant node with content: ${content}`);
-                const m = metadataRef.current[id];
-
-                const data = textNodeType.load({ content });
-
-                setNodes((s) => [
-                    ...s,
-                    {
-                        type: `text`,
-                        id,
-                        position: {
-                            x: m?.x ?? Math.random() * 400,
-                            y: m?.y ?? Math.random() * 400,
-                        },
-                        width: m?.width ?? undefined,
-                        height: m?.height ?? undefined,
-                        data,
-                    },
-                ]);
-
-                return data;
-            },
-            addComponent: ({ id, path, exportName }: { id: string; path: string; exportName?: string }) => {
-                console.log(`Adding text file node for path: ${path}`);
-
-                const m = metadataRef.current[id];
-
-                setNodes((s) => [
-                    ...s,
-                    {
-                        type: `component`,
-                        id,
-                        position: {
-                            x: m?.x ?? Math.random() * 400,
-                            y: m?.y ?? Math.random() * 400,
-                        },
-                        width: m?.width ?? undefined,
-                        height: m?.height ?? undefined,
-                        data: registry.nodeTypes[`component`]?.load({ path, exportName }) ?? {},
-                        // data: { path, exportName },
-                    },
-                ]);
-            },
+            addTextFileNode: (args) => addNode(textFileNodeType, { ...args, workflowServerUrl }),
+            addTextNode: (args) => addNode(textNodeType, args),
+            addComponent: (args) => addNode(componentNodeType, args),
         };
         setNodes([]);
         setEdges([]);
@@ -257,7 +227,8 @@ const saveMetadata = async (
 
 const registry = createRegistry();
 
-registry.registerNodeType(`textFile`, {
+const textFileNodeType = registry.registerNodeType({
+    typeName: `textFile`,
     load: (args: { workflowServerUrl: WorkflowObservableLike<string>; path: WorkflowObservableLike<string> }) => {
         return {
             ...createNamedObject(),
@@ -351,8 +322,9 @@ const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: strin
     );
 };
 
-registry.registerNodeType(`component`, {
-    load: (args: { path: WorkflowObservableLike<string>; exportName?: WorkflowObservable<string> }) => {
+const componentNodeType = registry.registerNodeType({
+    typeName: `component`,
+    load: (args: { path: WorkflowObservableLike<string>; exportName?: WorkflowObservableLike<string> }) => {
         return {
             ...createNamedObject(),
             inputs: {
@@ -422,7 +394,8 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
     );
 };
 
-const textNodeType = registry.registerNodeType(`text`, {
+const textNodeType = registry.registerNodeType({
+    typeName: `text`,
     load: (args: {
         content: WorkflowObservableLike<string>;
         startAtLine?: WorkflowObservable<string>;
