@@ -24,7 +24,7 @@
     -   [x] {5 mins} define execute to replace load (load will be system provided), (TInputValues, TOutputValues become simple Records)
     -   [x] {5 mins} add text startAtLine and endAtLine
     -   [x] {5 mins} output text using startAtLine and endAtLine
-    -   [] {5 mins} display connection edges
+    -   [x] {5 mins} display connection edges
     -   [] {5 mins} display edge variable names
     -   [] {5 mins} hide edge lines until hover
     -   [] {5 mins} create generateWorkflow

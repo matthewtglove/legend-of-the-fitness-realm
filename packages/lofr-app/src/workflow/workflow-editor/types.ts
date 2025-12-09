@@ -1,5 +1,10 @@
 export type WorkflowObservable<T> = {
     name?: string;
+    source?: {
+        nodeId?: string;
+        handleId?: string;
+    };
+    hasSubscribers: boolean;
     lastValue: T;
     subscribe: (callback: (data: T) => void) => { unsubscribe: () => void };
 };
@@ -8,19 +13,21 @@ export type WorkflowSubject<T> = WorkflowObservable<T> & {
 };
 
 export type WorkflowObservableLike<T> = T | WorkflowObservable<T>;
-export const toObservable = <T>(value: WorkflowObservableLike<T>): WorkflowObservable<T> => {
+export const toObservable = <T>(value: WorkflowObservableLike<T>, options?: { source?: { nodeId?: string; handleId?: string } }): WorkflowObservable<T> => {
     if (typeof value === `object` && value !== null && `subscribe` in value && typeof value.subscribe === `function`) {
         return value as WorkflowObservable<T>;
     }
-    return createObservable(value as T);
+    return createObservable(value as T, options);
 }
 
-export const createObservable = <T>(initialValue: T): WorkflowSubject<T> => {
+export const createObservable = <T>(initialValue: T, options?: { source?: { nodeId?: string; handleId?: string } }): WorkflowSubject<T> => {
     let lastValue = initialValue;
     const subscribers = [] as (undefined | ((data: T) => void))[];
     return {
         ...createObservableName(),
+        source: options?.source,
         get lastValue() { return lastValue; },
+        get hasSubscribers() { return subscribers.some(s => !!s); },
         subscribe: (callback: (data: T) => void) => {
             const iCallback = subscribers.length;
             subscribers.push(callback);
@@ -79,13 +86,14 @@ export type WorkflowNodeAddResult<
 > = TOutputs;
 
 export type WorkflowNodeTypeArgs<
-    TArgs extends Record<string, unknown>,
+    TArgs extends Record<string, unknown> & { id: string },
     TInputs extends Record<string, WorkflowObservable<unknown>>,
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
 > = {
     typeName: string,
     load: (args: TArgs) => WorkflowNodeTypeLoadResult<TInputs, TOutputs>,
     Component: React.ComponentType<{
+        id: string;
         data: {
             inputs: TInputs,
             outputs: TOutputs,
@@ -114,6 +122,7 @@ export type WorkflowNodeTypeSimpleArgs<
     },
     execute: (inputs: TInputs) => PromiseLike<TOutputs>,
     Component: React.ComponentType<{
+        id: string;
         data: {
             inputs: ObservableOf<TInputs>,
             outputs: ObservableOf<TOutputs>,
@@ -122,12 +131,11 @@ export type WorkflowNodeTypeSimpleArgs<
 }
 
 export type WorkflowNodeType<
-    TArgs extends Record<string, unknown>,
+    TArgs extends Record<string, unknown> & { id: string },
     TInputs extends Record<string, WorkflowObservable<unknown>>,
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
 > = WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>;
-export type WorkflowNodeTypes = Record<string, WorkflowNodeType<Record<string, unknown>, Record<string, WorkflowObservable<unknown>>, Record<string, WorkflowObservable<unknown>>>>;
-
+export type WorkflowNodeTypes = Record<string, WorkflowNodeType<Record<string, unknown> & { id: string }, Record<string, WorkflowObservable<unknown>>, Record<string, WorkflowObservable<unknown>>>>;
 export type WorkflowRegistry = {
     nodeTypes: WorkflowNodeTypes;
     // registerNodeType: <
@@ -138,7 +146,7 @@ export type WorkflowRegistry = {
     registerSimpleNodeType: <
         TInputs extends Record<string, unknown>,
         TOutputs extends Record<string, unknown>,
-    >(args: WorkflowNodeTypeSimpleArgs<TInputs, TOutputs>) => WorkflowNodeType<ObservableLikeOf<TInputs>, ObservableOf<TInputs>, ObservableOf<TOutputs>>;
+    >(args: WorkflowNodeTypeSimpleArgs<TInputs, TOutputs>) => WorkflowNodeType<ObservableLikeOf<TInputs> & { id: string }, ObservableOf<TInputs>, ObservableOf<TOutputs>>;
 };
 export const createRegistry = (): WorkflowRegistry => {
     const nodeTypes = {} as WorkflowNodeTypes;
@@ -158,13 +166,21 @@ export const createRegistry = (): WorkflowRegistry => {
             TOutputs extends Record<string, unknown>,
         >(nodeTypeArgs: WorkflowNodeTypeSimpleArgs<TInputs, TOutputs>) => {
             console.log(`[registerSimpleNodeType] Registering simple node type: ${nodeTypeArgs.typeName}`, { nodeTypeArgs });
-            const nodeType: WorkflowNodeType<Record<string, unknown>, ObservableOf<TInputs>, ObservableOf<TOutputs>> = {
+            const nodeType: WorkflowNodeType<Record<string, unknown> & { id: string }, ObservableOf<TInputs>, ObservableOf<TOutputs>> = {
                 typeName: nodeTypeArgs.typeName,
                 // execute: nodeTypeArgs.execute,
-                load: (loadArgs: Record<string, unknown>) => {
+                load: (loadArgs: Record<string, unknown> & { id: string }) => {
                     console.log(`[registerSimpleNodeType:load] loading called with args:`, { loadArgs, nodeTypeArgs });
-                    const inputs = Object.fromEntries(Object.entries(nodeTypeArgs.defaults.inputs).map(([key, value]) => [key, loadArgs[key] ? toObservable(loadArgs[key]) : toObservable(value)])) as ObservableOf<TInputs>;
-                    const outputs = Object.fromEntries(Object.entries(nodeTypeArgs.defaults.outputs).map(([key, value]) => [key, createObservable(value)])) as SubjectsOf<TOutputs>;
+
+                    const getSourceOptions = (handleId: string) => ({ source: { nodeId: loadArgs.id, handleId } });
+
+                    const inputs = Object.fromEntries(Object.entries(nodeTypeArgs.defaults.inputs).map(([key, value]) => [
+                        key,
+                        loadArgs[key] ? toObservable(loadArgs[key], getSourceOptions(key)) : toObservable(value, getSourceOptions(key))])) as ObservableOf<TInputs>;
+                    const outputs = Object.fromEntries(Object.entries(nodeTypeArgs.defaults.outputs).map(([key, value]) => [
+                        key,
+                        createObservable(value, getSourceOptions(key))
+                    ])) as SubjectsOf<TOutputs>;
 
                     const update = async () => {
                         try {

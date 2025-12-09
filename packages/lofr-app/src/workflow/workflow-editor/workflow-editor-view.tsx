@@ -14,6 +14,8 @@ import {
     Edge,
     NodeTypes,
     NodeResizer,
+    Handle,
+    Position,
 } from '@xyflow/react';
 import { useObservable } from './use-observable';
 
@@ -142,6 +144,25 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                 },
             ]);
 
+            Object.entries(data.inputs).map(([inputKey, inputValue]) => {
+                const { nodeId, handleId } = inputValue.source ?? {};
+                if (!nodeId || !handleId) return;
+                if (nodeId === args.id) {
+                    return;
+                }
+
+                setEdges((s) => [
+                    ...s,
+                    {
+                        id: `${nodeId}-${args.id}-${inputKey}`,
+                        source: nodeId,
+                        sourceHandle: handleId,
+                        target: args.id,
+                        targetHandle: inputKey,
+                    },
+                ]);
+            });
+
             console.log(`[addNode] added ${nodeType.typeName}`, { nodeType, args, data });
             return data.outputs;
         };
@@ -266,13 +287,15 @@ const textFileNodeType = registry.registerSimpleNodeType({
         const workflowServerUrl = useObservable(props.data.inputs.workflowServerUrl);
         const path = useObservable(props.data.inputs.path);
         return (
-            <TextFileNode
-                {...props}
-                data={{
-                    workflowServerUrl,
-                    path,
-                }}
-            />
+            <NodeWrapper {...props}>
+                <TextFileNode
+                    {...props}
+                    data={{
+                        workflowServerUrl,
+                        path,
+                    }}
+                />
+            </NodeWrapper>
         );
     },
 });
@@ -320,7 +343,6 @@ const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: strin
 
     return (
         <>
-            <NodeResizer minWidth={100} minHeight={30} />
             <div className="w-full h-full p-2 bg-white border border-gray-400 rounded shadow-md">
                 <div className="flex flex-row">
                     <div className="font-mono text-sm">{data.path}</div>
@@ -398,13 +420,15 @@ const componentNodeType = registry.registerSimpleNodeType({
         const path = useObservable(props.data.inputs.path);
         const exportName = useObservable(props.data.inputs.exportName);
         return (
-            <ComponentNode
-                {...props}
-                data={{
-                    path,
-                    exportName,
-                }}
-            />
+            <NodeWrapper {...props}>
+                <ComponentNode
+                    {...props}
+                    data={{
+                        path,
+                        exportName,
+                    }}
+                />
+            </NodeWrapper>
         );
     },
 });
@@ -429,7 +453,6 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
 
     return (
         <>
-            <NodeResizer minWidth={100} minHeight={30} />
             <div className="w-full h-full bg-white border border-gray-400 rounded shadow-md">
                 <div className="flex flex-row items-center bg-gray-200 border-b border-gray-800">
                     <div className="font-mono text-sm">{data.path}</div>
@@ -531,26 +554,95 @@ const textNodeType = registry.registerSimpleNodeType({
     },
     Component: (props) => {
         const inputContent = useObservable(props.data.inputs.content);
-        const outputContent = useObservable(props.data.outputs.content);
         const startAtLine = useObservable(props.data.inputs.startAtLine);
         const endAtLine = useObservable(props.data.inputs.endAtLine);
+        const outputContent = useObservable(props.data.outputs.content);
 
         return (
-            <TextNode
-                {...props}
-                data={{
-                    startAtLine,
-                    endAtLine,
-                    content: outputContent ?? inputContent,
-                    before: outputContent ? inputContent.substring(0, inputContent.indexOf(outputContent)) : undefined,
-                    after: outputContent
-                        ? inputContent.substring(inputContent.indexOf(outputContent) + outputContent.length)
-                        : undefined,
-                }}
-            />
+            <NodeWrapper {...props}>
+                <TextNode
+                    {...props}
+                    data={{
+                        startAtLine,
+                        endAtLine,
+                        content: outputContent ?? inputContent,
+                        before: outputContent
+                            ? inputContent.substring(0, inputContent.indexOf(outputContent))
+                            : undefined,
+                        after: outputContent
+                            ? inputContent.substring(inputContent.indexOf(outputContent) + outputContent.length)
+                            : undefined,
+                    }}
+                />
+            </NodeWrapper>
         );
     },
 });
+
+const BASE_HANDLE_TOP_OFFSET_PX = 20;
+const BASE_HANDLE_SIDE_OFFSET_PX = 6;
+const HANDLE_VERTICAL_SPACING_PX = 25;
+
+const NodeWrapper = ({
+    children,
+    id,
+    data,
+}: {
+    children: React.ReactNode;
+    id: string;
+    data: {
+        inputs: Record<string, WorkflowObservable<unknown>>;
+        outputs: Record<string, WorkflowObservable<unknown>>;
+    };
+}) => {
+    console.log(`[NodeWrapper] rendering node ${id}`, { data });
+    return (
+        <>
+            <NodeResizer minWidth={100} minHeight={30} />
+            {children}
+            {Object.entries(data.inputs).map(([key, value], index) => (
+                <Handle
+                    key={key}
+                    type="target"
+                    position={Position.Left}
+                    id={key}
+                    style={{
+                        width: `12px`,
+                        height: `12px`,
+                        ...(value.source?.nodeId && value.source.nodeId !== id
+                            ? { background: `#44aa44`, borderColor: `#44aa44` }
+                            : { background: `#777777`, borderColor: `#777777` }),
+                        top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                        left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                        borderTopRightRadius: `0px`,
+                        borderBottomRightRadius: `0px`,
+                    }}
+                    title={key}
+                />
+            ))}
+            {Object.entries(data.outputs).map(([key, value], index) => (
+                <Handle
+                    key={key}
+                    type="source"
+                    position={Position.Right}
+                    id={key}
+                    style={{
+                        width: `12px`,
+                        height: `12px`,
+                        ...(value.hasSubscribers
+                            ? { background: `#44aa44`, borderColor: `#44aa44` }
+                            : { background: `#777777`, borderColor: `#777777` }),
+                        top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                        right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                        borderTopLeftRadius: `0px`,
+                        borderBottomLeftRadius: `0px`,
+                    }}
+                    title={key}
+                />
+            ))}
+        </>
+    );
+};
 
 const TextNode = ({
     data,
@@ -568,7 +660,6 @@ const TextNode = ({
 
     return (
         <>
-            <NodeResizer minWidth={100} minHeight={30} />
             <div className="flex flex-col w-full h-full p-1 whitespace-pre-wrap bg-white border border-gray-400 rounded shadow-md">
                 {isLong && (
                     <>
