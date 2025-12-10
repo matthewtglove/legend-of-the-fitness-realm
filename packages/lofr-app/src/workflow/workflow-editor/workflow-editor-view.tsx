@@ -373,7 +373,7 @@ const TextFileNode = ({ data, selected }: { data: { workflowServerUrl: string; p
                         rows={10}
                     ></textarea>
                 </div> */}
-                <div className="w-full h-full pb-8 resize-none nodrag nopan nowheel">
+                <div className="w-full h-full pb-8 nodrag nopan nowheel">
                     <TextCodeEditorComponent value={fileContent} onChange={setFileContent} isSelected={selected} />
                 </div>
             </div>

@@ -196,6 +196,20 @@ export const CodeEditor = ({
             `!editorReadonly`,
         );
 
+        editorRef.current.addCommand(
+            monaco.KeyCode.Space,
+            () => {
+                console.log(
+                    `Space key pressed - inserting space at cursor - workaraound for Monaco issue ignoring space input`,
+                );
+                const selection = editorRef.current?.getSelection();
+                editorRef.current?.executeEdits(`my-source`, [
+                    { range: selection!, text: ` `, forceMoveMarkers: true },
+                ]);
+            },
+            `!editorReadonly`,
+        );
+
         return () => {
             if (editorRef.current) {
                 if (onEditorStateChange) {
