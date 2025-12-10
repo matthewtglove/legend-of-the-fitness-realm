@@ -159,6 +159,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                         sourceHandle: handleId,
                         target: args.id,
                         targetHandle: inputKey,
+                        className: `opacity-30 hover:opacity-100`,
                     },
                 ]);
             });
@@ -617,8 +618,13 @@ const NodeWrapper = ({
                         borderTopRightRadius: `0px`,
                         borderBottomRightRadius: `0px`,
                     }}
-                    title={key}
-                />
+                >
+                    <div className="absolute right-0 opacity-0 hover:opacity-100">
+                        <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 right-4">
+                            {key}
+                        </div>
+                    </div>
+                </Handle>
             ))}
             {Object.entries(data.outputs).map(([key, value], index) => (
                 <Handle
@@ -637,8 +643,13 @@ const NodeWrapper = ({
                         borderTopLeftRadius: `0px`,
                         borderBottomLeftRadius: `0px`,
                     }}
-                    title={key}
-                />
+                >
+                    <div className="absolute left-0 opacity-0 hover:opacity-100">
+                        <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 left-4">
+                            {key}
+                        </div>
+                    </div>
+                </Handle>
             ))}
         </>
     );
