@@ -1,4 +1,4 @@
-import { WorkoutSession, WorkoutStep } from "@lofr/workout-parser";
+import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
 
 /**
 
@@ -53,172 +53,178 @@ import { WorkoutSession, WorkoutStep } from "@lofr/workout-parser";
 type LofrSystemTypes = unknown;
 
 type Observable<T> = {
-    get lastValue(): undefined | T;
-    subscribe: (callback: (value: T) => void) => { unsubscribe: () => void };
+  get lastValue(): undefined | T;
+  subscribe: (callback: (value: T) => void) => { unsubscribe: () => void };
 };
 
 export type LofrWorkoutSessionInfo = {
-    title: string;
-    subSteps: LofrWorkoutSubStepInfo[];
-    _sourceWorkoutSession: WorkoutSession;
+  title: string;
+  subSteps: LofrWorkoutSubStepInfo[];
+  _sourceWorkoutSession: WorkoutSession;
 };
 
 export type LofrWorkoutSubStepInfo = {
-    kind: `rest` | `exercise`;
-    title: string;
-    durationSec: undefined | number;
+  kind: `rest` | `exercise`;
+  title: string;
+  durationSec: undefined | number;
 
-    stepIndex: number;
-    stepCount: number;
-    subStepIndex: number;
-    subStepCount: number;
-    totalSubStepIndex: number;
-    totalSubStepCount: number;
+  stepIndex: number;
+  stepCount: number;
+  subStepIndex: number;
+  subStepCount: number;
+  totalSubStepIndex: number;
+  totalSubStepCount: number;
 
-    _sourceStep: WorkoutStep;
+  _sourceStep: WorkoutStep;
 };
 
 export type LofrWorkoutTimer = {
-    loadWorkoutSession: (workoutSession: WorkoutSession) => void;
-    getWorkoutSessionInfo: () => undefined | LofrWorkoutSessionInfo;
+  loadWorkoutSession: (workoutSession: WorkoutSession) => void;
+  getWorkoutSessionInfo: () => undefined | LofrWorkoutSessionInfo;
 
-    run: () => void;
-    pause: () => void;
-    pauseForNarrative: () => void;
-    observeRunState: () => Observable<`idle` | `running` | `paused` | `paused-narrative` | `completed`>;
+  run: () => void;
+  pause: () => void;
+  pauseForNarrative: () => void;
+  observeRunState: () => Observable<
+    `idle` | `running` | `paused` | `paused-narrative` | `completed`
+  >;
 
-    gotoSubStep: (subStepIndex: number) => void;
-    previousSubStep: () => void;
-    nextSubStep: () => void;
+  gotoSubStep: (subStepIndex: number) => void;
+  previousSubStep: () => void;
+  nextSubStep: () => void;
 
-    /** complete a non time based sub step */
-    completeSubStep: () => void;
+  /** complete a non time based sub step */
+  completeSubStep: () => void;
 
-    setActiveSubStepRemainingTimeSec: (timeSec: number) => void;
-    restartActiveSubStep: () => void;
-    addTimeSec: (timeSec: number) => void;
-    skipTimeSec: (timeSec: number) => void;
+  setActiveSubStepRemainingTimeSec: (timeSec: number) => void;
+  restartActiveSubStep: () => void;
+  addTimeSec: (timeSec: number) => void;
+  skipTimeSec: (timeSec: number) => void;
 
-    observeWorkoutElapsedTimeSec: () => Observable<number>;
-    observeWorkoutRemainingTimeSec: () => Observable<number>;
+  observeWorkoutElapsedTimeSec: () => Observable<number>;
+  observeWorkoutRemainingTimeSec: () => Observable<number>;
 
-    observeActiveSubStepIndex: () => Observable<number>;
-    observeActiveSubStep: () => Observable<undefined | LofrWorkoutSubStepInfo>;
-    observeActiveSubStepElapsedTimeSec: () => Observable<number>;
-    observeActiveSubStepRemainingTimeSec: () => Observable<undefined | number>;
+  observeActiveSubStepIndex: () => Observable<number>;
+  observeActiveSubStep: () => Observable<undefined | LofrWorkoutSubStepInfo>;
+  observeActiveSubStepElapsedTimeSec: () => Observable<number>;
+  observeActiveSubStepRemainingTimeSec: () => Observable<undefined | number>;
 
-    observeNextSubStep: () => Observable<undefined | LofrWorkoutSubStepInfo>;
+  observeNextSubStep: () => Observable<undefined | LofrWorkoutSubStepInfo>;
 };
 
 export type LofrUserState<T extends Record<string, unknown>> = {
-    readonly data: T;
-    update: (changed: Partial<T>) => void;
-    observe: () => Observable<undefined | { newData: T, changed: Partial<T>, }>;
+  readonly data: T;
+  update: (changed: Partial<T>) => void;
+  observe: () => Observable<undefined | { newData: T; changed: Partial<T> }>;
 };
 type LofrUserStateBase = LofrUserState<Record<string, unknown>>;
 
 export type LofrGameTheme = {
-    assets: {
-        key: string;
-        url: string;
-        type: `image` | `audio`;
-        data: Record<string, unknown>;
-    }[];
+  assets: {
+    key: string;
+    url: string;
+    type: `image` | `audio`;
+    data: Record<string, unknown>;
+  }[];
 };
 
 export type LofrWorkoutGame = {
-    title: string;
-    defaultTheme: LofrGameTheme;
-    load: () => Promise<{
-        GameComponent: React.ComponentType<{
-            userState: LofrUserStateBase,
-            workoutTimer: LofrWorkoutTimer,
-            directorState: LofrDirectorState,
-            narrativeService: LofrNarrativeService,
-            onDone: () => void,
-        }>;
-    }>
+  title: string;
+  defaultTheme: LofrGameTheme;
+  load: () => Promise<{
+    GameComponent: React.ComponentType<{
+      userState: LofrUserStateBase;
+      workoutTimer: LofrWorkoutTimer;
+      directorState: LofrDirectorState;
+      narrativeService: LofrNarrativeService;
+      onDone: () => void;
+    }>;
+  }>;
 };
 
 export type LofrMiniGame = {
-    title: string;
-    defaultTheme: LofrGameTheme;
-    load: () => Promise<{
-        GameComponent: React.ComponentType<{
-            userState: LofrUserStateBase,
-            directorState: LofrDirectorState,
-            narrativeService: LofrNarrativeService,
-            onDone: () => void,
-        }>;
-    }>
+  title: string;
+  defaultTheme: LofrGameTheme;
+  load: () => Promise<{
+    GameComponent: React.ComponentType<{
+      userState: LofrUserStateBase;
+      directorState: LofrDirectorState;
+      narrativeService: LofrNarrativeService;
+      onDone: () => void;
+    }>;
+  }>;
 };
 
 export type LofrWorkoutBuilder = {
-    title: string;
-    defaultTheme: LofrGameTheme;
-    load: () => Promise<{
-        GameComponent: React.ComponentType<{
-            value: undefined | WorkoutSession,
-            onChange: (workoutSession: WorkoutSession) => void,
-            directorState: LofrDirectorState,
-            narrativeService: LofrNarrativeService,
-            onDone: () => void,
-        }>;
-    }>
+  title: string;
+  defaultTheme: LofrGameTheme;
+  load: () => Promise<{
+    GameComponent: React.ComponentType<{
+      value: undefined | WorkoutSession;
+      onChange: (workoutSession: WorkoutSession) => void;
+      directorState: LofrDirectorState;
+      narrativeService: LofrNarrativeService;
+      onDone: () => void;
+    }>;
+  }>;
 };
 
 export type LofrDirectorState = {
-    observeGameActivity: () => Observable<`main` | `mini-game` | `workout-game` | `workout-builder`>;
-    observeGamePaused: () => Observable<boolean>;
-    observeTheme: () => Observable<undefined | LofrGameTheme>;
+  observeGameActivity: () => Observable<
+    `main` | `mini-game` | `workout-game` | `workout-builder`
+  >;
+  observeGamePaused: () => Observable<boolean>;
+  observeTheme: () => Observable<undefined | LofrGameTheme>;
 };
 
 export type LofrDirectorControl = LofrDirectorState & {
-    /**
-     * Director switches the game activity.
-     */
-    setGameActivity: (activity: `main` | `mini-game` | `workout-game` | `workout-builder`) => void;
+  /**
+   * Director switches the game activity.
+   */
+  setGameActivity: (
+    activity: `main` | `mini-game` | `workout-game` | `workout-builder`
+  ) => void;
 
-    /** 
-     * Narrative requests the active game to freeze logic.
-     * (e.g. Stop enemies, pause physics, but keep rendering)
-     */
-    setGamePaused: (paused: boolean) => void;
+  /**
+   * Narrative requests the active game to freeze logic.
+   * (e.g. Stop enemies, pause physics, but keep rendering)
+   */
+  setGamePaused: (paused: boolean) => void;
 
-    /**
-     * Narrative requests to switch the theme dynamically.
-     * (e.g. Entering a new zone)
-     */
-    setTheme: (theme: LofrGameTheme) => void;
+  /**
+   * Narrative requests to switch the theme dynamically.
+   * (e.g. Entering a new zone)
+   */
+  setTheme: (theme: LofrGameTheme) => void;
 };
 
 export type LofrNarrativeIntent = {
-    key: string;
-    defaultDialog: string;
-    data: Record<string, unknown>;
+  key: string;
+  defaultDialog: string;
+  data: Record<string, unknown>;
 };
 
 export type LofrNarrativeService = {
-    say: (intent: LofrNarrativeIntent) => void;
-    observe: () => Observable<LofrNarrativeIntent>;
+  say: (intent: LofrNarrativeIntent) => void;
+  observe: () => Observable<LofrNarrativeIntent>;
 };
 
 export type LofrNarrativeEngine = {
-    title: string;
-    defaultTheme: LofrGameTheme;
-    load: () => Promise<{
-        OverlayComponent: React.ComponentType<{
-            userState: LofrUserStateBase,
-            directorControl: LofrDirectorControl,
-            narrativeService: LofrNarrativeService,
-            workoutTimer?: LofrWorkoutTimer,
-            theme?: LofrGameTheme,
-        }>;
-    }>
+  title: string;
+  defaultTheme: LofrGameTheme;
+  load: () => Promise<{
+    OverlayComponent: React.ComponentType<{
+      userState: LofrUserStateBase;
+      directorControl: LofrDirectorControl;
+      narrativeService: LofrNarrativeService;
+      workoutTimer?: LofrWorkoutTimer;
+      theme?: LofrGameTheme;
+    }>;
+  }>;
 };
 
 /** This is all the data for a specific story */
 export type LofrNarrativeDataset = {
-    theme: LofrGameTheme;
-    narrativeData: Record<string, unknown>;
+  theme: LofrGameTheme;
+  narrativeData: Record<string, unknown>;
 };

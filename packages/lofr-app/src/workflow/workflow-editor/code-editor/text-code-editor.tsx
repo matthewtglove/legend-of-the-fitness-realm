@@ -58,6 +58,7 @@ export type EditorState = {
 export const CodeEditor = ({
     value,
     onChange,
+    onSave,
     language,
     disabled,
     onEditorStateChange,
@@ -65,6 +66,7 @@ export const CodeEditor = ({
 }: {
     value: undefined | string;
     onChange: (value: string) => void;
+    onSave: (value: string) => void;
     language: string;
     disabled: boolean;
     onEditorStateChange?: (state: EditorState) => void;
@@ -190,8 +192,9 @@ export const CodeEditor = ({
 
         editorRef.current.addCommand(
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-            () => {
-                handleFormatCode();
+            async () => {
+                await handleFormatCode();
+                onSave(editorRef.current?.getValue() || ``);
             },
             `!editorReadonly`,
         );

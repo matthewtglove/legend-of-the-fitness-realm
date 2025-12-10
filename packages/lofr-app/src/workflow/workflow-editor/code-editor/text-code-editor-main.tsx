@@ -4,11 +4,13 @@ import { CodeEditor, CodeLanguage, CodeLanguageSelector, EditorState } from './t
 export const TextCodeEditorComponent = ({
     value: valueRaw,
     onChange,
+    onSave,
     isSelected,
     disabled = false,
 }: {
     value: string;
     onChange: (value: string) => void;
+    onSave: (value: string) => void;
     isSelected: boolean;
     disabled?: boolean;
     // TODO: language
@@ -104,6 +106,10 @@ export const TextCodeEditorComponent = ({
                             disabled={disabled}
                             value={text || valueRaw}
                             onChange={changeValue}
+                            onSave={(x) => {
+                                changeValue(x);
+                                onSave(x);
+                            }}
                             onEditorStateChange={setEditorState}
                             initialEditorState={editorState}
                         />
