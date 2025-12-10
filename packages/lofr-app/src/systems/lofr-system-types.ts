@@ -49,8 +49,7 @@ import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
     -   can provide skins for the WorkoutGame and other MiniGames
 
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type LofrSystemTypes = unknown;
+export const lofrSystemTypesDummy = null;
 
 type Observable<T> = {
   get lastValue(): undefined | T;

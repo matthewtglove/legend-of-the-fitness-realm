@@ -1,11 +1,14 @@
+import { lofrSystemTypesDummy } from "../../systems/lofr-system-types";
 import { WorkflowEditorController } from "../workflow-editor/types";
 import { exampleFun } from "./example-fun";
-
-// test 03
 
 const workflowServerUrl = `http://localhost:7601`;
 
 export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorController) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const hmr = { lofrSystemTypesDummy }
+    console.log(`[loadLofrWorkflow] hmr:`, { hmr });
+
     workflowEditorController.setWorkflowServerUrl(workflowServerUrl);
     await workflowEditorController.setWorkflowMetadataPath(`workflow/lofr-workflow/workflow.metadata.json`);
 
@@ -52,6 +55,14 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     });
     c_narrativeEngineTrimmed.name = `c_narrativeEngineTrimmed`;
     workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: c_narrativeEngineTrimmed });
+    workflowEditorController.addTextNode({
+        id: `n-title-${iTitle++}`,
+        content: b_systemTypes,
+        startAtLine: `/**
+
+# Systems`,
+        endAtLine: `*/`
+    });
 
     workflowEditorController.addTextFileNode({ id: `n-workflow`, path: `workflow/lofr-workflow/workflow.ts` });
     workflowEditorController.addTextFileNode({ id: `n-workflow-metadata`, path: `workflow/lofr-workflow/workflow.metadata.json` });
