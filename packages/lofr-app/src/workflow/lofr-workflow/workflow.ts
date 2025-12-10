@@ -1,13 +1,11 @@
-import { lofrSystemTypesDummy } from "../../systems/lofr-system-types";
 import { WorkflowEditorController } from "../workflow-editor/types";
+import { _includeInHmr } from "./_hmr";
 import { exampleFun } from "./example-fun";
 
 const workflowServerUrl = `http://localhost:7601`;
 
 export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorController) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const hmr = { lofrSystemTypesDummy }
-    console.log(`[loadLofrWorkflow] hmr:`, { hmr });
+    _includeInHmr();
 
     workflowEditorController.setWorkflowServerUrl(workflowServerUrl);
     await workflowEditorController.setWorkflowMetadataPath(`workflow/lofr-workflow/workflow.metadata.json`);
