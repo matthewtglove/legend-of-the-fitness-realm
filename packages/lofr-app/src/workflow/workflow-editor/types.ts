@@ -94,6 +94,7 @@ export type WorkflowNodeTypeArgs<
     load: (args: TArgs) => WorkflowNodeTypeLoadResult<TInputs, TOutputs>,
     Component: React.ComponentType<{
         id: string;
+        selected: boolean;
         data: {
             inputs: TInputs,
             outputs: TOutputs,
@@ -123,6 +124,7 @@ export type WorkflowNodeTypeSimpleArgs<
     execute: (inputs: TInputs) => PromiseLike<TOutputs>,
     Component: React.ComponentType<{
         id: string;
+        selected: boolean;
         data: {
             inputs: ObservableOf<TInputs>,
             outputs: ObservableOf<TOutputs>,

@@ -18,6 +18,7 @@ import {
     Position,
 } from '@xyflow/react';
 import { useObservable } from './use-observable';
+import { TextCodeEditorComponent } from './code-editor/text-code-editor-main';
 
 export const WorkflowEditorView = (props: {
     loader: undefined | ((controller: WorkflowEditorController) => Promise<void>);
@@ -325,7 +326,7 @@ const saveFileText = async (data: { workflowServerUrl: string; path: string }, f
     console.log(`Saved file content.`);
 };
 
-const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: string } }) => {
+const TextFileNode = ({ data, selected }: { data: { workflowServerUrl: string; path: string }; selected: boolean }) => {
     const [fileContent, setFileContent] = useState(``);
 
     const loadFile = async () => {
@@ -364,13 +365,16 @@ const TextFileNode = ({ data }: { data: { workflowServerUrl: string; path: strin
                         Reload
                     </button>
                 </div>
-                <div className="w-full h-full pb-8">
+                {/* <div className="w-full h-full pb-8">
                     <textarea
                         className="w-full h-full resize-none nodrag nopan nowheel"
                         value={fileContent}
                         onChange={(e) => setFileContent(e.target.value)}
                         rows={10}
                     ></textarea>
+                </div> */}
+                <div className="w-full h-full pb-8 resize-none nodrag nopan nowheel">
+                    <TextCodeEditorComponent value={fileContent} onChange={setFileContent} isSelected={selected} />
                 </div>
             </div>
         </>
@@ -618,6 +622,7 @@ const NodeWrapper = ({
                         borderTopRightRadius: `0px`,
                         borderBottomRightRadius: `0px`,
                     }}
+                    // className="hover:top-0"
                 >
                     <div className="absolute right-0 opacity-0 hover:opacity-100">
                         <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 right-4">
@@ -671,7 +676,7 @@ const TextNode = ({
 
     return (
         <>
-            <div className="flex flex-col w-full h-full p-1 whitespace-pre-wrap bg-white border border-gray-400 rounded shadow-md">
+            <div className="flex flex-col w-full h-full p-1 whitespace-pre-wrap border border-gray-400 rounded shadow-md bg-slate-100">
                 {isLong && (
                     <>
                         {data.startAtLine && (
@@ -686,12 +691,14 @@ const TextNode = ({
                             </div>
                         )}
 
-                        <div className="overflow-auto nowheel">
-                            {data.before && <div className="text-gray-400">{data.before}</div>}
-                            <div ref={scrollTargerRef} className="">
-                                {data.content}
+                        <div className="flex-1 overflow-auto nowheel">
+                            <div className="scrollbar-thin scrollbar-thumb-[#555555] scrollbar-track-[#2a2a2a] hover:scrollbar-thumb-[#6a6a6a] p-1 h-full w-full resize-none overflow-auto bg-[#1e1e1e] font-mono text-[14px] leading-[19px] tracking-[0px] text-[#d4d4d4] outline-none">
+                                {data.before && <div className="text-gray-400">{data.before}</div>}
+                                <div ref={scrollTargerRef} className="">
+                                    {data.content}
+                                </div>
+                                {data.after && <div className="text-gray-400">{data.after}</div>}
                             </div>
-                            {data.after && <div className="text-gray-400">{data.after}</div>}
                         </div>
                         {data.endAtLine && (
                             <div className="flex flex-row items-center gap-1">

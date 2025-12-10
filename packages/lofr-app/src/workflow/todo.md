@@ -19,16 +19,18 @@
     -   [x] {5 mins} create outputs
     -   [x] {5 mins} connect some nodes
     -   [x] {5 mins} name outputs
--   [ ] {1 hour} connected nodes
-    -   [] {5 mins} plan hour
+-   [x] {1 hour} connected nodes
     -   [x] {5 mins} define execute to replace load (load will be system provided), (TInputValues, TOutputValues become simple Records)
     -   [x] {5 mins} add text startAtLine and endAtLine
     -   [x] {5 mins} output text using startAtLine and endAtLine
     -   [x] {5 mins} display connection edges
-    -   [] {5 mins} display edge variable names
-    -   [] {5 mins} hide edge lines until hover
-    -   [] {5 mins} create generateWorkflow
+-   [ ] {1 hour} edit workflow from workflow
+    -   [] {5 mins} plan hour
+    -   [] {10 mins} create generateWorkflow
     -   [] {5 mins} create generateWorkflow preview node
+    -   [] {5 mins} edit literal input value
+    -   [] {5 mins} add edge
+    -   [] {5 mins} add node
 -   [ ] {1 hour} complete MiniGame_NightPrep as LofrMiniGame
     -   [] {5 mins} plan 1st hour
     -   [] {5 mins} plan 2nd hour
@@ -37,6 +39,11 @@
     -   [] {5 mins} create LofrMiniGame registry
     -   [] {5 mins} register MiniGame_NightPrep
 -   [ ] {1 hour} complete MiniGame_MorningRise as LofrMiniGame
+-   [ ] {1 hour} improved edges
+    -   [] {5 mins} display edge variable names
+    -   [] {5 mins} hide edge lines until hover
+    -   [] {5 mins} jump to source
+    -   [] {5 mins} jump to targets
 
 # ideas
 
