@@ -192,7 +192,12 @@ export const createRegistry = (): WorkflowRegistry => {
             const nodeType: WorkflowNodeType<Record<string, unknown> & { id: string }, ObservableOf<TInputs>, ObservableOf<TOutputs>> = {
                 typeName: nodeTypeArgs.typeName,
                 // execute: nodeTypeArgs.execute,
-                load: (loadArgs: Record<string, unknown> & { id: string, defaults?: { inputs?: Record<string, unknown>, outputs?: Record<string, unknown> } }) => {
+                load: (loadArgs: Record<string, unknown> & {
+                    id: string,
+                    defaults?: { inputs?: Record<string, unknown>, outputs?: Record<string, unknown> },
+                    inputs?: Record<string, unknown>,
+                    outputs?: Record<string, unknown>
+                }) => {
                     console.log(`[registerSimpleNodeType:load] loading called with args:`, { loadArgs, nodeTypeArgs });
 
                     const getSourceOptions = (handleId: string) => ({ source: { nodeId: loadArgs.id, handleId } });
@@ -200,14 +205,16 @@ export const createRegistry = (): WorkflowRegistry => {
                     const inputs = Object.fromEntries(
                         Object.entries({
                             ...nodeTypeArgs.defaults.inputs,
-                            ...loadArgs.defaults?.inputs ?? {}
+                            ...loadArgs.defaults?.inputs ?? {},
+                            ...loadArgs.inputs ?? {},
                         })
                             .map(([key, value]) => [
                                 key,
                                 loadArgs[key] ? toObservable(loadArgs[key], getSourceOptions(key)) : toObservable(value, getSourceOptions(key))])) as ObservableOf<TInputs>;
                     const outputs = Object.fromEntries(Object.entries({
                         ...nodeTypeArgs.defaults.outputs,
-                        ...loadArgs.defaults?.outputs ?? {}
+                        ...loadArgs.defaults?.outputs ?? {},
+                        ...loadArgs.outputs ?? {},
                     }).map(([key, value]) => [
                         key,
                         createObservable(value, getSourceOptions(key))

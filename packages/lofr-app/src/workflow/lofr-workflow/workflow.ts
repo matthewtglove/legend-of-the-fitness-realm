@@ -1,4 +1,4 @@
-import { WorkflowEditorController } from "../workflow-editor/types";
+import { createObservable, WorkflowEditorController } from "../workflow-editor/types";
 import { _includeInHmr } from "./_hmr";
 import { exampleFun } from "./example-fun";
 
@@ -126,20 +126,58 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     },
     text: c_narrativeEngineTrimmed
   });
+
   workflowEditorController.addComponent({
     id: `n-example-component-input-04`,
     path: `../../workflow/lofr-workflow/example-component.tsx`,
     exportName: `ExampleInputComponent`,
-    defaults: {
-      inputs: {
-        value: ``,
-        onChange: (value: string) => {
-          console.log(`ExampleInputComponent onChange`, value);
-        },
-      },
-      outputs: {},
+    // defaults: {
+    //   inputs: {
+    //     value: ``,
+    //     onChange: (value: string) => {
+    //       console.log(`ExampleInputComponent onChange`, value);
+    //     },
+    //   },
+    //   outputs: {},
+    // },
+    // value: todoNode.content,
+    // onChange: todoNode.onContentChange,
+    inputs: {
+      value: todoNode.content,
+      onChange: todoNode.onContentChange,
     },
-    value: todoNode.content,
-    onChange: todoNode.onContentChange,
+  });
+
+  const x_lineCount = createObservable(1);
+  const x_lines = createObservable(``, {
+    source: {
+      nodeId: `n-example-component-05-output`,
+      handleId: `firstLine`,
+    },
+  });
+  // todoNode.content.subscribe((content) => {
+  //   x_firstLine.next(content.split(`\n`)[0]?.trim() ?? ``);
+  // });
+  workflowEditorController.addComponent({
+    id: `n-example-component-05-output`,
+    path: `../../workflow/lofr-workflow/example-component.tsx`,
+    exportName: `ExampleInputNumberComponent`,
+    inputs: {
+      text: todoNode.content,
+      value: x_lineCount,
+      onChange: (value: number) => {
+        console.log(`ExampleInputNumberComponent onChange`, value);
+        x_lineCount.next(value);
+        x_lines.next(todoNode.content.lastValue.split(`\n`).slice(0, value).join(`\n`));
+      },
+    },
+    outputs: {
+      lines: x_lines,
+    },
+  });
+
+  workflowEditorController.addTextNode({
+    id: `n-example-component-05-output-display`,
+    content: x_lines
   });
 };

@@ -28,6 +28,7 @@
 - [x] {1 hour} component node connections
     - [x] add inputs and outputs
     - [x] add callback example
+    - [x] add output example
 - [ ] {1 hour} edit workflow from workflow
     - [] {5 mins} plan hour
     - [] {10 mins} create generateWorkflow

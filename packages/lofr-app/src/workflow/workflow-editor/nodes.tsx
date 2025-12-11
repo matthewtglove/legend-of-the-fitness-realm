@@ -177,7 +177,7 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
                         Reload
                     </button>
                 </div>
-                <div className="flex-1 nodrag nopan nowheel">
+                <div className="flex-1 min-h-0 nodrag nopan nowheel">
                     <React.Suspense fallback={<div>Loading...</div>}>
                         <component.Component {...data} />
                     </React.Suspense>
