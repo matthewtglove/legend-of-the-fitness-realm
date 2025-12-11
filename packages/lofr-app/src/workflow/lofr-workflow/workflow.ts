@@ -148,11 +148,16 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     },
   });
 
-  const x_lineCount = createObservable(1);
+  const x_lineCount = createObservable(1, {
+    source: {
+      nodeId: `n-example-component-05-output`,
+      handleId: `lineCount`,
+    },
+  });
   const x_lines = createObservable(``, {
     source: {
       nodeId: `n-example-component-05-output`,
-      handleId: `firstLine`,
+      handleId: `lines`,
     },
   });
   // todoNode.content.subscribe((content) => {
@@ -172,6 +177,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
       },
     },
     outputs: {
+      lineCount: x_lineCount,
       lines: x_lines,
     },
   });
