@@ -17,7 +17,7 @@ import {
 import { componentNodeType, registry, textFileNodeType, textNodeType } from './nodes';
 
 export const WorkflowEditorView = (props: {
-    loader: undefined | ((controller: WorkflowEditorController) => Promise<void>);
+    loader: undefined | ((controller: WorkflowEditorController, abortController: AbortController) => Promise<void>);
 }) => {
     return (
         <div className="w-full h-full bg-lime-300">
@@ -32,12 +32,14 @@ type EdgeType = Edge;
 const initialNodes = [
     // { id: `n1`, position: { x: 0, y: 0 }, data: { label: `Node 1` } },
     // { id: `n2`, position: { x: 0, y: 100 }, data: { label: `Node 2` } },
-] as (Node & { stale?: boolean })[];
+] as (Node & { _stale?: boolean })[];
 const initialEdges = [
     // { id: `n1-n2`, source: `n1`, target: `n2` }
-] as (Edge & { stale?: boolean })[];
+] as (Edge & { _stale?: boolean })[];
 
-const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditorController) => Promise<void>) }) => {
+const ReactFlowView = (props: {
+    loader: undefined | ((controller: WorkflowEditorController, abortController: AbortController) => Promise<void>);
+}) => {
     const [nodes, setNodes] = useState(initialNodes);
     const [edges, setEdges] = useState(initialEdges);
 
@@ -139,8 +141,8 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     width: m?.width ?? undefined,
                     height: m?.height ?? undefined,
                     data,
-                    // stale marker
-                    stale: false,
+                    // reset stale marker
+                    _stale: false,
                 };
 
                 if (old) {
@@ -176,8 +178,8 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                         target: args.id,
                         targetHandle: inputKey,
                         className: `opacity-30 hover:opacity-100`,
-                        // stale marker
-                        stale: false,
+                        // reset stale marker
+                        _stale: false,
                     };
 
                     if (old) {
@@ -224,19 +226,24 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
         };
         // setNodes([]);
         // setEdges([]);
+        const abortController = new AbortController();
         const reload = async () => {
             if (!props.loader) return;
 
-            setNodes((s) => s.map((x) => ({ ...x, stale: true })));
-            setEdges((s) => s.map((x) => ({ ...x, stale: true })));
+            setNodes((s) => s.map((x) => ({ ...x, _stale: true })));
+            setEdges((s) => s.map((x) => ({ ...x, _stale: true })));
 
-            await props.loader(controller);
+            await props.loader(controller, abortController);
+            if (abortController.signal.aborted) return;
 
-            setNodes((s) => s.filter((x) => !x.stale));
-            setEdges((s) => s.filter((x) => !x.stale));
+            setNodes((s) => s.filter((x) => !x._stale).map((x) => ({ ...x, _stale: undefined })));
+            setEdges((s) => s.filter((x) => !x._stale).map((x) => ({ ...x, _stale: undefined })));
         };
 
         reload();
+        return () => {
+            abortController.abort();
+        };
     }, [props.loader, workflowServerUrl]);
 
     return (
