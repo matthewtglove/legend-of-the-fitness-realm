@@ -32,10 +32,10 @@ type EdgeType = Edge;
 const initialNodes = [
     // { id: `n1`, position: { x: 0, y: 0 }, data: { label: `Node 1` } },
     // { id: `n2`, position: { x: 0, y: 100 }, data: { label: `Node 2` } },
-] as Node[];
+] as (Node & { stale?: boolean })[];
 const initialEdges = [
     // { id: `n1-n2`, source: `n1`, target: `n2` }
-] as Edge[];
+] as (Edge & { stale?: boolean })[];
 
 const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditorController) => Promise<void>) }) => {
     const [nodes, setNodes] = useState(initialNodes);
@@ -126,9 +126,10 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
             const m = metadataRef.current[args.id];
             const data = nodeType.load(args);
 
-            setNodes((s) => [
-                ...s,
-                {
+            setNodes((s) => {
+                const old = s.find((x) => x.id === args.id);
+
+                const newValue = {
                     type: nodeType.typeName,
                     id: args.id,
                     position: {
@@ -138,8 +139,24 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     width: m?.width ?? undefined,
                     height: m?.height ?? undefined,
                     data,
-                },
-            ]);
+                    // stale marker
+                    stale: false,
+                };
+
+                if (old) {
+                    return s.map((x) => {
+                        if (x.id === old.id) {
+                            return {
+                                ...x,
+                                ...newValue,
+                            };
+                        }
+                        return x;
+                    });
+                }
+
+                return [...s, newValue];
+            });
 
             Object.entries(data.inputs).map(([inputKey, inputValue]) => {
                 const { nodeId, handleId } = inputValue.source ?? {};
@@ -148,17 +165,35 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     return;
                 }
 
-                setEdges((s) => [
-                    ...s,
-                    {
-                        id: `${nodeId}-${args.id}-${inputKey}`,
+                const edgeId = `${nodeId}-${args.id}-${inputKey}`;
+                setEdges((s) => {
+                    const old = s.find((x) => x.id !== edgeId);
+
+                    const newValue = {
+                        id: edgeId,
                         source: nodeId,
                         sourceHandle: handleId,
                         target: args.id,
                         targetHandle: inputKey,
                         className: `opacity-30 hover:opacity-100`,
-                    },
-                ]);
+                        // stale marker
+                        stale: false,
+                    };
+
+                    if (old) {
+                        return s.map((x) => {
+                            if (x.id === old.id) {
+                                return {
+                                    ...x,
+                                    ...newValue,
+                                };
+                            }
+                            return x;
+                        });
+                    }
+
+                    return [...s, newValue];
+                });
             });
 
             console.log(`[addNode] added ${nodeType.typeName}`, { nodeType, args, data });
@@ -187,9 +222,21 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
             addTextNode: (args) => addNode(textNodeType, args as Required<typeof args>),
             addComponent: (args) => addNode(componentNodeType, args),
         };
-        setNodes([]);
-        setEdges([]);
-        void props.loader(controller);
+        // setNodes([]);
+        // setEdges([]);
+        const reload = async () => {
+            if (!props.loader) return;
+
+            setNodes((s) => s.map((x) => ({ ...x, stale: true })));
+            setEdges((s) => s.map((x) => ({ ...x, stale: true })));
+
+            await props.loader(controller);
+
+            setNodes((s) => s.filter((x) => !x.stale));
+            setEdges((s) => s.filter((x) => !x.stale));
+        };
+
+        reload();
     }, [props.loader, workflowServerUrl]);
 
     return (

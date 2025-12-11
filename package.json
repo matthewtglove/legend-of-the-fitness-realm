@@ -19,6 +19,7 @@
   "scripts": {
     "dev": "cd scripts && npm run dev",
     "start": "cd packages/lofr-app && npm run dev",
+    "start:server": "cd packages/workflow-server && npm run dev",
     "prepublish": "cd packages/lofr-app && npm run prepublish",
     "prepublish-ci": "cd packages/lofr-app && npm run prepublish-ci",
     "build": "cd packages/lofr-app && npm run build",
