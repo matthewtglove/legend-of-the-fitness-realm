@@ -22,7 +22,7 @@ export const TextCodeEditorComponent = ({
 
     useEffect(() => {
         if (text === valueRaw) {
-            hasChangedRef.current = false;
+            // hasChangedRef.current = false;
             return;
         }
 
@@ -37,6 +37,12 @@ export const TextCodeEditorComponent = ({
         hasChangedRef.current = true;
         setText(value);
         onChange(value);
+    };
+
+    const saveValue = (value: string) => {
+        setText(value);
+        onSave(value);
+        hasChangedRef.current = false;
     };
 
     const [language, setLanguage] = useState(`typescript` as undefined | CodeLanguage);
@@ -100,6 +106,11 @@ export const TextCodeEditorComponent = ({
         <>
             <div className="relative z-0 w-full h-full">
                 <div className="z-0 w-full h-full">
+                    {hasChangedRef.current && (
+                        <div className="absolute z-10 p-1 text-xs text-white bg-red-500 rounded top-3 right-3 opacity-90 z-1">
+                            Unsaved Changes
+                        </div>
+                    )}
                     {isSelected && !!language && (
                         <div className="z-0 w-full h-full">
                             <CodeEditor
@@ -107,10 +118,7 @@ export const TextCodeEditorComponent = ({
                                 disabled={disabled}
                                 value={text || valueRaw}
                                 onChange={changeValue}
-                                onSave={(x) => {
-                                    changeValue(x);
-                                    onSave(x);
-                                }}
+                                onSave={saveValue}
                                 onEditorStateChange={setEditorState}
                                 initialEditorState={editorState}
                             />

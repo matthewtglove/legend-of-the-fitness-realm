@@ -5,6 +5,8 @@ import { NodeResizer, Handle, Position } from '@xyflow/react';
 import { useObservable } from './use-observable';
 import { TextCodeEditorComponent } from './code-editor/text-code-editor-main';
 
+const debug = false;
+
 export const registry = createRegistry();
 
 const BASE_HANDLE_TOP_OFFSET_PX = 20;
@@ -24,7 +26,6 @@ const NodeWrapper = ({
     };
 }) => {
     console.log(`[NodeWrapper] rendering node ${id}`, { data });
-    const debug = false;
     return (
         <>
             <NodeResizer minWidth={100} minHeight={30} />
@@ -39,7 +40,7 @@ const NodeWrapper = ({
                                 left: `-${BASE_HANDLE_SIDE_OFFSET_PX + 40}px`,
                             }}
                         >
-                            {JSON.stringify(value.lastValue)?.substring(0, 100)}
+                            in {key} {value.id}: {JSON.stringify(value.lastValue)?.substring(0, 100)}
                         </div>
                     )}
                     <Handle
@@ -69,6 +70,17 @@ const NodeWrapper = ({
             ))}
             {Object.entries(data.outputs).map(([key, value], index) => (
                 <React.Fragment key={key}>
+                    {debug && (
+                        <div
+                            className="absolute left-0 p-1 text-xs text-white bg-black rounded top-16 opacity-90"
+                            style={{
+                                top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                                left: `-${BASE_HANDLE_SIDE_OFFSET_PX + 40}px`,
+                            }}
+                        >
+                            out {key} {value.id}: {JSON.stringify(value.lastValue)?.substring(0, 100)}
+                        </div>
+                    )}
                     <Handle
                         type="source"
                         position={Position.Right}
@@ -255,12 +267,14 @@ const TextFileNode = ({
     selected: boolean;
 }) => {
     const [fileContent, setFileContent] = useState(data.content);
+    const [reloadId, setReloadId] = useState(0);
 
     const loadFile = async () => {
         // const content = await loadFileText(data);
         // if (!content) return;
         // setFileContent(content);
         data.onReload();
+        setReloadId((id) => id + 1);
     };
 
     const saveFile = async (value?: string) => {
@@ -310,6 +324,7 @@ const TextFileNode = ({
                 </div> */}
                 <div className="w-full h-full pb-8 nodrag nopan nowheel">
                     <TextCodeEditorComponent
+                        key={reloadId}
                         value={fileContent}
                         onChange={setFileContent}
                         onSave={(x) => saveFile(x)}

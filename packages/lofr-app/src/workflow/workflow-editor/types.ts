@@ -1,4 +1,5 @@
 export type WorkflowObservable<T> = {
+    id: string;
     name?: string;
     source?: {
         nodeId?: string;
@@ -25,11 +26,13 @@ export const toObservable = <T>(value: WorkflowObservableLike<T>, options?: { so
     return createObservable(value as T, options);
 }
 
+let nextObservableId = 0;
 export const createObservable = <T>(initialValue: T, options?: { source?: { nodeId?: string; handleId?: string } }): WorkflowSubject<T> => {
     let lastValue = initialValue;
     const subscribers = [] as (undefined | ((data: T) => void))[];
     return {
         ...createObservableName(),
+        id: `${nextObservableId++}`,
         source: options?.source,
         get lastValue() { return lastValue; },
         get hasSubscribers() { return subscribers.some(s => !!s); },
