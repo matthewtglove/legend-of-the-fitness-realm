@@ -173,7 +173,7 @@ export const textFileNodeType = registry.registerSimpleNodeType({
         return {
             content: content,
             onContentChange: (value: string) => {
-                if (value === content) return;
+                // if (value === content) return;
                 void saveFileText(inputs, value);
                 refresh();
             },

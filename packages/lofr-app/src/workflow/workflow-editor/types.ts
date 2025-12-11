@@ -217,14 +217,17 @@ export const createRegistry = (): WorkflowRegistry => {
                         clearTimeout(updateTimeout);
                         updateTimeout = setTimeout(update, 0);
                     };
+                    let loading = true;
                     for (const key in inputs) {
                         inputs[key].subscribe(() => {
+                            if (loading) { return }
                             updateDebounced();
                         });
                     }
 
                     // initialize outputs
-                    setTimeout(update, 0);
+                    loading = false;
+                    updateDebounced();
 
                     console.log(`[registerSimpleNodeType:load] loaded called with args:`, { inputs, outputs, loadArgs, nodeTypeArgs });
                     return {
