@@ -165,7 +165,7 @@ const ReactFlowView = (props: { loader: undefined | ((controller: WorkflowEditor
                     return;
                 }
 
-                const edgeId = `${nodeId}-${args.id}-${inputKey}`;
+                const edgeId = `${nodeId}-${handleId}-${args.id}-${inputKey}`;
                 setEdges((s) => {
                     const old = s.find((x) => x.id !== edgeId);
 
