@@ -98,94 +98,96 @@ export const TextCodeEditorComponent = ({
 
     return (
         <>
-            <div className="z-0 w-full h-full">
-                {isSelected && !!language && (
-                    <div className="z-0 w-full h-full">
-                        <CodeEditor
-                            language={language}
-                            disabled={disabled}
+            <div className="relative z-0 w-full h-full">
+                <div className="z-0 w-full h-full">
+                    {isSelected && !!language && (
+                        <div className="z-0 w-full h-full">
+                            <CodeEditor
+                                language={language}
+                                disabled={disabled}
+                                value={text || valueRaw}
+                                onChange={changeValue}
+                                onSave={(x) => {
+                                    changeValue(x);
+                                    onSave(x);
+                                }}
+                                onEditorStateChange={setEditorState}
+                                initialEditorState={editorState}
+                            />
+                        </div>
+                    )}
+                    {(!isSelected || !language) && (
+                        <textarea
+                            ref={textAreaRef}
+                            className={`h-full w-full resize-none ${disabled ? `opacity-70` : ``} ${
+                                //
+                                !language
+                                    ? `bg-white p-1 pb-8`
+                                    : `scrollbar-thin scrollbar-thumb-[#555555] scrollbar-track-[#2a2a2a] hover:scrollbar-thumb-[#6a6a6a] h-full w-full resize-none overflow-auto bg-[#1e1e1e] pr-[102px] pb-8 pl-[64px] font-mono text-[14px] leading-[19px] tracking-[0px] text-[#d4d4d4] outline-none`
+                            } `}
                             value={text || valueRaw}
-                            onChange={changeValue}
-                            onSave={(x) => {
-                                changeValue(x);
-                                onSave(x);
+                            disabled={disabled}
+                            onChange={(e) => {
+                                changeValue(e.target.value);
                             }}
-                            onEditorStateChange={setEditorState}
-                            initialEditorState={editorState}
+                            onScroll={(e) => {
+                                const textarea = e.currentTarget;
+                                if (!textarea) {
+                                    return;
+                                }
+                                setEditorState((prevState) => ({
+                                    ...(prevState || { scroll: { scrollTop: 0, scrollLeft: 0 }, selection: null }),
+                                    scroll: {
+                                        scrollTop: textarea.scrollTop,
+                                        scrollLeft: textarea.scrollLeft,
+                                    },
+                                }));
+                            }}
+                            onSelect={(e) => {
+                                const textarea = e.currentTarget;
+                                const value = textarea.value;
+                                const selectionStart = textarea.selectionStart;
+                                const selectionEnd = textarea.selectionEnd;
+
+                                let startLineNumber = 1;
+                                let startColumn = 1;
+                                for (let i = 0; i < selectionStart; i++) {
+                                    if (value[i] === `\n`) {
+                                        startLineNumber++;
+                                        startColumn = 1;
+                                    } else {
+                                        startColumn++;
+                                    }
+                                }
+
+                                let endLineNumber = 1;
+                                let endColumn = 1;
+                                for (let i = 0; i < selectionEnd; i++) {
+                                    if (value[i] === `\n`) {
+                                        endLineNumber++;
+                                        endColumn = 1;
+                                    } else {
+                                        endColumn++;
+                                    }
+                                }
+
+                                setEditorState((prevState) => ({
+                                    ...(prevState || { scroll: { scrollTop: 0, scrollLeft: 0 }, selection: null }),
+                                    selection: {
+                                        startLineNumber,
+                                        startColumn,
+                                        endLineNumber,
+                                        endColumn,
+                                    },
+                                }));
+                            }}
+                            spellCheck={!language}
                         />
-                    </div>
-                )}
-                {(!isSelected || !language) && (
-                    <textarea
-                        ref={textAreaRef}
-                        className={`h-full w-full resize-none ${disabled ? `opacity-70` : ``} ${
-                            //
-                            !language
-                                ? `bg-white p-1 pb-8`
-                                : `scrollbar-thin scrollbar-thumb-[#555555] scrollbar-track-[#2a2a2a] hover:scrollbar-thumb-[#6a6a6a] h-full w-full resize-none overflow-auto bg-[#1e1e1e] pr-[102px] pb-8 pl-[64px] font-mono text-[14px] leading-[19px] tracking-[0px] text-[#d4d4d4] outline-none`
-                        } `}
-                        value={text || valueRaw}
-                        disabled={disabled}
-                        onChange={(e) => {
-                            changeValue(e.target.value);
-                        }}
-                        onScroll={(e) => {
-                            const textarea = e.currentTarget;
-                            if (!textarea) {
-                                return;
-                            }
-                            setEditorState((prevState) => ({
-                                ...(prevState || { scroll: { scrollTop: 0, scrollLeft: 0 }, selection: null }),
-                                scroll: {
-                                    scrollTop: textarea.scrollTop,
-                                    scrollLeft: textarea.scrollLeft,
-                                },
-                            }));
-                        }}
-                        onSelect={(e) => {
-                            const textarea = e.currentTarget;
-                            const value = textarea.value;
-                            const selectionStart = textarea.selectionStart;
-                            const selectionEnd = textarea.selectionEnd;
-
-                            let startLineNumber = 1;
-                            let startColumn = 1;
-                            for (let i = 0; i < selectionStart; i++) {
-                                if (value[i] === `\n`) {
-                                    startLineNumber++;
-                                    startColumn = 1;
-                                } else {
-                                    startColumn++;
-                                }
-                            }
-
-                            let endLineNumber = 1;
-                            let endColumn = 1;
-                            for (let i = 0; i < selectionEnd; i++) {
-                                if (value[i] === `\n`) {
-                                    endLineNumber++;
-                                    endColumn = 1;
-                                } else {
-                                    endColumn++;
-                                }
-                            }
-
-                            setEditorState((prevState) => ({
-                                ...(prevState || { scroll: { scrollTop: 0, scrollLeft: 0 }, selection: null }),
-                                selection: {
-                                    startLineNumber,
-                                    startColumn,
-                                    endLineNumber,
-                                    endColumn,
-                                },
-                            }));
-                        }}
-                        spellCheck={!language}
-                    />
-                )}
-            </div>
-            <div className="absolute flex flex-row justify-start gap-1 bottom-3 left-3 z-1">
-                <CodeLanguageSelector value={language} onChange={changeLanguage} />
+                    )}
+                </div>
+                <div className="absolute flex flex-row justify-start gap-1 bottom-3 left-3 z-1">
+                    <CodeLanguageSelector value={language} onChange={changeLanguage} />
+                </div>
             </div>
         </>
     );

@@ -15,7 +15,12 @@ export type WorkflowSubject<T> = WorkflowObservable<T> & {
 export type WorkflowObservableLike<T> = T | WorkflowObservable<T>;
 export const toObservable = <T>(value: WorkflowObservableLike<T>, options?: { source?: { nodeId?: string; handleId?: string } }): WorkflowObservable<T> => {
     if (typeof value === `object` && value !== null && `subscribe` in value && typeof value.subscribe === `function`) {
-        return value as WorkflowObservable<T>;
+        // return value as WorkflowObservable<T>;
+        const obs = createObservable(value.lastValue as T, options);
+        value.subscribe((data: T) => {
+            obs.next(data);
+        });
+        return obs;
     }
     return createObservable(value as T, options);
 }

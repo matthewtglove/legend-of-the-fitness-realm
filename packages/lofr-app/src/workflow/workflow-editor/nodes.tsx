@@ -169,11 +169,12 @@ export const textFileNodeType = registry.registerSimpleNodeType({
         },
     },
     execute: async (inputs: { workflowServerUrl: string; path: string }) => {
-        const content = await loadFileText(inputs);
+        const content = (await loadFileText(inputs)) ?? ``;
         return {
-            content: content ?? ``,
+            content: content,
             onContentChange: (value: string) => {
                 void saveFileText(inputs, value);
+                // content.next(value);
             },
         };
     },
@@ -299,50 +300,52 @@ export const textNodeType = registry.registerSimpleNodeType({
         endAtLine: undefined | string;
     }) => {
         console.log(`[textNodeType:execute] START`, { inputs });
-        const afterStartText = !inputs.startAtLine
-            ? inputs.content
+        const [beforeStartText, afterStartText] = !inputs.startAtLine
+            ? [``, inputs.content]
             : (() => {
                   const text = inputs.content;
                   const iStart = text.indexOf(`\n` + inputs.startAtLine);
-                  if (iStart === -1) {
-                      return text;
+                  if (iStart < 0) {
+                      return [``, inputs.content];
                   }
-                  return text.substring(iStart);
+                  return [text.substring(0, iStart + 1), text.substring(iStart + 1)];
               })();
-        const trimmedText = !inputs.endAtLine
-            ? afterStartText
+        const [middleText, afterEndText] = !inputs.endAtLine
+            ? [afterStartText, ``]
             : (() => {
                   const iEndLine = afterStartText.indexOf(`\n` + inputs.endAtLine);
-                  if (iEndLine === -1) {
-                      return afterStartText;
+                  if (iEndLine < 0) {
+                      return [afterStartText, ``];
                   }
                   const iEndLineNewLine = afterStartText.indexOf(`\n`, iEndLine + inputs.endAtLine.length);
-                  if (iEndLineNewLine === -1) {
-                      return afterStartText.substring(0, afterStartText.length);
+                  if (iEndLineNewLine < 0) {
+                      return [afterStartText, ``];
                   }
-                  return afterStartText.substring(0, iEndLineNewLine);
+                  return [afterStartText.substring(0, iEndLineNewLine), afterStartText.substring(iEndLineNewLine)];
               })();
 
-        console.log(`[textNodeType:execute] DONE`, { inputs, trimmedText });
+        console.log(`[textNodeType:execute] DONE`, {
+            inputs,
+            beforeStartText,
+            afterStartText,
+            middleText,
+            afterEndText,
+            doesMatch: inputs.content === beforeStartText + middleText + afterEndText,
+        });
         return {
-            content: trimmedText,
+            content: middleText,
             onContentChange: !inputs.onContentChange
                 ? undefined
                 : (value: string) => {
-                      const beforeStartText = !inputs.startAtLine
-                          ? ``
-                          : inputs.content.substring(0, inputs.content.length - afterStartText.length);
-                      const afterEndText = !inputs.endAtLine
-                          ? ``
-                          : inputs.content.substring(beforeStartText.length + trimmedText.length);
                       const replaced = beforeStartText + value + afterEndText;
 
                       console.log(`[textNodeType:execute:onChange]`, {
                           value,
                           replaced,
                           beforeStartText,
-                          trimmedText,
+                          middleText,
                           afterEndText,
+                          doesMatch: inputs.content === beforeStartText + middleText + afterEndText,
                       });
                       inputs.onContentChange!(replaced);
                   },
@@ -391,7 +394,7 @@ const TextNode = ({
         endAtLine?: string;
     };
 }) => {
-    const isLong = data.content.split(`\n`).length > 2;
+    const isLong = data.startAtLine || data.endAtLine || data.onContentChange || data.content.split(`\n`).length > 2;
 
     useEffect(() => {
         if (!scrollTargerRef.current) return;
@@ -402,17 +405,7 @@ const TextNode = ({
     return (
         <>
             <div className="flex flex-col w-full h-full p-1 whitespace-pre-wrap border border-gray-400 rounded shadow-md bg-slate-100">
-                {!!data.onContentChange && data.content && (
-                    <div className="w-full h-full pb-8 nodrag nopan nowheel">
-                        <TextCodeEditorComponent
-                            value={data.content}
-                            onChange={(x) => data.onContentChange?.(x)}
-                            onSave={(x) => data.onContentChange?.(x)}
-                            isSelected={selected}
-                        />
-                    </div>
-                )}
-                {!data.onContentChange && isLong && (
+                {isLong && (
                     <>
                         {data.startAtLine && (
                             <div className="flex flex-row items-center gap-1">
@@ -426,15 +419,35 @@ const TextNode = ({
                             </div>
                         )}
 
-                        <div className="flex-1 overflow-auto nowheel">
-                            <div className="scrollbar-thin scrollbar-thumb-[#555555] scrollbar-track-[#2a2a2a] hover:scrollbar-thumb-[#6a6a6a] p-1 h-full w-full resize-none overflow-auto bg-[#1e1e1e] font-mono text-[14px] leading-[19px] tracking-[0px] text-[#d4d4d4] outline-none">
-                                {data.before && <div className="text-gray-400">{data.before}</div>}
-                                <div ref={scrollTargerRef} className="">
-                                    {data.content}
+                        {!data.onContentChange && (
+                            <>
+                                <div className="flex-1 overflow-auto nowheel">
+                                    <div className="scrollbar-thin scrollbar-thumb-[#555555] scrollbar-track-[#2a2a2a] hover:scrollbar-thumb-[#6a6a6a] p-1 h-full w-full resize-none overflow-auto bg-[#1e1e1e] font-mono text-[14px] leading-[19px] tracking-[0px] text-[#d4d4d4] outline-none">
+                                        {data.before && <div className="text-gray-400">{data.before}</div>}
+                                        <div ref={scrollTargerRef} className="">
+                                            {data.content}
+                                        </div>
+                                        {data.after && <div className="text-gray-400">{data.after}</div>}
+                                    </div>
                                 </div>
-                                {data.after && <div className="text-gray-400">{data.after}</div>}
+                            </>
+                        )}
+                        {!!data.onContentChange && (
+                            <div className="flex-1">
+                                <div className="w-full h-full nodrag nopan nowheel">
+                                    <TextCodeEditorComponent
+                                        value={data.content}
+                                        onChange={(x) => {
+                                            // ignore until saved
+                                            console.log(`[TextNode:TextCodeEditorComponent:onChange]`, { x });
+                                            // data.onContentChange?.(x)
+                                        }}
+                                        onSave={(x) => data.onContentChange?.(x)}
+                                        isSelected={selected}
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
                         {data.endAtLine && (
                             <div className="flex flex-row items-center gap-1">
                                 <input
@@ -448,7 +461,7 @@ const TextNode = ({
                         )}
                     </>
                 )}
-                {!data.onContentChange && !isLong && (
+                {!isLong && (
                     <>
                         <div className="flex flex-col items-center justify-center">{data.content}</div>
                     </>

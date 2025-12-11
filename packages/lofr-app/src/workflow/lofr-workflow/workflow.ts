@@ -66,7 +66,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     startAtLine: `/**
 
 # Systems`,
-    endAtLine: `*/`
+    endAtLine: ` */`
   });
 
   workflowEditorController.addTextFileNode({ id: `n-workflow`, path: `workflow/lofr-workflow/workflow.ts` });
