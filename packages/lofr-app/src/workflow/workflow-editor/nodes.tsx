@@ -168,19 +168,22 @@ export const textFileNodeType = registry.registerSimpleNodeType({
             onContentChange: undefined as undefined | ((value: string) => void),
         },
     },
-    execute: async (inputs: { workflowServerUrl: string; path: string }) => {
+    execute: async (inputs: { workflowServerUrl: string; path: string }, { refresh }) => {
         const content = (await loadFileText(inputs)) ?? ``;
         return {
             content: content,
             onContentChange: (value: string) => {
+                if (value === content) return;
                 void saveFileText(inputs, value);
-                // content.next(value);
+                refresh();
             },
         };
     },
     Component: (props) => {
         const workflowServerUrl = useObservable(props.data.inputs.workflowServerUrl);
         const path = useObservable(props.data.inputs.path);
+        const content = useObservable(props.data.outputs.content);
+        const onContentChange = useObservable(props.data.outputs.onContentChange);
         return (
             <NodeWrapper {...props}>
                 <TextFileNode
@@ -188,6 +191,11 @@ export const textFileNodeType = registry.registerSimpleNodeType({
                     data={{
                         workflowServerUrl,
                         path,
+                        content,
+                        onContentChange,
+                        onReload: () => {
+                            props.data.refresh();
+                        },
                     }}
                 />
             </NodeWrapper>
@@ -219,36 +227,56 @@ const saveFileText = async (data: { workflowServerUrl: string; path: string }, f
     console.log(`Saved file content.`);
 };
 
-const TextFileNode = ({ data, selected }: { data: { workflowServerUrl: string; path: string }; selected: boolean }) => {
-    const [fileContent, setFileContent] = useState(``);
+const TextFileNode = ({
+    data,
+    selected,
+}: {
+    data: {
+        workflowServerUrl: string;
+        path: string;
+        content: string;
+        onContentChange: undefined | ((value: string) => void);
+        onReload: () => void;
+    };
+    selected: boolean;
+}) => {
+    const [fileContent, setFileContent] = useState(data.content);
 
     const loadFile = async () => {
-        const content = await loadFileText(data);
-        if (!content) return;
-        setFileContent(content);
+        // const content = await loadFileText(data);
+        // if (!content) return;
+        // setFileContent(content);
+        data.onReload();
     };
 
     const saveFile = async (value?: string) => {
-        await saveFileText(data, value ?? fileContent);
+        // await saveFileText(data, value ?? fileContent);
+        data.onContentChange?.(value ?? fileContent);
     };
 
     useEffect(() => {
+        if (data.content) {
+            setFileContent(data.content);
+            return;
+        }
         void loadFile();
-    }, [data.workflowServerUrl, data.path]);
+    }, [data.workflowServerUrl, data.path, data.content]);
 
     return (
         <>
             <div className="w-full h-full p-2 bg-white border border-gray-400 rounded shadow-md">
                 <div className="flex flex-row">
                     <div className="font-mono text-sm">{data.path}</div>
-                    <button
-                        className="px-2 py-1 ml-2 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
-                        onClick={() => {
-                            void saveFile();
-                        }}
-                    >
-                        Save
-                    </button>
+                    {data.onContentChange && (
+                        <button
+                            className="px-2 py-1 ml-2 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                            onClick={() => {
+                                void saveFile();
+                            }}
+                        >
+                            Save
+                        </button>
+                    )}
                     <button
                         className="px-2 py-1 ml-2 text-xs text-white bg-green-500 rounded hover:opacity-80 active:opacity-70"
                         onClick={() => {

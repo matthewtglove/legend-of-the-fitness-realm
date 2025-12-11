@@ -15,12 +15,12 @@ export type WorkflowSubject<T> = WorkflowObservable<T> & {
 export type WorkflowObservableLike<T> = T | WorkflowObservable<T>;
 export const toObservable = <T>(value: WorkflowObservableLike<T>, options?: { source?: { nodeId?: string; handleId?: string } }): WorkflowObservable<T> => {
     if (typeof value === `object` && value !== null && `subscribe` in value && typeof value.subscribe === `function`) {
-        // return value as WorkflowObservable<T>;
-        const obs = createObservable(value.lastValue as T, options);
-        value.subscribe((data: T) => {
-            obs.next(data);
-        });
-        return obs;
+        return value as WorkflowObservable<T>;
+        // const obs = createObservable(value.lastValue as T, options);
+        // value.subscribe((data: T) => {
+        //     obs.next(data);
+        // });
+        // return obs;
     }
     return createObservable(value as T, options);
 }
@@ -106,6 +106,7 @@ export type WorkflowNodeTypeArgs<
         data: {
             inputs: TInputs,
             outputs: TOutputs,
+            refresh: () => void;
         }
     }>;
 };
@@ -129,13 +130,14 @@ export type WorkflowNodeTypeSimpleArgs<
         inputs: TInputs,
         outputs: TOutputs,
     },
-    execute: (inputs: TInputs) => PromiseLike<TOutputs>,
+    execute: (inputs: TInputs, { refresh }: { refresh: () => void }) => PromiseLike<TOutputs>,
     Component: React.ComponentType<{
         id: string;
         selected: boolean;
         data: {
             inputs: ObservableOf<TInputs>,
             outputs: ObservableOf<TOutputs>,
+            refresh: () => void;
         }
     }>;
 }
@@ -195,7 +197,9 @@ export const createRegistry = (): WorkflowRegistry => {
                     const update = async () => {
                         try {
                             const inputValues = Object.fromEntries(Object.entries(inputs).map(([key, value]) => [key, value.lastValue])) as TInputs;
-                            const outputValues = await nodeTypeArgs.execute(inputValues);
+                            const outputValues = await nodeTypeArgs.execute(inputValues, {
+                                refresh: () => updateDebounced(),
+                            });
                             for (const key in outputValues) {
                                 if (outputs[key]) {
                                     outputs[key].next(outputValues[key]);
@@ -209,10 +213,13 @@ export const createRegistry = (): WorkflowRegistry => {
                         }
                     };
                     let updateTimeout = 0 as unknown as ReturnType<typeof setTimeout>;
+                    const updateDebounced = () => {
+                        clearTimeout(updateTimeout);
+                        updateTimeout = setTimeout(update, 0);
+                    };
                     for (const key in inputs) {
                         inputs[key].subscribe(() => {
-                            clearTimeout(updateTimeout);
-                            updateTimeout = setTimeout(update, 0);
+                            updateDebounced();
                         });
                     }
 
@@ -223,6 +230,7 @@ export const createRegistry = (): WorkflowRegistry => {
                     return {
                         inputs,
                         outputs,
+                        refresh: () => { updateDebounced(); },
                     };
                 },
                 Component: nodeTypeArgs.Component,
