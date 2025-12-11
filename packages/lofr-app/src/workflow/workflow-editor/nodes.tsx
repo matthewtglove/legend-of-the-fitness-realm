@@ -162,7 +162,7 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
 
     return (
         <>
-            <div className="w-full h-full bg-white border border-gray-400 rounded shadow-md">
+            <div className="flex flex-col w-full h-full bg-white border border-gray-400 rounded shadow-md">
                 <div className="flex flex-row items-center gap-1 bg-gray-200 border-b border-gray-800">
                     <div className="font-mono text-sm">
                         {data.path} {data.exportName ?? ``}
@@ -177,7 +177,7 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
                         Reload
                     </button>
                 </div>
-                <div className="nodrag nopan nowheel">
+                <div className="flex-1 nodrag nopan nowheel">
                     <React.Suspense fallback={<div>Loading...</div>}>
                         <component.Component {...data} />
                     </React.Suspense>

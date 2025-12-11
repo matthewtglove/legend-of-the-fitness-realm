@@ -72,7 +72,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   workflowEditorController.addTextFileNode({ id: `n-workflow`, path: `workflow/lofr-workflow/workflow.ts` });
   workflowEditorController.addTextFileNode({ id: `n-workflow-metadata`, path: `workflow/lofr-workflow/workflow.metadata.json` });
 
-  workflowEditorController.addTextFileNode({ id: `n-todo`, path: `workflow/todo.md` });
+  const todoNode = workflowEditorController.addTextFileNode({ id: `n-todo`, path: `workflow/todo.md` });
 
   workflowEditorController.addTextFileNode({ id: `n-example-fun`, path: `workflow/lofr-workflow/example-fun.ts` });
   workflowEditorController.addTextNode({ id: `n-example-fun-result`, content: exampleFun() });
@@ -125,5 +125,21 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
       outputs: {},
     },
     text: c_narrativeEngineTrimmed
+  });
+  workflowEditorController.addComponent({
+    id: `n-example-component-input-04`,
+    path: `../../workflow/lofr-workflow/example-component.tsx`,
+    exportName: `ExampleInputComponent`,
+    defaults: {
+      inputs: {
+        value: ``,
+        onChange: (value: string) => {
+          console.log(`ExampleInputComponent onChange`, value);
+        },
+      },
+      outputs: {},
+    },
+    value: todoNode.content,
+    onChange: todoNode.onContentChange,
   });
 };
