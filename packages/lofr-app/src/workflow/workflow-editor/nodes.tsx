@@ -7,32 +7,154 @@ import { TextCodeEditorComponent } from './code-editor/text-code-editor-main';
 
 export const registry = createRegistry();
 
-// const textFileNodeType = registry.registerNodeType({
-//     typeName: `textFile`,
-//     load: (args: { workflowServerUrl: WorkflowObservableLike<string>; path: WorkflowObservableLike<string> }) => {
-//         return {
-//             inputs: {
-//                 workflowServerUrl: toObservable(args.workflowServerUrl),
-//                 path: toObservable(args.path),
-//             },
-//             outputs: {},
-//         };
-//     },
-//     Component: (props) => {
-//         const workflowServerUrl = useObservable(props.data.inputs.workflowServerUrl);
-//         const path = useObservable(props.data.inputs.path);
+const BASE_HANDLE_TOP_OFFSET_PX = 20;
+const BASE_HANDLE_SIDE_OFFSET_PX = 6;
+const HANDLE_VERTICAL_SPACING_PX = 25;
 
-//         return (
-//             <TextFileNode
-//                 {...props}
-//                 data={{
-//                     workflowServerUrl,
-//                     path,
-//                 }}
-//             />
-//         );
-//     },
-// });
+const NodeWrapper = ({
+    children,
+    id,
+    data,
+}: {
+    children: React.ReactNode;
+    id: string;
+    data: {
+        inputs: Record<string, WorkflowObservable<unknown>>;
+        outputs: Record<string, WorkflowObservable<unknown>>;
+    };
+}) => {
+    console.log(`[NodeWrapper] rendering node ${id}`, { data });
+    return (
+        <>
+            <NodeResizer minWidth={100} minHeight={30} />
+            {children}
+            {Object.entries(data.inputs).map(([key, value], index) => (
+                <Handle
+                    key={key}
+                    type="target"
+                    position={Position.Left}
+                    id={key}
+                    style={{
+                        width: `12px`,
+                        height: `12px`,
+                        ...(value.source?.nodeId && value.source.nodeId !== id
+                            ? { background: `#44aa44`, borderColor: `#44aa44` }
+                            : { background: `#777777`, borderColor: `#777777` }),
+                        top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                        left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                        borderTopRightRadius: `0px`,
+                        borderBottomRightRadius: `0px`,
+                    }}
+                    // className="hover:top-0"
+                >
+                    <div className="absolute right-0 opacity-0 hover:opacity-100">
+                        <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 right-4">
+                            {key}
+                        </div>
+                    </div>
+                </Handle>
+            ))}
+            {Object.entries(data.outputs).map(([key, value], index) => (
+                <Handle
+                    key={key}
+                    type="source"
+                    position={Position.Right}
+                    id={key}
+                    style={{
+                        width: `12px`,
+                        height: `12px`,
+                        ...(value.hasSubscribers
+                            ? { background: `#44aa44`, borderColor: `#44aa44` }
+                            : { background: `#777777`, borderColor: `#777777` }),
+                        top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                        right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                        borderTopLeftRadius: `0px`,
+                        borderBottomLeftRadius: `0px`,
+                    }}
+                >
+                    <div className="absolute left-0 opacity-0 hover:opacity-100">
+                        <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 left-4">
+                            {key}
+                        </div>
+                    </div>
+                </Handle>
+            ))}
+        </>
+    );
+};
+
+export const componentNodeType = registry.registerSimpleNodeType({
+    typeName: `component`,
+    defaults: {
+        inputs: {
+            path: ``,
+            exportName: undefined as undefined | string,
+        },
+        outputs: {},
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    execute: async (inputs: { path: string; exportName?: string }) => {
+        return {};
+    },
+    Component: (props) => {
+        const path = useObservable(props.data.inputs.path);
+        const exportName = useObservable(props.data.inputs.exportName);
+        return (
+            <NodeWrapper {...props}>
+                <ComponentNode
+                    {...props}
+                    data={{
+                        path,
+                        exportName,
+                    }}
+                />
+            </NodeWrapper>
+        );
+    },
+});
+
+const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }) => {
+    const [reloadId, setReloadId] = useState(0);
+    const reload = () => {
+        setReloadId((id) => id + 1);
+    };
+
+    // lazy load react component from path
+    const [component, setComponent] = useState({ Component: (() => null) as React.ComponentType });
+    useEffect(() => {
+        setComponent({
+            Component: React.lazy(() =>
+                import(data.path).then((mod) => ({
+                    default: mod[data.exportName ?? `default`] ?? mod.default,
+                })),
+            ),
+        });
+    }, [data.path, reloadId]);
+
+    return (
+        <>
+            <div className="w-full h-full bg-white border border-gray-400 rounded shadow-md">
+                <div className="flex flex-row items-center bg-gray-200 border-b border-gray-800">
+                    <div className="font-mono text-sm">{data.path}</div>
+                    <div className="flex-grow" />
+                    <button
+                        className="self-stretch px-2 py-1 text-xs text-white bg-blue-500 hover:opacity-80 active:opacity-70"
+                        onClick={() => {
+                            reload();
+                        }}
+                    >
+                        Reload
+                    </button>
+                </div>
+                <div className="nodrag nopan nowheel">
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                        <component.Component />
+                    </React.Suspense>
+                </div>
+            </div>
+        </>
+    );
+};
 
 export const textFileNodeType = registry.registerSimpleNodeType({
     typeName: `textFile`,
@@ -43,11 +165,18 @@ export const textFileNodeType = registry.registerSimpleNodeType({
         },
         outputs: {
             content: ``,
+            onChange: undefined as undefined | ((value: string) => void),
         },
     },
     execute: async (inputs: { workflowServerUrl: string; path: string }) => {
         const content = await loadFileText(inputs);
-        return { content: content ?? `` };
+        return {
+            content: content ?? ``,
+            onChange: (value: string) => {
+                console.log(`[textFileNodeType:execute:onChange]`, { value });
+                // void saveFileText(inputs, value);
+            },
+        };
     },
     Component: (props) => {
         const workflowServerUrl = useObservable(props.data.inputs.workflowServerUrl);
@@ -150,154 +279,28 @@ const TextFileNode = ({ data, selected }: { data: { workflowServerUrl: string; p
     );
 };
 
-// const componentNodeType = registry.registerNodeType({
-//     typeName: `component`,
-//     load: (args: { path: WorkflowObservableLike<string>; exportName?: WorkflowObservableLike<string> }) => {
-//         return {
-//             inputs: {
-//                 path: toObservable(args.path),
-//                 exportName: toObservable(args.exportName),
-//             },
-//             outputs: {},
-//         };
-//     },
-//     Component: (props) => {
-//         const path = useObservable(props.data.inputs.path);
-//         const exportName = useObservable(props.data.inputs.exportName);
-
-//         return (
-//             <ComponentNode
-//                 {...props}
-//                 data={{
-//                     path,
-//                     exportName,
-//                 }}
-//             />
-//         );
-//     },
-// });
-
-export const componentNodeType = registry.registerSimpleNodeType({
-    typeName: `component`,
-    defaults: {
-        inputs: {
-            path: ``,
-            exportName: undefined as undefined | string,
-        },
-        outputs: {},
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    execute: async (inputs: { path: string; exportName?: string }) => {
-        return {};
-    },
-    Component: (props) => {
-        const path = useObservable(props.data.inputs.path);
-        const exportName = useObservable(props.data.inputs.exportName);
-        return (
-            <NodeWrapper {...props}>
-                <ComponentNode
-                    {...props}
-                    data={{
-                        path,
-                        exportName,
-                    }}
-                />
-            </NodeWrapper>
-        );
-    },
-});
-
-const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }) => {
-    const [reloadId, setReloadId] = useState(0);
-    const reload = () => {
-        setReloadId((id) => id + 1);
-    };
-
-    // lazy load react component from path
-    const [component, setComponent] = useState({ Component: (() => null) as React.ComponentType });
-    useEffect(() => {
-        setComponent({
-            Component: React.lazy(() =>
-                import(data.path).then((mod) => ({
-                    default: mod[data.exportName ?? `default`] ?? mod.default,
-                })),
-            ),
-        });
-    }, [data.path, reloadId]);
-
-    return (
-        <>
-            <div className="w-full h-full bg-white border border-gray-400 rounded shadow-md">
-                <div className="flex flex-row items-center bg-gray-200 border-b border-gray-800">
-                    <div className="font-mono text-sm">{data.path}</div>
-                    <div className="flex-grow" />
-                    <button
-                        className="self-stretch px-2 py-1 text-xs text-white bg-blue-500 hover:opacity-80 active:opacity-70"
-                        onClick={() => {
-                            reload();
-                        }}
-                    >
-                        Reload
-                    </button>
-                </div>
-                <div className="nodrag nopan nowheel">
-                    <React.Suspense fallback={<div>Loading...</div>}>
-                        <component.Component />
-                    </React.Suspense>
-                </div>
-            </div>
-        </>
-    );
-};
-
-// const textNodeType = registry.registerNodeType({
-//     typeName: `text`,
-//     load: (args: {
-//         content: WorkflowObservableLike<string>;
-//         startAtLine?: WorkflowObservable<string>;
-//         endAtLine?: WorkflowObservable<string>;
-//     }) => {
-//         // TODO: implement line range extraction
-//         // const result = createObservable(args.value);
-
-//         return {
-//             inputs: {
-//                 content: toObservable(args.content),
-//             },
-//             outputs: {
-//                 content: toObservable(args.content),
-//             },
-//         };
-//     },
-//     Component: (props) => {
-//         const content = useObservable(props.data.inputs.content);
-
-//         return (
-//             <TextNode
-//                 {...props}
-//                 data={{
-//                     content,
-//                 }}
-//             />
-//         );
-//     },
-// });
-
 export const textNodeType = registry.registerSimpleNodeType({
     typeName: `textSimple`,
     defaults: {
         inputs: {
             content: ``,
+            onChange: undefined as undefined | ((value: string) => void),
             startAtLine: undefined as undefined | string,
             endAtLine: undefined as undefined | string,
         },
         outputs: {
             content: ``,
+            onChange: undefined as undefined | ((value: string) => void),
         },
     },
-    execute: async (inputs: { content: string; startAtLine: undefined | string; endAtLine: undefined | string }) => {
+    execute: async (inputs: {
+        content: string;
+        onChange: undefined | ((value: string) => void);
+        startAtLine: undefined | string;
+        endAtLine: undefined | string;
+    }) => {
         console.log(`[textNodeType:execute] START`, { inputs });
-        const startText = !inputs.startAtLine
+        const afterStartText = !inputs.startAtLine
             ? inputs.content
             : (() => {
                   const text = inputs.content;
@@ -307,27 +310,40 @@ export const textNodeType = registry.registerSimpleNodeType({
                   }
                   return text.substring(iStart);
               })();
-        const result = !inputs.endAtLine
-            ? startText
+        const trimmedText = !inputs.endAtLine
+            ? afterStartText
             : (() => {
-                  const iEndLine = startText.indexOf(`\n` + inputs.endAtLine);
+                  const iEndLine = afterStartText.indexOf(`\n` + inputs.endAtLine);
                   if (iEndLine === -1) {
-                      return startText;
+                      return afterStartText;
                   }
-                  const iEndLineNewLine = startText.indexOf(`\n`, iEndLine + inputs.endAtLine.length);
+                  const iEndLineNewLine = afterStartText.indexOf(`\n`, iEndLine + inputs.endAtLine.length);
                   if (iEndLineNewLine === -1) {
-                      return startText.substring(0, startText.length);
+                      return afterStartText.substring(0, afterStartText.length);
                   }
-                  return startText.substring(0, iEndLineNewLine);
+                  return afterStartText.substring(0, iEndLineNewLine);
               })();
 
-        console.log(`[textNodeType:execute] DONE`, { inputs, result });
+        console.log(`[textNodeType:execute] DONE`, { inputs, trimmedText });
         return {
-            content: result,
+            content: trimmedText,
+            onChange: !inputs.onChange
+                ? undefined
+                : (value: string) => {
+                      const beforeStartText = !inputs.startAtLine
+                          ? ``
+                          : inputs.content.substring(0, inputs.content.length - afterStartText.length);
+                      const afterEndText = !inputs.endAtLine
+                          ? ``
+                          : inputs.content.substring(beforeStartText.length + trimmedText.length);
+                      const replaced = beforeStartText + value + afterEndText;
+                      inputs.onChange!(replaced);
+                  },
         };
     },
     Component: (props) => {
         const inputContent = useObservable(props.data.inputs.content);
+        const onChange = useObservable(props.data.inputs.onChange);
         const startAtLine = useObservable(props.data.inputs.startAtLine);
         const endAtLine = useObservable(props.data.inputs.endAtLine);
         const outputContent = useObservable(props.data.outputs.content);
@@ -340,6 +356,7 @@ export const textNodeType = registry.registerSimpleNodeType({
                         startAtLine,
                         endAtLine,
                         content: outputContent ?? inputContent,
+                        onChange,
                         before: outputContent
                             ? inputContent.substring(0, inputContent.indexOf(outputContent))
                             : undefined,
@@ -353,100 +370,42 @@ export const textNodeType = registry.registerSimpleNodeType({
     },
 });
 
-const BASE_HANDLE_TOP_OFFSET_PX = 20;
-const BASE_HANDLE_SIDE_OFFSET_PX = 6;
-const HANDLE_VERTICAL_SPACING_PX = 25;
-
-const NodeWrapper = ({
-    children,
-    id,
-    data,
-}: {
-    children: React.ReactNode;
-    id: string;
-    data: {
-        inputs: Record<string, WorkflowObservable<unknown>>;
-        outputs: Record<string, WorkflowObservable<unknown>>;
-    };
-}) => {
-    console.log(`[NodeWrapper] rendering node ${id}`, { data });
-    return (
-        <>
-            <NodeResizer minWidth={100} minHeight={30} />
-            {children}
-            {Object.entries(data.inputs).map(([key, value], index) => (
-                <Handle
-                    key={key}
-                    type="target"
-                    position={Position.Left}
-                    id={key}
-                    style={{
-                        width: `12px`,
-                        height: `12px`,
-                        ...(value.source?.nodeId && value.source.nodeId !== id
-                            ? { background: `#44aa44`, borderColor: `#44aa44` }
-                            : { background: `#777777`, borderColor: `#777777` }),
-                        top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
-                        left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-                        borderTopRightRadius: `0px`,
-                        borderBottomRightRadius: `0px`,
-                    }}
-                    // className="hover:top-0"
-                >
-                    <div className="absolute right-0 opacity-0 hover:opacity-100">
-                        <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 right-4">
-                            {key}
-                        </div>
-                    </div>
-                </Handle>
-            ))}
-            {Object.entries(data.outputs).map(([key, value], index) => (
-                <Handle
-                    key={key}
-                    type="source"
-                    position={Position.Right}
-                    id={key}
-                    style={{
-                        width: `12px`,
-                        height: `12px`,
-                        ...(value.hasSubscribers
-                            ? { background: `#44aa44`, borderColor: `#44aa44` }
-                            : { background: `#777777`, borderColor: `#777777` }),
-                        top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
-                        right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-                        borderTopLeftRadius: `0px`,
-                        borderBottomLeftRadius: `0px`,
-                    }}
-                >
-                    <div className="absolute left-0 opacity-0 hover:opacity-100">
-                        <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 left-4">
-                            {key}
-                        </div>
-                    </div>
-                </Handle>
-            ))}
-        </>
-    );
-};
-
 const TextNode = ({
+    selected,
     data,
 }: {
-    data: { content: string; before?: string; after?: string; startAtLine?: string; endAtLine?: string };
+    selected: boolean;
+    data: {
+        content: string;
+        onChange: undefined | ((value: string) => void);
+        before?: string;
+        after?: string;
+        startAtLine?: string;
+        endAtLine?: string;
+    };
 }) => {
     const isLong = data.content.split(`\n`).length > 2;
 
     useEffect(() => {
-        if (!isLong) return;
         if (!scrollTargerRef.current) return;
         scrollTargerRef.current.scrollIntoView({ behavior: `instant` });
-    }, [isLong, data.content]);
+    }, [data.content]);
     const scrollTargerRef = useRef<HTMLDivElement>(null);
 
     return (
         <>
             <div className="flex flex-col w-full h-full p-1 whitespace-pre-wrap border border-gray-400 rounded shadow-md bg-slate-100">
-                {isLong && (
+                {!!data.onChange && (
+                    <div className="w-full h-full pb-8 nodrag nopan nowheel">
+                        <TextCodeEditorComponent
+                            value={data.content}
+                            onChange={data.onChange}
+                            onSave={(x) => data.onChange?.(x)}
+                            isSelected={selected}
+                        />
+                    </div>
+                )}
+                {!data.onChange && isLong && (
                     <>
                         {data.startAtLine && (
                             <div className="flex flex-row items-center gap-1">
@@ -482,7 +441,7 @@ const TextNode = ({
                         )}
                     </>
                 )}
-                {!isLong && (
+                {!data.onChange && !isLong && (
                     <>
                         <div className="flex flex-col items-center justify-center">{data.content}</div>
                     </>
