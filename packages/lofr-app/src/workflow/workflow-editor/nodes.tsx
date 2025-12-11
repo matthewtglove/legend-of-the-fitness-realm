@@ -24,60 +24,74 @@ const NodeWrapper = ({
     };
 }) => {
     console.log(`[NodeWrapper] rendering node ${id}`, { data });
+    const debug = false;
     return (
         <>
             <NodeResizer minWidth={100} minHeight={30} />
             {children}
             {Object.entries(data.inputs).map(([key, value], index) => (
-                <Handle
-                    key={key}
-                    type="target"
-                    position={Position.Left}
-                    id={key}
-                    style={{
-                        width: `12px`,
-                        height: `12px`,
-                        ...(value.source?.nodeId && value.source.nodeId !== id
-                            ? { background: `#44aa44`, borderColor: `#44aa44` }
-                            : { background: `#777777`, borderColor: `#777777` }),
-                        top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
-                        left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-                        borderTopRightRadius: `0px`,
-                        borderBottomRightRadius: `0px`,
-                    }}
-                    // className="hover:top-0"
-                >
-                    <div className="absolute right-0 opacity-0 hover:opacity-100">
-                        <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 right-4">
-                            {key}
+                <React.Fragment key={key}>
+                    {debug && (
+                        <div
+                            className="absolute top-0 left-0 p-1 text-xs text-white bg-black rounded opacity-90"
+                            style={{
+                                top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                                left: `-${BASE_HANDLE_SIDE_OFFSET_PX + 40}px`,
+                            }}
+                        >
+                            {JSON.stringify(value.lastValue)?.substring(0, 100)}
                         </div>
-                    </div>
-                </Handle>
+                    )}
+                    <Handle
+                        type="target"
+                        position={Position.Left}
+                        id={key}
+                        style={{
+                            width: `12px`,
+                            height: `12px`,
+                            ...(value.source?.nodeId && value.source.nodeId !== id
+                                ? { background: `#44aa44`, borderColor: `#44aa44` }
+                                : { background: `#777777`, borderColor: `#777777` }),
+                            top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                            left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                            borderTopRightRadius: `0px`,
+                            borderBottomRightRadius: `0px`,
+                        }}
+                        // className="hover:top-0"
+                    >
+                        <div className="absolute right-0 opacity-0 hover:opacity-100">
+                            <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 right-4">
+                                {key}
+                            </div>
+                        </div>
+                    </Handle>
+                </React.Fragment>
             ))}
             {Object.entries(data.outputs).map(([key, value], index) => (
-                <Handle
-                    key={key}
-                    type="source"
-                    position={Position.Right}
-                    id={key}
-                    style={{
-                        width: `12px`,
-                        height: `12px`,
-                        ...(value.hasSubscribers
-                            ? { background: `#44aa44`, borderColor: `#44aa44` }
-                            : { background: `#777777`, borderColor: `#777777` }),
-                        top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
-                        right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-                        borderTopLeftRadius: `0px`,
-                        borderBottomLeftRadius: `0px`,
-                    }}
-                >
-                    <div className="absolute left-0 opacity-0 hover:opacity-100">
-                        <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 left-4">
-                            {key}
+                <React.Fragment key={key}>
+                    <Handle
+                        type="source"
+                        position={Position.Right}
+                        id={key}
+                        style={{
+                            width: `12px`,
+                            height: `12px`,
+                            ...(value.hasSubscribers
+                                ? { background: `#44aa44`, borderColor: `#44aa44` }
+                                : { background: `#777777`, borderColor: `#777777` }),
+                            top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                            right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                            borderTopLeftRadius: `0px`,
+                            borderBottomLeftRadius: `0px`,
+                        }}
+                    >
+                        <div className="absolute left-0 opacity-0 hover:opacity-100">
+                            <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-100 border-slate-400 bottom-2 left-4">
+                                {key}
+                            </div>
                         </div>
-                    </div>
-                </Handle>
+                    </Handle>
+                </React.Fragment>
             ))}
         </>
     );
@@ -172,9 +186,9 @@ export const textFileNodeType = registry.registerSimpleNodeType({
         const content = (await loadFileText(inputs)) ?? ``;
         return {
             content: content,
-            onContentChange: (value: string) => {
+            onContentChange: async (value: string) => {
                 // if (value === content) return;
-                void saveFileText(inputs, value);
+                await saveFileText(inputs, value);
                 refresh();
             },
         };
@@ -209,7 +223,7 @@ const loadFileText = async (data: { workflowServerUrl: string; path: string }) =
         console.error(`Failed to load file: ${response.status} ${response.statusText}`);
         return;
     }
-    const fileContent = await response.text();
+    const fileContent = (await response.text()).replace(/\r\n/g, `\n`);
     console.log(`Loaded file content: ${fileContent}`);
     return fileContent;
 };
