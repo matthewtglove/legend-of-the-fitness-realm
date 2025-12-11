@@ -27,8 +27,8 @@ export const ExampleInputNumberComponent = ({
 }) => {
     return (
         <>
-            <div className="flex flex-col flex-1 w-full h-full">
-                <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} />
+            <div className="flex flex-col flex-1 w-full h-full gap-1">
+                <input className="p-1" type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} />
                 <div className="overflow-hidden whitespace-pre bg-gray-200">{text}</div>
             </div>
         </>
