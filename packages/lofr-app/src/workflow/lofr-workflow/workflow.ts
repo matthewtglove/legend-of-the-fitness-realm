@@ -114,4 +114,16 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     },
     text: a_narrativeEngine
   });
+  workflowEditorController.addComponent({
+    id: `n-example-component-03`,
+    path: `../../workflow/lofr-workflow/example-component.tsx`,
+    exportName: `ExampleComponent`,
+    defaults: {
+      inputs: {
+        text: ``,
+      },
+      outputs: {},
+    },
+    text: c_narrativeEngineTrimmed
+  });
 };

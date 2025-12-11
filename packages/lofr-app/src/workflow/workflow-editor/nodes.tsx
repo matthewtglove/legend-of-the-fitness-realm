@@ -163,8 +163,10 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
     return (
         <>
             <div className="w-full h-full bg-white border border-gray-400 rounded shadow-md">
-                <div className="flex flex-row items-center bg-gray-200 border-b border-gray-800">
-                    <div className="font-mono text-sm">{data.path}</div>
+                <div className="flex flex-row items-center gap-1 bg-gray-200 border-b border-gray-800">
+                    <div className="font-mono text-sm">
+                        {data.path} {data.exportName ?? ``}
+                    </div>
                     <div className="flex-grow" />
                     <button
                         className="self-stretch px-2 py-1 text-xs text-white bg-blue-500 hover:opacity-80 active:opacity-70"

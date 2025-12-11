@@ -181,7 +181,7 @@ const ReactFlowView = (props: {
                         sourceHandle: handleId,
                         target: args.id,
                         targetHandle: inputKey,
-                        className: `opacity-30 hover:opacity-100`,
+                        className: `opacity-50 hover:opacity-100`,
                         // reset stale marker
                         _stale: false,
                     };
