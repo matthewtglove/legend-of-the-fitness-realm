@@ -62,16 +62,16 @@ export type WorkflowEditorController = {
     addTextNode: (args: {
         id: string,
         content: WorkflowObservableLike<string>,
-        onChange?: undefined | WorkflowObservableLike<undefined | ((value: string) => void)>,
+        onContentChange?: undefined | WorkflowObservableLike<undefined | ((value: string) => void)>,
         startAtLine?: undefined | WorkflowObservableLike<undefined | string>,
         endAtLine?: undefined | WorkflowObservableLike<undefined | string>
     }) => WorkflowNodeAddResult<{
         content: WorkflowObservable<string>;
-        onChange: WorkflowObservable<undefined | ((value: string) => void)>;
+        onContentChange: WorkflowObservable<undefined | ((value: string) => void)>;
     }>;
     addTextFileNode: (args: { id: string, path: string }) => WorkflowNodeAddResult<{
         content: WorkflowObservable<string>;
-        onChange: WorkflowObservable<undefined | ((value: string) => void)>;
+        onContentChange: WorkflowObservable<undefined | ((value: string) => void)>;
     }>
     addComponent: (args: { id: string, path: string, exportName: string }) => void;
 };

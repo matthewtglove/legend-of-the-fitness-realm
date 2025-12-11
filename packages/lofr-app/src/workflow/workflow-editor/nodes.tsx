@@ -165,16 +165,15 @@ export const textFileNodeType = registry.registerSimpleNodeType({
         },
         outputs: {
             content: ``,
-            onChange: undefined as undefined | ((value: string) => void),
+            onContentChange: undefined as undefined | ((value: string) => void),
         },
     },
     execute: async (inputs: { workflowServerUrl: string; path: string }) => {
         const content = await loadFileText(inputs);
         return {
             content: content ?? ``,
-            onChange: (value: string) => {
-                console.log(`[textFileNodeType:execute:onChange]`, { value });
-                // void saveFileText(inputs, value);
+            onContentChange: (value: string) => {
+                void saveFileText(inputs, value);
             },
         };
     },
@@ -284,18 +283,18 @@ export const textNodeType = registry.registerSimpleNodeType({
     defaults: {
         inputs: {
             content: ``,
-            onChange: undefined as undefined | ((value: string) => void),
+            onContentChange: undefined as undefined | ((value: string) => void),
             startAtLine: undefined as undefined | string,
             endAtLine: undefined as undefined | string,
         },
         outputs: {
             content: ``,
-            onChange: undefined as undefined | ((value: string) => void),
+            onContentChange: undefined as undefined | ((value: string) => void),
         },
     },
     execute: async (inputs: {
         content: string;
-        onChange: undefined | ((value: string) => void);
+        onContentChange: undefined | ((value: string) => void);
         startAtLine: undefined | string;
         endAtLine: undefined | string;
     }) => {
@@ -327,7 +326,7 @@ export const textNodeType = registry.registerSimpleNodeType({
         console.log(`[textNodeType:execute] DONE`, { inputs, trimmedText });
         return {
             content: trimmedText,
-            onChange: !inputs.onChange
+            onContentChange: !inputs.onContentChange
                 ? undefined
                 : (value: string) => {
                       const beforeStartText = !inputs.startAtLine
@@ -337,13 +336,21 @@ export const textNodeType = registry.registerSimpleNodeType({
                           ? ``
                           : inputs.content.substring(beforeStartText.length + trimmedText.length);
                       const replaced = beforeStartText + value + afterEndText;
-                      inputs.onChange!(replaced);
+
+                      console.log(`[textNodeType:execute:onChange]`, {
+                          value,
+                          replaced,
+                          beforeStartText,
+                          trimmedText,
+                          afterEndText,
+                      });
+                      inputs.onContentChange!(replaced);
                   },
         };
     },
     Component: (props) => {
         const inputContent = useObservable(props.data.inputs.content);
-        const onChange = useObservable(props.data.inputs.onChange);
+        const onContentChange = useObservable(props.data.inputs.onContentChange);
         const startAtLine = useObservable(props.data.inputs.startAtLine);
         const endAtLine = useObservable(props.data.inputs.endAtLine);
         const outputContent = useObservable(props.data.outputs.content);
@@ -356,7 +363,7 @@ export const textNodeType = registry.registerSimpleNodeType({
                         startAtLine,
                         endAtLine,
                         content: outputContent ?? inputContent,
-                        onChange,
+                        onContentChange,
                         before: outputContent
                             ? inputContent.substring(0, inputContent.indexOf(outputContent))
                             : undefined,
@@ -377,7 +384,7 @@ const TextNode = ({
     selected: boolean;
     data: {
         content: string;
-        onChange: undefined | ((value: string) => void);
+        onContentChange: undefined | ((value: string) => void);
         before?: string;
         after?: string;
         startAtLine?: string;
@@ -395,17 +402,17 @@ const TextNode = ({
     return (
         <>
             <div className="flex flex-col w-full h-full p-1 whitespace-pre-wrap border border-gray-400 rounded shadow-md bg-slate-100">
-                {!!data.onChange && (
+                {!!data.onContentChange && data.content && (
                     <div className="w-full h-full pb-8 nodrag nopan nowheel">
                         <TextCodeEditorComponent
                             value={data.content}
-                            onChange={data.onChange}
-                            onSave={(x) => data.onChange?.(x)}
+                            onChange={(x) => data.onContentChange?.(x)}
+                            onSave={(x) => data.onContentChange?.(x)}
                             isSelected={selected}
                         />
                     </div>
                 )}
-                {!data.onChange && isLong && (
+                {!data.onContentChange && isLong && (
                     <>
                         {data.startAtLine && (
                             <div className="flex flex-row items-center gap-1">
@@ -441,7 +448,7 @@ const TextNode = ({
                         )}
                     </>
                 )}
-                {!data.onChange && !isLong && (
+                {!data.onContentChange && !isLong && (
                     <>
                         <div className="flex flex-col items-center justify-center">{data.content}</div>
                     </>

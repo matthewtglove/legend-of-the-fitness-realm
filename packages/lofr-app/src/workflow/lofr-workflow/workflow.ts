@@ -20,49 +20,49 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   a_narrativeEngine.name = `a_narrativeEngine`;
   workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: a_narrativeEngine });
 
-  const { content: b_systemTypes, onChange: b_systemTypesOnChange } = workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
+  const { content: b_systemTypes, onContentChange: b_systemTypesOnChange } = workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
   b_systemTypes.name = `b_systemTypes`;
   workflowEditorController.addTextNode({
     id: `n-title-${iTitle++}`,
     content: b_systemTypes,
-    onChange: b_systemTypesOnChange,
+    onContentChange: b_systemTypesOnChange,
     startAtLine: `export type LofrWorkoutTimer`,
     endAtLine: `};`
   });
   workflowEditorController.addTextNode({
     id: `n-title-${iTitle++}`,
     content: b_systemTypes,
-    onChange: b_systemTypesOnChange,
+    onContentChange: b_systemTypesOnChange,
     startAtLine: `export type LofrWorkoutBuilder`,
     endAtLine: `};`
   });
   workflowEditorController.addTextNode({
     id: `n-title-${iTitle++}`,
     content: b_systemTypes,
-    onChange: b_systemTypesOnChange,
+    onContentChange: b_systemTypesOnChange,
     startAtLine: `export type LofrWorkoutGame`,
     endAtLine: `};`
   });
   workflowEditorController.addTextNode({
     id: `n-title-${iTitle++}`,
     content: b_systemTypes,
-    onChange: b_systemTypesOnChange,
+    onContentChange: b_systemTypesOnChange,
     startAtLine: `export type LofrMiniGame`,
     endAtLine: `};`
   });
-  const { content: c_narrativeEngineTrimmed, onChange: c_narrativeEngineTrimmedOnChange } = workflowEditorController.addTextNode({
+  const { content: c_narrativeEngineTrimmed, onContentChange: c_narrativeEngineTrimmedOnChange } = workflowEditorController.addTextNode({
     id: `n-title-${iTitle++}`,
     content: b_systemTypes,
-    onChange: b_systemTypesOnChange,
+    onContentChange: b_systemTypesOnChange,
     startAtLine: `export type LofrNarrativeEngine`,
     endAtLine: `};`
   });
   c_narrativeEngineTrimmed.name = `c_narrativeEngineTrimmed`;
-  workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: c_narrativeEngineTrimmed, onChange: c_narrativeEngineTrimmedOnChange });
+  workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: c_narrativeEngineTrimmed, onContentChange: c_narrativeEngineTrimmedOnChange });
   workflowEditorController.addTextNode({
     id: `n-title-${iTitle++}`,
     content: b_systemTypes,
-    onChange: b_systemTypesOnChange,
+    onContentChange: b_systemTypesOnChange,
     startAtLine: `/**
 
 # Systems`,
