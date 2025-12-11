@@ -26,7 +26,7 @@ export const CodeLanguageSelector = ({
             <select
                 value={value}
                 onChange={(e) => changeLanguage(e.target.value as CodeLanguage)}
-                className="p-1 bg-gray-200 border border-gray-300 rounded focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="p-0.5 text-xs bg-gray-200 border border-gray-300 rounded focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
                 {languages.map((lang) => (
                     <option key={lang} value={lang}>
