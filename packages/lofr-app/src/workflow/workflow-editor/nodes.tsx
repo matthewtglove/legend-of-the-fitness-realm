@@ -335,12 +335,15 @@ export const textNodeType = registry.registerSimpleNodeType({
             onContentChange: undefined as undefined | ((value: string) => void),
         },
     },
-    execute: async (inputs: {
-        content: string;
-        onContentChange: undefined | ((value: string) => void);
-        startAtLine: undefined | string;
-        endAtLine: undefined | string;
-    }) => {
+    execute: async (
+        inputs: {
+            content: string;
+            onContentChange: undefined | ((value: string) => void);
+            startAtLine: undefined | string;
+            endAtLine: undefined | string;
+        },
+        { refresh },
+    ) => {
         console.log(`[textNodeType:execute] START`, { inputs });
         const [beforeStartText, afterStartText] = !inputs.startAtLine
             ? [``, inputs.content]
@@ -390,15 +393,16 @@ export const textNodeType = registry.registerSimpleNodeType({
                           doesMatch: inputs.content === beforeStartText + middleText + afterEndText,
                       });
                       inputs.onContentChange!(replaced);
+                      refresh();
                   },
         };
     },
     Component: (props) => {
         const inputContent = useObservable(props.data.inputs.content);
-        const onContentChange = useObservable(props.data.inputs.onContentChange);
         const startAtLine = useObservable(props.data.inputs.startAtLine);
         const endAtLine = useObservable(props.data.inputs.endAtLine);
         const outputContent = useObservable(props.data.outputs.content);
+        const onContentChange = useObservable(props.data.outputs.onContentChange);
 
         return (
             <NodeWrapper {...props}>
