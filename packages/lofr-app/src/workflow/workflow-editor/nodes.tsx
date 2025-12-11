@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createRegistry, WorkflowObservable } from './types';
 import '@xyflow/react/dist/style.css';
 import { NodeResizer, Handle, Position } from '@xyflow/react';
-import { useObservable } from './use-observable';
+import { useObservable, useObservableRecord } from './use-observable';
 import { TextCodeEditorComponent } from './code-editor/text-code-editor-main';
 
 const debug = false;
@@ -123,15 +123,18 @@ export const componentNodeType = registry.registerSimpleNodeType({
         return {};
     },
     Component: (props) => {
-        const path = useObservable(props.data.inputs.path);
-        const exportName = useObservable(props.data.inputs.exportName);
+        // const path = useObservable(props.data.inputs.path);
+        // const exportName = useObservable(props.data.inputs.exportName);
+        const inputs = useObservableRecord(props.data.inputs);
+        // const outputs = useObservableRecord(props.data.outputs);
         return (
             <NodeWrapper {...props}>
                 <ComponentNode
                     {...props}
                     data={{
-                        path,
-                        exportName,
+                        // path,
+                        // exportName,
+                        ...inputs,
                     }}
                 />
             </NodeWrapper>
@@ -146,7 +149,7 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
     };
 
     // lazy load react component from path
-    const [component, setComponent] = useState({ Component: (() => null) as React.ComponentType });
+    const [component, setComponent] = useState({ Component: (() => null) as React.ComponentType<typeof data> });
     useEffect(() => {
         setComponent({
             Component: React.lazy(() =>
@@ -174,7 +177,7 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
                 </div>
                 <div className="nodrag nopan nowheel">
                     <React.Suspense fallback={<div>Loading...</div>}>
-                        <component.Component />
+                        <component.Component {...data} />
                     </React.Suspense>
                 </div>
             </div>

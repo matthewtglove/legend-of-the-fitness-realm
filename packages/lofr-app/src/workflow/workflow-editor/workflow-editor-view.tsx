@@ -127,6 +127,10 @@ const ReactFlowView = (props: {
 
             const m = metadataRef.current[args.id];
             const data = nodeType.load(args);
+            // const data = {
+            //     inputs: { ...dataRaw.inputs, ...((args as { defaults?: typeof dataRaw }).defaults?.inputs ?? {}) },
+            //     outputs: { ...dataRaw.outputs, ...((args as { defaults?: typeof dataRaw }).defaults?.outputs ?? {}) },
+            // };
 
             setNodes((s) => {
                 const old = s.find((x) => x.id === args.id);
@@ -222,7 +226,7 @@ const ReactFlowView = (props: {
             },
             addTextFileNode: (args) => addNode(textFileNodeType, { ...args, workflowServerUrl }),
             addTextNode: (args) => addNode(textNodeType, args as Required<typeof args>),
-            addComponent: (args) => addNode(componentNodeType, args),
+            addComponent: (args) => addNode(componentNodeType, args as Required<typeof args>),
         };
         // setNodes([]);
         // setEdges([]);
