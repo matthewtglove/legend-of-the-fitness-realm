@@ -169,7 +169,7 @@ const ReactFlowView = (props: {
 
                 const edgeId = `${nodeId}-${handleId}-${args.id}-${inputKey}`;
                 setEdges((s) => {
-                    const old = s.find((x) => x.id !== edgeId);
+                    const old = s.find((x) => x.id === edgeId);
 
                     const newValue = {
                         id: edgeId,
