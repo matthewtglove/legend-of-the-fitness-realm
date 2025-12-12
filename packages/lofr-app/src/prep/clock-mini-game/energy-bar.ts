@@ -196,29 +196,24 @@ export const animateEnergyBar = (
     const ctx = canvas.getContext(`2d`);
     if (!ctx) return;
 
-    let currentCharge = 0; // Starts at 0
-    let maxCharge = 75;    // Derived from sleep tracking (5 cycles = 75%)
+    let currentCharge = 0;
+    let maxCharge = 0;
 
     function animate() {
         if (!ctx) return;
 
-        // 1. Increment charge (simulate filling up)
         if (currentCharge < maxCharge) {
             currentCharge += 0.5;
         }
 
-        // 2. Calculate Jitter
-        // No jitter when empty, high jitter when full
-        const volatility = (currentCharge / 100) * 3;
+        // console.log(`Animating Energy Bar:`, { currentCharge, maxCharge, width: canvas.width, height: canvas.height });
 
-        // 3. Draw Frame
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
         renderEnergyScene(canvas, ctx, {
             width: canvas.width,
             height: canvas.height,
             percentage: currentCharge,
-            jitterIntensity: volatility
+            jitterIntensity: (currentCharge / 100) * 3
         });
 
         animationFrameId = requestAnimationFrame(animate);
@@ -229,7 +224,14 @@ export const animateEnergyBar = (
         start: (args: {
             startCharge: number,
             endCharge: number
-        }) => { currentCharge = args.startCharge; maxCharge = args.endCharge; },
-        stop: () => { cancelAnimationFrame(animationFrameId); }
+        }) => {
+            currentCharge = args.startCharge;
+            maxCharge = args.endCharge;
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(animate);
+        },
+        stop: () => {
+            cancelAnimationFrame(animationFrameId);
+        }
     };
 }

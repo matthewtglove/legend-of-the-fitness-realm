@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createRegistry, WorkflowObservable } from './types';
+import { createRegistry, WorkflowObservable, WorkflowSubject } from './types';
 import '@xyflow/react/dist/style.css';
 import { NodeResizer, Handle, Position } from '@xyflow/react';
 import { useObservable, useObservableRecord } from './use-observable';
@@ -536,3 +536,42 @@ const TextNode = ({
         </>
     );
 };
+
+export const numberNodeType = registry.registerSimpleNodeType({
+    typeName: `number`,
+    defaults: {
+        inputs: {
+            label: `number`,
+            value: 0,
+        },
+        outputs: {
+            value: 0,
+        },
+    },
+    execute: async (inputs: { value: number; label: string }) => {
+        return {
+            value: inputs.value,
+        };
+    },
+    Component: (props) => {
+        const value = useObservable(props.data.inputs.value);
+        const label = useObservable(props.data.inputs.label);
+
+        return (
+            <NodeWrapper {...props}>
+                <div className="flex flex-row items-center gap-1 p-1 bg-slate-300">
+                    <div className="mb-1 text-sm font-bold text-center">{label}</div>
+                    <input
+                        type="number"
+                        value={value}
+                        className="w-full p-1 text-center border border-gray-400 rounded shadow-md nodrag nopan nowheel"
+                        onChange={(e) => {
+                            const v = Number(e.target.value);
+                            (props.data.inputs.value as WorkflowSubject<number>).next(v);
+                        }}
+                    />
+                </div>
+            </NodeWrapper>
+        );
+    },
+});

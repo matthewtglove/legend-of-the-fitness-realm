@@ -1,3 +1,4 @@
+import { animateEnergyBar } from "../../prep/clock-mini-game/energy-bar";
 import { createObservable, WorkflowEditorController } from "../workflow-editor/types";
 import { _includeInHmr } from "./_hmr";
 import { exampleFun } from "./example-fun";
@@ -185,5 +186,59 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   workflowEditorController.addTextNode({
     id: `n-example-component-05-output-display`,
     content: x_lines
+  });
+
+
+  const n_startEnergy = workflowEditorController.addNumberNode({
+    id: `n-startEnergy`,
+    label: `Start Energy`,
+    value: 0
+  });
+  const n_endEnergy = workflowEditorController.addNumberNode({
+    id: `n-endEnergy`,
+    label: `End Energy`,
+    value: 50
+  });
+
+  workflowEditorController.addComponent({
+    id: `n-energy-bar`,
+    path: `../../prep/clock-mini-game/canvas-2d-view.tsx`,
+    exportName: `Canvas2dView`,
+    inputs: {
+      createDrawing: (canvas: HTMLCanvasElement) => {
+        const drawing = animateEnergyBar(canvas);
+        if (!drawing) throw new Error(`Failed to create energy bar drawing`);
+
+        const subs = [] as { unsubscribe: () => void }[];
+        subs.push(n_startEnergy.value.subscribe(() => {
+          drawing.start({
+            startCharge: n_startEnergy.value.lastValue,
+            endCharge: n_endEnergy.value.lastValue,
+          })
+        }));
+        subs.push(n_endEnergy.value.subscribe(() => {
+          drawing.start({
+            startCharge: n_startEnergy.value.lastValue,
+            endCharge: n_endEnergy.value.lastValue,
+          })
+        }));
+
+        return {
+          start: () => {
+            drawing.start({
+              startCharge: n_startEnergy.value.lastValue,
+              endCharge: n_endEnergy.value.lastValue,
+            })
+          },
+          stop: () => {
+            drawing.stop()
+          },
+          destroy: () => {
+            subs.forEach(s => s.unsubscribe());
+          }
+        };
+      },
+    },
+
   });
 };

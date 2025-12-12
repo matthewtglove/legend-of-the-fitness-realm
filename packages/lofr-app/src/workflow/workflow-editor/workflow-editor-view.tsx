@@ -14,7 +14,7 @@ import {
     Edge,
     NodeTypes,
 } from '@xyflow/react';
-import { componentNodeType, registry, textFileNodeType, textNodeType } from './nodes';
+import { componentNodeType, numberNodeType, registry, textFileNodeType, textNodeType } from './nodes';
 
 export const WorkflowEditorView = (props: {
     loader: undefined | ((controller: WorkflowEditorController, abortController: AbortController) => Promise<void>);
@@ -226,6 +226,7 @@ const ReactFlowView = (props: {
             },
             addTextFileNode: (args) => addNode(textFileNodeType, { ...args, workflowServerUrl }),
             addTextNode: (args) => addNode(textNodeType, args as Required<typeof args>),
+            addNumberNode: (args) => addNode(numberNodeType, args as Required<typeof args>),
             addComponent: (args) => addNode(componentNodeType, args as Required<typeof args>),
         };
         // setNodes([]);

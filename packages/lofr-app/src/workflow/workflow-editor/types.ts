@@ -77,6 +77,13 @@ export type WorkflowEditorController = {
         content: WorkflowObservable<string>;
         onContentChange: WorkflowObservable<undefined | ((value: string) => void)>;
     }>;
+    addNumberNode: (args: {
+        id: string,
+        value: WorkflowObservableLike<number>,
+        label: WorkflowObservableLike<string>,
+    }) => WorkflowNodeAddResult<{
+        value: WorkflowObservable<number>,
+    }>;
     addTextFileNode: (args: { id: string, path: string }) => WorkflowNodeAddResult<{
         content: WorkflowObservable<string>;
         onContentChange: WorkflowObservable<undefined | ((value: string) => void)>;
