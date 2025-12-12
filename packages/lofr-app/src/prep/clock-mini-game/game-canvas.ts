@@ -106,12 +106,13 @@ export const createPocketWatchGame = (
 
     // Helper to get the visual layout on the screen
     // We need this for both Drawing and Input mapping
-    const getLayout = () => {
-        const scale = Math.min(canvas.width / GAME_SIZE, canvas.height / GAME_SIZE);
+    const getLayout = (size = undefined as undefined | { width: number, height: number }) => {
+        size = size || { width: canvas.width, height: canvas.height };
+        const scale = Math.min(size.width / GAME_SIZE, size.height / GAME_SIZE);
         const width = GAME_SIZE * scale;
         const height = GAME_SIZE * scale;
-        const x = (canvas.width - width) / 2;
-        const y = (canvas.height - height) / 2;
+        const x = (size.width - width) / 2;
+        const y = (size.height - height) / 2;
         return { x, y, width, height, scale };
     };
 
@@ -128,7 +129,7 @@ export const createPocketWatchGame = (
         const physicalY = (clientY - rect.top) * dpr;
 
         // 3. Map Physical Coords to Buffer Coords using the Aspect Ratio Layout
-        const layout = getLayout();
+        const layout = getLayout(rect);
 
         // (Physical Mouse - Offset) / Scale = Buffer Coordinate
         const bufferX = (physicalX - layout.x) / layout.scale;
