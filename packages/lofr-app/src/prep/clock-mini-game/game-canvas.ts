@@ -64,6 +64,7 @@ export const createPocketWatchGame = (
     let isDragging = false;
     let draggingHand: `hour` | `minute` | null = null;
     let lastDragAngle = 0;
+    let lastPointerPos = { x: 0, y: 0 };
 
     // Target Calculation (Converted to 0-720 scale)
     const tH = targetTime.hour % 12;
@@ -249,7 +250,7 @@ export const createPocketWatchGame = (
 
     // --- Interaction Handlers ---
     const handleStart = (e: MouseEvent | TouchEvent) => {
-        const { x, y } = getPointerPos(e); // returns Buffer Coordinates
+        const { x, y } = lastPointerPos = getPointerPos(e); // returns Buffer Coordinates
         const dx = x - targetCenterX;
         const dy = y - targetCenterY;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -302,7 +303,7 @@ export const createPocketWatchGame = (
         if (!isDragging || !draggingHand) return;
         if (e.type === `touchmove`) e.preventDefault();
 
-        const { x, y } = getPointerPos(e);
+        const { x, y } = lastPointerPos = getPointerPos(e);
         const currentDragAngle = Math.atan2(y - targetCenterY, x - targetCenterX);
 
         let deltaRads = currentDragAngle - lastDragAngle;
@@ -441,6 +442,18 @@ export const createPocketWatchGame = (
                 percentage: energyLevel,
                 jitterIntensity: 3 * (energyLevel / 100),
             });
+            bufferCtx.restore();
+        }
+
+        // draw cursor
+        if (isDragging) {
+            bufferCtx.save();
+            const { x, y } = lastPointerPos;
+            bufferCtx.translate(x, y);
+            bufferCtx.fillStyle = `#555555`;
+            bufferCtx.beginPath();
+            bufferCtx.arc(0, 0, 3, 0, TWO_PI);
+            bufferCtx.fill();
             bufferCtx.restore();
         }
 
