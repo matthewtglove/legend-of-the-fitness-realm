@@ -26,6 +26,18 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   // const { content: a_narrativeEngine } = workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `NarrativeEngine` });
   // a_narrativeEngine.name = `a_narrativeEngine`;
   // workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: a_narrativeEngine });
+  // workflowEditorController.addComponent({
+  //   id: `n-example-component-02`,
+  //   path: `../../workflow/lofr-workflow/example-component.tsx`,
+  //   exportName: `ExampleComponent`,
+  //   defaults: {
+  //     inputs: {
+  //       text: ``,
+  //     },
+  //     outputs: {},
+  //   },
+  //   text: a_narrativeEngine
+  // });
 
   // let iTitle = 6;
   // const { content: b_systemTypes, onContentChange: b_systemTypesOnChange } = workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
@@ -92,8 +104,6 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   workflowEditorController.addTextFileNode({ id: `n-workflow`, path: `workflow/lofr-workflow/workflow.ts` });
   workflowEditorController.addTextFileNode({ id: `n-workflow-metadata`, path: `workflow/lofr-workflow/workflow.metadata.json` });
 
-  const todoNode = workflowEditorController.addTextFileNode({ id: `n-todo`, path: `workflow/todo.md` });
-
   workflowEditorController.addTextFileNode({ id: `n-example-fun`, path: `workflow/lofr-workflow/example-fun.ts` });
   workflowEditorController.addTextNode({ id: `n-example-fun-result`, content: exampleFun() });
 
@@ -122,35 +132,12 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     },
     text: `hello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\n`
   });
-  // workflowEditorController.addComponent({
-  //   id: `n-example-component-02`,
-  //   path: `../../workflow/lofr-workflow/example-component.tsx`,
-  //   exportName: `ExampleComponent`,
-  //   defaults: {
-  //     inputs: {
-  //       text: ``,
-  //     },
-  //     outputs: {},
-  //   },
-  //   text: a_narrativeEngine
-  // });
 
-
+  const todoNode = workflowEditorController.addTextFileNode({ id: `n-todo`, path: `workflow/todo.md` });
   workflowEditorController.addComponent({
     id: `n-example-component-input-04`,
     path: `../../workflow/lofr-workflow/example-component.tsx`,
     exportName: `ExampleInputComponent`,
-    // defaults: {
-    //   inputs: {
-    //     value: ``,
-    //     onChange: (value: string) => {
-    //       console.log(`ExampleInputComponent onChange`, value);
-    //     },
-    //   },
-    //   outputs: {},
-    // },
-    // value: todoNode.content,
-    // onChange: todoNode.onContentChange,
     inputs: {
       value: todoNode.content,
       onChange: todoNode.onContentChange,
