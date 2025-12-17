@@ -224,6 +224,13 @@ const ReactFlowView = (props: {
                 metadataRef.current = loadedMetadata as typeof metadataRef.current;
                 console.log(`Workflow metadata loaded:`, metadataRef.current);
             },
+            addNode: (typeName, args) => {
+                const nodeType = registry.nodeTypes[typeName];
+                if (!nodeType) {
+                    throw new Error(`Unknown node type: ${typeName}`);
+                }
+                return addNode(nodeType, args);
+            },
             addTextFileNode: (args) => addNode(textFileNodeType, { ...args, workflowServerUrl }),
             addTextNode: (args) => addNode(textNodeType, args as Required<typeof args>),
             addNumberNode: (args) => addNode(numberNodeType, args as Required<typeof args>),

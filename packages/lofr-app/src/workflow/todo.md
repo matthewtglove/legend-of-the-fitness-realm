@@ -31,11 +31,14 @@
     - [x] add output example
 - [ ] {1 hour} edit workflow from workflow
     - [] {5 mins} plan hour
-    - [] {10 mins} create generateWorkflow
-    - [] {5 mins} create generateWorkflow preview node
+    - [] {5 mins} display node instance json in node preview mode
+    - [] {10 mins} create generateWorkflowDataDocument
+    - [] {5 mins} create generateWorkflowDataDocument preview node (for the whole workflow)
+    - [] {5 mins} loadWorkflowDocument = async (document: WorkflowDocument, workflowEditorController: WorkflowEditorController, abortController: AbortController)
     - [] {5 mins} edit literal input value
     - [] {5 mins} add edge
     - [] {5 mins} add node
+- [ ] {1 hour} edit workflow node definition from workflow
 - [ ] {1 hour} complete MiniGame_NightPrep as LofrMiniGame
     - [] {5 mins} plan 1st hour
     - [] {5 mins} plan 2nd hour

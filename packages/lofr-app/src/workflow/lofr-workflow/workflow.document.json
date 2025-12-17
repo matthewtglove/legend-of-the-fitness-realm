@@ -1,0 +1,30 @@
+{
+  "imports": [
+    {
+      "path": "../workflow-editor/nodes.tsx",
+      "name": "numberNodeType"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n-doc-number-1",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "value",
+          "value": 42
+        },
+        {
+          "inputName": "label",
+          "value": "The Answer"
+        }
+      ],
+      "position": {
+        "x": -600,
+        "y": 200,
+        "width": 200,
+        "height": 100
+      }
+    }
+  ]
+}

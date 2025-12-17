@@ -49,6 +49,7 @@ import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
     -   can provide skins for the WorkoutGame and other MiniGames
 
  */
+
 export const lofrSystemTypesDummy = null;
 
 type Observable<T> = {

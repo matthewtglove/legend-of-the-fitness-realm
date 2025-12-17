@@ -1,7 +1,9 @@
 import { animateEnergyBar } from "../../prep/clock-mini-game/energy-bar";
+import { loadWorkflowDocument } from "../workflow-editor/loader";
 import { createObservable, WorkflowEditorController } from "../workflow-editor/types";
 import { _includeInHmr } from "./_hmr";
 import { exampleFun } from "./example-fun";
+import lofrWorkflowDocument from "./workflow.document.json";
 
 const workflowServerUrl = `http://localhost:7601`;
 
@@ -10,6 +12,9 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
 
   workflowEditorController.setWorkflowServerUrl(workflowServerUrl);
   await workflowEditorController.setWorkflowMetadataPath(`workflow/lofr-workflow/workflow.metadata.json`);
+  if (abortController.signal.aborted) return;
+
+  await loadWorkflowDocument(lofrWorkflowDocument, workflowEditorController, abortController);
   if (abortController.signal.aborted) return;
 
   let iTitle = 0;
@@ -188,6 +193,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     content: x_lines
   });
 
+  workflowEditorController.addTextFileNode({ id: `n-energy-bar-code`, path: `prep/clock-mini-game/energy-bar.ts` });
 
   const n_startEnergy = workflowEditorController.addNumberNode({
     id: `n-startEnergy`,
@@ -198,6 +204,11 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     id: `n-endEnergy`,
     label: `End Energy`,
     value: 50
+  });
+  const n_speed = workflowEditorController.addNumberNode({
+    id: `n-speed`,
+    label: `Speed`,
+    value: 100
   });
 
   workflowEditorController.addComponent({
@@ -214,12 +225,21 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
           drawing.start({
             startCharge: n_startEnergy.value.lastValue,
             endCharge: n_endEnergy.value.lastValue,
+            speed: n_speed.value.lastValue,
           })
         }));
         subs.push(n_endEnergy.value.subscribe(() => {
           drawing.start({
             startCharge: n_startEnergy.value.lastValue,
             endCharge: n_endEnergy.value.lastValue,
+            speed: n_speed.value.lastValue,
+          })
+        }));
+        subs.push(n_speed.value.subscribe(() => {
+          drawing.start({
+            startCharge: n_startEnergy.value.lastValue,
+            endCharge: n_endEnergy.value.lastValue,
+            speed: n_speed.value.lastValue,
           })
         }));
 
@@ -228,6 +248,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
             drawing.start({
               startCharge: n_startEnergy.value.lastValue,
               endCharge: n_endEnergy.value.lastValue,
+              speed: n_speed.value.lastValue,
             })
           },
           stop: () => {

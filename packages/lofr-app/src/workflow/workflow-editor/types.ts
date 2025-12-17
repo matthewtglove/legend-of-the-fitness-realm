@@ -67,6 +67,7 @@ export const createObservableName = (defaultValue?: string) => {
 export type WorkflowEditorController = {
     setWorkflowServerUrl: (url: string) => void;
     setWorkflowMetadataPath: (path: string) => Promise<void>;
+    addNode: (typeName: string, args: { id: string } & Record<string, WorkflowObservableLike<unknown>>) => WorkflowNodeAddResult<Record<string, WorkflowObservable<unknown>>>;
     addTextNode: (args: {
         id: string,
         content: WorkflowObservableLike<string>,
@@ -277,4 +278,18 @@ export const createRegistry = (): WorkflowRegistry => {
             return nodeType;
         },
     };
+}
+
+export type WorkflowDocument = {
+    imports: {
+        path: string;
+        name: string;
+    }[];
+    nodes: {
+        id: string;
+        typeName: string;
+        inputEdges?: { inputName: string; fromNodeId: string; fromOutputName: string }[];
+        inputLiterals?: { inputName: string; value: string | number }[];
+        position?: { x: number; y: number; width?: number; height?: number };
+    }[];
 }
