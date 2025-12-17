@@ -121,8 +121,9 @@ const ReactFlowView = (props: {
             TOutputs extends Record<string, WorkflowObservable<unknown>>,
         >(
             nodeType: WorkflowNodeType<TArgs, TInputs, TOutputs>,
-            args: TArgs,
+            argsRaw: TArgs,
         ) => {
+            const args = { ...argsRaw, workflowServerUrl };
             console.log(`[addNode] adding ${args.id}: ${nodeType.typeName}`, { nodeType, args });
 
             const m = metadataRef.current[args.id];

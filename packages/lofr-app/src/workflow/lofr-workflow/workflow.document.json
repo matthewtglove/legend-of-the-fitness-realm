@@ -101,6 +101,209 @@
           "fromOutputName": "content"
         }
       ]
+    },
+    {
+      "id": "n-system-types",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "systems/lofr-system-types.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-title-6",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrWorkoutTimer"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-7",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrWorkoutBuilder"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-8",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrWorkoutGame"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-9",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrMiniGame"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-10",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrNarrativeEngine"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-11",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-title-10",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-title-10",
+          "fromOutputName": "onContentChange"
+        }
+      ]
+    },
+    {
+      "id": "n-title-12",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "/**\n\n# Systems"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": " */"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-03",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleComponent"
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "text",
+          "fromNodeId": "n-title-10",
+          "fromOutputName": "content"
+        }
+      ]
     }
   ]
 }
