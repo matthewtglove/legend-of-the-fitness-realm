@@ -304,6 +304,92 @@
           "fromOutputName": "content"
         }
       ]
+    },
+    {
+      "id": "n-workflow",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "workflow/lofr-workflow/workflow.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-workflow-metadata",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "workflow/lofr-workflow/workflow.metadata.json"
+        }
+      ]
+    },
+    {
+      "id": "n-example-fun",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "workflow/lofr-workflow/example-fun.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-clock-mini-game-code",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "prep/clock-mini-game/game-view.tsx"
+        }
+      ]
+    },
+    {
+      "id": "n-clock-mini-game",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../prep/clock-mini-game/game-view.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "MiniGame_PocketWatch"
+        }
+      ]
+    },
+    {
+      "id": "n-app",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../app.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "AppInner"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleComponent"
+        },
+        {
+          "inputName": "text",
+          "value": "hello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\n"
+        }
+      ]
     }
   ]
 }
