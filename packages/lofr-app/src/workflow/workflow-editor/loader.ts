@@ -22,10 +22,14 @@ export const loadWorkflowDocument = async (document: WorkflowDocument, workflowE
             return output;
         }
 
-        const result = workflowEditorController.addNode(node.typeName, {
-            id: node.id,
+        const inputs = {
             ...Object.fromEntries(node.inputLiterals?.map(x => [x.inputName, x.value]) ?? []),
             ...Object.fromEntries(node.inputEdges?.map((x) => [x.inputName, getInputEdge(x)]) ?? [])
+        }
+
+        const result = workflowEditorController.addNode(node.typeName, {
+            id: node.id,
+            inputs: inputs
         });
         nodeResults[node.id] = result;
     }

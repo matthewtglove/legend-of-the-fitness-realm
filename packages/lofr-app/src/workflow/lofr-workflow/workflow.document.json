@@ -80,6 +80,27 @@
           "fromOutputName": "content"
         }
       ]
+    },
+    {
+      "id": "n-example-component-02",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleComponent"
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "text",
+          "fromNodeId": "n-title-5",
+          "fromOutputName": "content"
+        }
+      ]
     }
   ]
 }

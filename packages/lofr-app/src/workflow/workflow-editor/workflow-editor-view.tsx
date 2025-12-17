@@ -123,7 +123,7 @@ const ReactFlowView = (props: {
             nodeType: WorkflowNodeType<TArgs, TInputs, TOutputs>,
             args: TArgs,
         ) => {
-            console.log(`[addNode] adding ${nodeType.typeName}`, { nodeType, args });
+            console.log(`[addNode] adding ${args.id}: ${nodeType.typeName}`, { nodeType, args });
 
             const m = metadataRef.current[args.id];
             const data = nodeType.load(args);

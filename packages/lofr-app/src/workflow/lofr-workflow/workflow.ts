@@ -71,11 +71,23 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     id: `n-title-${iTitle++}`,
     content: b_systemTypes,
     onContentChange: b_systemTypesOnChange,
-    startAtLine: `/**
-
-# Systems`,
+    startAtLine: `/**\n\n# Systems`,
     endAtLine: ` */`
   });
+
+  workflowEditorController.addComponent({
+    id: `n-example-component-03`,
+    path: `../../workflow/lofr-workflow/example-component.tsx`,
+    exportName: `ExampleComponent`,
+    defaults: {
+      inputs: {
+        text: ``,
+      },
+      outputs: {},
+    },
+    text: c_narrativeEngineTrimmed
+  });
+
 
   workflowEditorController.addTextFileNode({ id: `n-workflow`, path: `workflow/lofr-workflow/workflow.ts` });
   workflowEditorController.addTextFileNode({ id: `n-workflow-metadata`, path: `workflow/lofr-workflow/workflow.metadata.json` });
@@ -122,18 +134,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   //   },
   //   text: a_narrativeEngine
   // });
-  workflowEditorController.addComponent({
-    id: `n-example-component-03`,
-    path: `../../workflow/lofr-workflow/example-component.tsx`,
-    exportName: `ExampleComponent`,
-    defaults: {
-      inputs: {
-        text: ``,
-      },
-      outputs: {},
-    },
-    text: c_narrativeEngineTrimmed
-  });
+
 
   workflowEditorController.addComponent({
     id: `n-example-component-input-04`,
