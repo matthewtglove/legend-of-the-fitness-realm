@@ -18,13 +18,68 @@
           "inputName": "label",
           "value": "The Answer"
         }
-      ],
-      "position": {
-        "x": -600,
-        "y": 200,
-        "width": 200,
-        "height": 100
-      }
+      ]
+    },
+    {
+      "id": "n-title-0",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "WorkoutBuilder"
+        }
+      ]
+    },
+    {
+      "id": "n-title-1",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "WorkoutTimer"
+        }
+      ]
+    },
+    {
+      "id": "n-title-2",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "WorkoutGame"
+        }
+      ]
+    },
+    {
+      "id": "n-title-3",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "MiniGame"
+        }
+      ]
+    },
+    {
+      "id": "n-title-4",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "NarrativeEngine"
+        }
+      ]
+    },
+    {
+      "id": "n-title-5",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-title-4",
+          "fromOutputName": "content"
+        }
+      ]
     }
   ]
 }

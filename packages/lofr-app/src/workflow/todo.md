@@ -34,7 +34,7 @@
     - [] {5 mins} display node instance json in node preview mode
     - [] {10 mins} create generateWorkflowDataDocument
     - [] {5 mins} create generateWorkflowDataDocument preview node (for the whole workflow)
-    - [] {5 mins} loadWorkflowDocument = async (document: WorkflowDocument, workflowEditorController: WorkflowEditorController, abortController: AbortController)
+    - [x] {5 mins} loadWorkflowDocument = async (document: WorkflowDocument, workflowEditorController: WorkflowEditorController, abortController: AbortController)
     - [] {5 mins} edit literal input value
     - [] {5 mins} add edge
     - [] {5 mins} add node

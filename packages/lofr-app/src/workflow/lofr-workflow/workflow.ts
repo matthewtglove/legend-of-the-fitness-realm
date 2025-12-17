@@ -17,15 +17,17 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   await loadWorkflowDocument(lofrWorkflowDocument, workflowEditorController, abortController);
   if (abortController.signal.aborted) return;
 
-  let iTitle = 0;
-  workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutBuilder` });
-  workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutTimer` });
-  workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutGame` });
-  workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `MiniGame` });
-  const { content: a_narrativeEngine } = workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `NarrativeEngine` });
-  a_narrativeEngine.name = `a_narrativeEngine`;
-  workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: a_narrativeEngine });
+  // let iTitle = 0;
+  // workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutBuilder` });
+  // workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutTimer` });
+  // workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutGame` });
+  // workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `MiniGame` });
 
+  // const { content: a_narrativeEngine } = workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `NarrativeEngine` });
+  // a_narrativeEngine.name = `a_narrativeEngine`;
+  // workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: a_narrativeEngine });
+
+  let iTitle = 6;
   const { content: b_systemTypes, onContentChange: b_systemTypesOnChange } = workflowEditorController.addTextFileNode({ id: `n-system-types`, path: `systems/lofr-system-types.ts` });
   b_systemTypes.name = `b_systemTypes`;
   workflowEditorController.addTextNode({
@@ -108,18 +110,18 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     },
     text: `hello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\n`
   });
-  workflowEditorController.addComponent({
-    id: `n-example-component-02`,
-    path: `../../workflow/lofr-workflow/example-component.tsx`,
-    exportName: `ExampleComponent`,
-    defaults: {
-      inputs: {
-        text: ``,
-      },
-      outputs: {},
-    },
-    text: a_narrativeEngine
-  });
+  // workflowEditorController.addComponent({
+  //   id: `n-example-component-02`,
+  //   path: `../../workflow/lofr-workflow/example-component.tsx`,
+  //   exportName: `ExampleComponent`,
+  //   defaults: {
+  //     inputs: {
+  //       text: ``,
+  //     },
+  //     outputs: {},
+  //   },
+  //   text: a_narrativeEngine
+  // });
   workflowEditorController.addComponent({
     id: `n-example-component-03`,
     path: `../../workflow/lofr-workflow/example-component.tsx`,
