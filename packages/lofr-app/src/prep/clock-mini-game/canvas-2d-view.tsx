@@ -1,13 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 
-type DrawingController = {
+export type Canvas2dViewDrawingController = {
     start: () => void;
     stop: () => void;
     destroy: () => void;
 };
-export const Canvas2dView = (props: { createDrawing: (canvas: HTMLCanvasElement) => DrawingController }) => {
+export const Canvas2dView = (props: {
+    createDrawing: (canvas: HTMLCanvasElement) => Canvas2dViewDrawingController;
+}) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const drawingRef = useRef(undefined as undefined | DrawingController);
+    const drawingRef = useRef(undefined as undefined | Canvas2dViewDrawingController);
 
     useEffect(() => {
         const canvas = canvasRef.current;

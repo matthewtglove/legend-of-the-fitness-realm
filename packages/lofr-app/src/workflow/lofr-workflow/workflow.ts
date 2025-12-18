@@ -1,4 +1,3 @@
-import { animateEnergyBar } from "../../prep/clock-mini-game/energy-bar";
 import { loadWorkflowDocument } from "../workflow-editor/loader";
 import { WorkflowEditorController } from "../workflow-editor/types";
 import { _includeInHmr } from "./_hmr";
@@ -183,6 +182,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   */
 
 
+  /*
   workflowEditorController.addTextFileNode({ id: `n-energy-bar-code`, path: `prep/clock-mini-game/energy-bar.ts` });
 
   const n_startEnergy = workflowEditorController.addNumberNode({
@@ -202,54 +202,66 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   });
 
   workflowEditorController.addComponent({
-    id: `n-energy-bar`,
-    path: `../../prep/clock-mini-game/canvas-2d-view.tsx`,
-    exportName: `Canvas2dView`,
+    id: `n-energy-bar-simple`,
+    path: `../../prep/clock-mini-game/energy-bar-view.tsx`,
+    exportName: `MiniGame_EnergyBar`,
     inputs: {
-      createDrawing: (canvas: HTMLCanvasElement) => {
-        const drawing = animateEnergyBar(canvas);
-        if (!drawing) throw new Error(`Failed to create energy bar drawing`);
-
-        const subs = [] as { unsubscribe: () => void }[];
-        subs.push(n_startEnergy.value.subscribe(() => {
-          drawing.start({
-            startCharge: n_startEnergy.value.lastValue,
-            endCharge: n_endEnergy.value.lastValue,
-            speed: n_speed.value.lastValue,
-          })
-        }));
-        subs.push(n_endEnergy.value.subscribe(() => {
-          drawing.start({
-            startCharge: n_startEnergy.value.lastValue,
-            endCharge: n_endEnergy.value.lastValue,
-            speed: n_speed.value.lastValue,
-          })
-        }));
-        subs.push(n_speed.value.subscribe(() => {
-          drawing.start({
-            startCharge: n_startEnergy.value.lastValue,
-            endCharge: n_endEnergy.value.lastValue,
-            speed: n_speed.value.lastValue,
-          })
-        }));
-
-        return {
-          start: () => {
-            drawing.start({
-              startCharge: n_startEnergy.value.lastValue,
-              endCharge: n_endEnergy.value.lastValue,
-              speed: n_speed.value.lastValue,
-            })
-          },
-          stop: () => {
-            drawing.stop()
-          },
-          destroy: () => {
-            subs.forEach(s => s.unsubscribe());
-          }
-        };
-      },
+      startCharge: n_startEnergy.value,
+      endCharge: n_endEnergy.value,
+      speed: n_speed.value,
     },
-
   });
+  */
+
+  // workflowEditorController.addComponent({
+  //   id: `n-energy-bar`,
+  //   path: `../../prep/clock-mini-game/canvas-2d-view.tsx`,
+  //   exportName: `Canvas2dView`,
+  //   inputs: {
+  //     createDrawing: (canvas: HTMLCanvasElement) => {
+  //       const drawing = animateEnergyBar(canvas);
+  //       if (!drawing) throw new Error(`Failed to create energy bar drawing`);
+
+  //       const subs = [] as { unsubscribe: () => void }[];
+  //       subs.push(n_startEnergy.value.subscribe(() => {
+  //         drawing.start({
+  //           startCharge: n_startEnergy.value.lastValue,
+  //           endCharge: n_endEnergy.value.lastValue,
+  //           speed: n_speed.value.lastValue,
+  //         })
+  //       }));
+  //       subs.push(n_endEnergy.value.subscribe(() => {
+  //         drawing.start({
+  //           startCharge: n_startEnergy.value.lastValue,
+  //           endCharge: n_endEnergy.value.lastValue,
+  //           speed: n_speed.value.lastValue,
+  //         })
+  //       }));
+  //       subs.push(n_speed.value.subscribe(() => {
+  //         drawing.start({
+  //           startCharge: n_startEnergy.value.lastValue,
+  //           endCharge: n_endEnergy.value.lastValue,
+  //           speed: n_speed.value.lastValue,
+  //         })
+  //       }));
+
+  //       return {
+  //         start: () => {
+  //           drawing.start({
+  //             startCharge: n_startEnergy.value.lastValue,
+  //             endCharge: n_endEnergy.value.lastValue,
+  //             speed: n_speed.value.lastValue,
+  //           })
+  //         },
+  //         stop: () => {
+  //           drawing.stop()
+  //         },
+  //         destroy: () => {
+  //           subs.forEach(s => s.unsubscribe());
+  //         }
+  //       };
+  //     },
+  //   },
+
+  // });
 };
