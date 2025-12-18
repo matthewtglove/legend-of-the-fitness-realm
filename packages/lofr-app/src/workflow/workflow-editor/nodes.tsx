@@ -44,7 +44,7 @@ const NodeWrapper = ({
     return (
         <>
             <NodeResizer minWidth={100} minHeight={30} />
-            <div className="absolute top-0 left-0 right-0 z-10 h-0">
+            <div className="absolute top-0 left-0 right-0 z-10 h-0 nowheel nodrag nopan">
                 <div className="absolute bottom-0 left-0 right-0 ">
                     {expandInfo && (
                         <div className="absolute top-0 left-0 right-0 h-0 scale-50">
@@ -53,16 +53,18 @@ const NodeWrapper = ({
                                 style={{ width: `200%`, marginLeft: `-50%` }}
                             >
                                 <div className="flex flex-col flex-1 p-1 text-xs bg-blue-200 border border-blue-800 rounded nowheel nodrag nopan">
-                                    <div className="flex flex-row items-center justify-between gap-1">
+                                    <div className="flex flex-row items-center justify-between gap-1 p-0.5">
                                         <div>{id}</div>
                                         <div>{data.typeName}</div>
                                         <div
-                                            className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
-                                                expandInfo ? `bg-blue-800` : `bg-blue-400`
+                                            className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center ${
+                                                `` //`rounded border border-white p-1 text-white`
+                                            } ${
+                                                `` //expandInfo ? `bg-blue-800` : `bg-blue-400`
                                             }`}
                                             onClick={() => setExpandInfo((s) => !s)}
                                         >
-                                            ?
+                                            ✖
                                         </div>
                                     </div>
                                     <textarea
@@ -74,10 +76,10 @@ const NodeWrapper = ({
                             </div>
                         </div>
                     )}
-                    <div className="flex flex-row items-center gap-1 opacity-0 hover:opacity-100">
+                    <div className="flex flex-row items-center gap-1 opacity-0 hover:opacity-100 bg-slate-500/25 rounded-t p-1">
                         <input
                             type="text"
-                            className={`mb-1 min-w-0 flex-1 font-bold`}
+                            className={`min-w-0 flex-1 font-bold`}
                             // className={`mb-1 flex-1 overflow-hidden border-none font-bold bg-transparent overflow-ellipsis focus:outline-none`}
                             title={`${displayName}: ${data.typeName}`}
                             value={displayName}
@@ -91,7 +93,7 @@ const NodeWrapper = ({
                         </div>
                         {data.refresh && (
                             <div
-                                className={`flex h-4 w-4 cursor-crosshair flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                                className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
                                 onClick={() => data.refresh()}
                             >
                                 {`▶️`}
