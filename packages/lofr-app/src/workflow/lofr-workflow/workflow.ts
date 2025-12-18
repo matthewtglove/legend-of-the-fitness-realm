@@ -150,6 +150,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   //   }
   // );
 
+  /*
   const todoNode = workflowEditorController.addTextFileNode({ id: `n-todo`, path: `workflow/todo.md` });
   workflowEditorController.addComponent({
     id: `n-example-component-input-04`,
@@ -161,21 +162,6 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     },
   });
 
-  // const x_lineCount = createObservable(1, {
-  //   source: {
-  //     nodeId: `n-example-component-05-output`,
-  //     handleId: `lineCount`,
-  //   },
-  // });
-  // const x_lines = createObservable(``, {
-  //   source: {
-  //     nodeId: `n-example-component-05-output`,
-  //     handleId: `lines`,
-  //   },
-  // });
-  // todoNode.content.subscribe((content) => {
-  //   x_firstLine.next(content.split(`\n`)[0]?.trim() ?? ``);
-  // });
   const { lines: changedLines } = workflowEditorController.addComponent({
     id: `n-example-component-05-output`,
     path: `../../workflow/lofr-workflow/example-component.tsx`,
@@ -183,16 +169,8 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     inputs: {
       text: todoNode.content,
       value: 3,
-      // value: x_lineCount,
-      // onChange: (value: number) => {
-      //   console.log(`ExampleInputNumberComponent onChange`, value);
-      //   x_lineCount.next(value);
-      //   x_lines.next(todoNode.content.lastValue.split(`\n`).slice(0, value).join(`\n`));
-      // },
     },
     outputs: {
-      // lineCount: x_lineCount,
-      // lines: x_lines,
       value: 0,
       lines: ``,
     },
@@ -202,7 +180,7 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     id: `n-example-component-05-output-display`,
     content: changedLines as unknown as string,
   });
-
+  */
 
 
   workflowEditorController.addTextFileNode({ id: `n-energy-bar-code`, path: `prep/clock-mini-game/energy-bar.ts` });

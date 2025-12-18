@@ -410,6 +410,88 @@
           "value": "hello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\n"
         }
       ]
+    },
+    {
+      "id": "n-todo",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "workflow/todo.md"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-input-04",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleInputComponent"
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "value",
+          "fromNodeId": "n-todo",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onChange",
+          "fromNodeId": "n-todo",
+          "fromOutputName": "onContentChange"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-05-output",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleInputNumberComponent"
+        },
+        {
+          "inputName": "value",
+          "value": 3
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "text",
+          "fromNodeId": "n-todo",
+          "fromOutputName": "content"
+        }
+      ],
+      "outputs": [
+        {
+          "outputName": "value",
+          "defaultValue": 0
+        },
+        {
+          "outputName": "lines",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-05-output-display",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-example-component-05-output",
+          "fromOutputName": "lines"
+        }
+      ]
     }
   ]
 }
