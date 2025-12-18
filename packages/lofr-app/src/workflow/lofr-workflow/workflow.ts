@@ -2,7 +2,6 @@ import { animateEnergyBar } from "../../prep/clock-mini-game/energy-bar";
 import { loadWorkflowDocument } from "../workflow-editor/loader";
 import { createObservable, WorkflowEditorController } from "../workflow-editor/types";
 import { _includeInHmr } from "./_hmr";
-import { exampleFun } from "./example-fun";
 import lofrWorkflowDocument from "./workflow.document.json";
 
 const workflowServerUrl = `http://localhost:7601`;
@@ -134,7 +133,22 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   });
   */
 
-  workflowEditorController.addTextNode({ id: `n-example-fun-result`, content: exampleFun() });
+  // workflowEditorController.addTextNode({ id: `n-example-fun-result`, content: exampleFun() });
+  // workflowEditorController.addNode(
+  //   `function`,
+  //   {
+  //     id: `n-example-fun-node-result`,
+  //     path: `../../workflow/lofr-workflow/example-fun.ts`,
+  //     exportName: `exampleFun02`,
+  //     defaults: {
+  //       inputs: {
+  //       },
+  //       outputs: {
+  //         text: ``
+  //       },
+  //     },
+  //   }
+  // );
 
   const todoNode = workflowEditorController.addTextFileNode({ id: `n-todo`, path: `workflow/todo.md` });
   workflowEditorController.addComponent({

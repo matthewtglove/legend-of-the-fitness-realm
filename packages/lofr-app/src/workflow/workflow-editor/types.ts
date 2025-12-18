@@ -289,7 +289,8 @@ export type WorkflowDocument = {
         id: string;
         typeName: string;
         inputEdges?: { inputName: string; fromNodeId: string; fromOutputName: string }[];
-        inputLiterals?: { inputName: string; value: string | number }[];
+        inputLiterals?: { inputName: string; value: string | number | Record<string, unknown> }[];
+        outputs?: { outputName: string; defaultValue: string | number | Record<string, unknown> }[];
         position?: { x: number; y: number; width?: number; height?: number };
     }[];
 }

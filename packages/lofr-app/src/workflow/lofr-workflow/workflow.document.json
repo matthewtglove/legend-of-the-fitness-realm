@@ -336,6 +336,26 @@
       ]
     },
     {
+      "id": "n-example-fun-execute",
+      "typeName": "function",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-fun.ts"
+        },
+        {
+          "inputName": "exportName",
+          "value": "exampleFun02"
+        }
+      ],
+      "outputs": [
+        {
+          "outputName": "text",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
       "id": "n-clock-mini-game-code",
       "typeName": "textFile",
       "inputLiterals": [

@@ -1,5 +1,5 @@
-export const exampleFun = () => {
-  const a = 45;
+const a = 42;
 
-  return `This is fun ${a} ${Math.random()}!`;
+export const exampleFun02 = () => {
+  return { text: `This is fun ${a} @ ${new Date()}!` };
 };

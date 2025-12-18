@@ -158,7 +158,7 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
                 })),
             ),
         });
-    }, [data.path, reloadId]);
+    }, [data.path, data.exportName, reloadId]);
 
     return (
         <>
@@ -181,6 +181,124 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
                     <React.Suspense fallback={<div>Loading...</div>}>
                         <component.Component {...data} />
                     </React.Suspense>
+                </div>
+            </div>
+        </>
+    );
+};
+
+export const functionNodeType = registry.registerSimpleNodeType({
+    typeName: `function`,
+    defaults: {
+        inputs: {
+            path: ``,
+            exportName: undefined as undefined | string,
+        },
+        outputs: {},
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    execute: async (inputs: { path: string; exportName?: string }, { refresh }) => {
+        console.log(`[functionNodeType:execute] START`, { inputs });
+
+        const path = inputs.path + (import.meta.env.DEV ? `?t=${Date.now()}` : ``);
+        const module = await import(path);
+        console.log(`[functionNodeType:execute] imported module '${path}'`, { module, inputs });
+
+        const fun = (module[inputs.exportName ?? `default`] ?? module.default) as (args: unknown) => unknown;
+        console.log(`[functionNodeType:execute] loaded function '${path}'`, { fun, inputs });
+        const result = await fun(inputs);
+
+        console.log(`[functionNodeType:execute] DONE '${path}'`, { result, fun, inputs });
+
+        // if (import.meta.hot) {
+        //     const onUpdate = (payload: UpdatePayload) => {
+        //         console.log(`[functionNodeType:execute] onUpdate '${path}'`, {
+        //             paths: payload.updates.map((x) => x.path).join(`, `),
+        //             payload,
+        //             inputs,
+        //         });
+
+        //         if (payload.type === `update`) {
+        //             for (const update of payload.updates) {
+        //                 // Vite paths are usually root-relative (e.g., /src/functions/foo.ts)
+        //                 // Ensure we match your inputs.path logic
+        //                 if (update.path.includes(inputs.path.replace(/^\./, ``))) {
+        //                     console.log(
+        //                         `[functionNodeType:execute] '${inputs.path}' Detected change in ${update.path}, refreshing node...`,
+        //                         { inputs, update, payload },
+        //                     );
+        //                     refresh();
+
+        //                     import.meta.hot!.dispose(() => {
+        //                         import.meta.hot!.off(`vite:afterUpdate`, onUpdate);
+        //                     });
+        //                 }
+        //             }
+        //         }
+        //     };
+
+        //     import.meta.hot.on(`vite:afterUpdate`, onUpdate);
+        // }
+
+        return result as unknown as Record<string, unknown>;
+    },
+    Component: (props) => {
+        const path = useObservable(props.data.inputs.path);
+        const exportName = useObservable(props.data.inputs.exportName);
+        const inputs = useObservableRecord(props.data.inputs);
+        const outputs = useObservableRecord(props.data.outputs);
+        return (
+            <NodeWrapper {...props}>
+                <FunctionNode
+                    {...props}
+                    data={{
+                        path,
+                        exportName,
+                        inputs,
+                        outputs,
+                    }}
+                    onRerun={() => {
+                        props.data.refresh();
+                    }}
+                />
+            </NodeWrapper>
+        );
+    },
+});
+
+const FunctionNode = ({
+    data,
+    onRerun,
+}: {
+    data: {
+        path: string;
+        exportName?: string;
+        inputs?: Record<string, unknown>;
+        outputs?: Record<string, unknown>;
+    };
+    onRerun: () => void;
+}) => {
+    return (
+        <>
+            <div className="flex flex-col w-full h-full bg-white border border-gray-400 rounded shadow-md">
+                <div className="flex flex-row items-center gap-1 bg-gray-200 border-b border-gray-800">
+                    <div className="font-mono text-sm">
+                        {data.path} {data.exportName ?? ``}
+                    </div>
+                    <div className="flex-grow" />
+                    <button
+                        className="self-stretch px-2 py-1 text-xs text-white bg-blue-500 hover:opacity-80 active:opacity-70"
+                        onClick={onRerun}
+                    >
+                        Rerun
+                    </button>
+                </div>
+                <div className="flex-1 min-h-0 nodrag nopan nowheel">
+                    <textarea
+                        className="w-full h-full p-2 bg-[#1e1e1e] font-mono text-[14px] leading-[19px] tracking-[0px] text-[#d4d4d4] outline-none resize-none nodrag nopan nowheel"
+                        readOnly
+                        value={JSON.stringify({ inputs: data.inputs, outputs: data.outputs }, null, 2)}
+                    ></textarea>
                 </div>
             </div>
         </>
