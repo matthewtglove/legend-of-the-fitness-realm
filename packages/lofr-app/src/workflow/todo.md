@@ -33,7 +33,7 @@
     - [x] {5 mins} loadWorkflowDocument = async (document: WorkflowDocument, workflowEditorController: WorkflowEditorController, abortController: AbortController)
 - [ ] {1 hour} edit workflow from workflow
     - [] {5 mins} plan hour
-    - [] {5 mins} display node instance json in node preview mode
+    - [x] {5 mins} display node instance json in node debug
     - [] {10 mins} create generateWorkflowDataDocument
     - [] {5 mins} create generateWorkflowDataDocument preview node (for the whole workflow)
     - [] {5 mins} edit literal input value

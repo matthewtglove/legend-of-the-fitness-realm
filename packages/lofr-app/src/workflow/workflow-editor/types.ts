@@ -118,6 +118,10 @@ export type WorkflowNodeTypeArgs<
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
 > = {
     typeName: string,
+    defaults: {
+        inputs: Record<string, unknown>,
+        outputs: Record<string, unknown>,
+    },
     load: (args: TArgs) => WorkflowNodeTypeLoadResult<TInputs, TOutputs>,
     Component: React.ComponentType<{
         id: string;
@@ -201,6 +205,7 @@ export const createRegistry = (): WorkflowRegistry => {
             console.log(`[registerSimpleNodeType] Registering simple node type: ${nodeTypeArgs.typeName}`, { nodeTypeArgs });
             const nodeType: WorkflowNodeType<Record<string, unknown> & { id: string }, ObservableOf<TInputs>, ObservableOf<TOutputs>> = {
                 typeName: nodeTypeArgs.typeName,
+                defaults: nodeTypeArgs.defaults,
                 // execute: nodeTypeArgs.execute,
                 load: (loadArgs: Record<string, unknown> & {
                     id: string,
@@ -267,6 +272,7 @@ export const createRegistry = (): WorkflowRegistry => {
 
                     console.log(`[registerSimpleNodeType:load] loaded called with args:`, { inputs, outputs, loadArgs, nodeTypeArgs });
                     return {
+                        typeName: nodeTypeArgs.typeName,
                         inputs,
                         outputs,
                         refresh: () => { updateDebounced(); },

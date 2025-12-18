@@ -4,6 +4,7 @@ import '@xyflow/react/dist/style.css';
 import { NodeResizer, Handle, Position } from '@xyflow/react';
 import { useObservable, useObservableRecord } from './use-observable';
 import { TextCodeEditorComponent } from './code-editor/text-code-editor-main';
+import { WorkflowDocumentFormat } from './document';
 
 const debug = false;
 
@@ -69,7 +70,15 @@ const NodeWrapper = ({
                                     </div>
                                     <textarea
                                         className="min-h-[200px] flex-1 resize-none bg-white p-1"
-                                        value={JSON.stringify(data, null, 2)}
+                                        value={JSON.stringify(
+                                            WorkflowDocumentFormat.nodeToDocument(registry, {
+                                                id,
+                                                typeName: data.typeName,
+                                                data,
+                                            }),
+                                            null,
+                                            2,
+                                        )}
                                         readOnly
                                     />
                                 </div>
@@ -87,7 +96,7 @@ const NodeWrapper = ({
                         />
                         <div
                             className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
-                            onClick={() => console.log(`nodeData ${id}`, { ...data })}
+                            onClick={() => console.log(`nodeData ${id}`, data)}
                         >
                             {`🔎`}
                         </div>
