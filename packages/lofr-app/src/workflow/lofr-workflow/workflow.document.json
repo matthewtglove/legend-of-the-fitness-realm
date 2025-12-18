@@ -492,6 +492,89 @@
           "fromOutputName": "lines"
         }
       ]
+    },
+    {
+      "id": "n-energy-bar-code",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "prep/clock-mini-game/energy-bar.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-startEnergy",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "label",
+          "value": "Start Energy"
+        },
+        {
+          "inputName": "value",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "n-endEnergy",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "label",
+          "value": "End Energy"
+        },
+        {
+          "inputName": "value",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "id": "n-speed",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "label",
+          "value": "Speed"
+        },
+        {
+          "inputName": "value",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "n-energy-bar-simple",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../prep/clock-mini-game/energy-bar-view.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "MiniGame_EnergyBar"
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "startCharge",
+          "fromNodeId": "n-startEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "endCharge",
+          "fromNodeId": "n-endEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "speed",
+          "fromNodeId": "n-speed",
+          "fromOutputName": "value"
+        }
+      ]
     }
   ]
 }
