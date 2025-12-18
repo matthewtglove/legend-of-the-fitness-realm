@@ -29,12 +29,13 @@
     - [x] add inputs and outputs
     - [x] add callback example
     - [x] add output example
+- [x] {1 hour} convert workflow to document
+    - [x] {5 mins} loadWorkflowDocument = async (document: WorkflowDocument, workflowEditorController: WorkflowEditorController, abortController: AbortController)
 - [ ] {1 hour} edit workflow from workflow
     - [] {5 mins} plan hour
     - [] {5 mins} display node instance json in node preview mode
     - [] {10 mins} create generateWorkflowDataDocument
     - [] {5 mins} create generateWorkflowDataDocument preview node (for the whole workflow)
-    - [x] {5 mins} loadWorkflowDocument = async (document: WorkflowDocument, workflowEditorController: WorkflowEditorController, abortController: AbortController)
     - [] {5 mins} edit literal input value
     - [] {5 mins} add edge
     - [] {5 mins} add node

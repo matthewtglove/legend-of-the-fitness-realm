@@ -123,6 +123,7 @@ export type WorkflowNodeTypeArgs<
         id: string;
         selected: boolean;
         data: {
+            typeName: string;
             inputs: TInputs,
             outputs: TOutputs,
             refresh: () => void;
@@ -154,6 +155,7 @@ export type WorkflowNodeTypeSimpleArgs<
         id: string;
         selected: boolean;
         data: {
+            typeName: string;
             inputs: ObservableOf<TInputs>,
             outputs: ObservableOf<TOutputs>,
             refresh: () => void;

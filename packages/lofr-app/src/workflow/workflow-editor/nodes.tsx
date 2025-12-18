@@ -21,14 +21,99 @@ const NodeWrapper = ({
     children: React.ReactNode;
     id: string;
     data: {
+        typeName: string;
+        refresh: () => void;
         inputs: Record<string, WorkflowObservable<unknown>>;
         outputs: Record<string, WorkflowObservable<unknown>>;
     };
 }) => {
     console.log(`[NodeWrapper] rendering node ${id}`, { data });
+
+    const handleDisplayNameChange = (value: string) => {
+        console.log(`[NodeWrapper] handleDisplayNameChange`, { value });
+    };
+
+    const handleDeleteNode = () => {
+        console.log(`[NodeWrapper] handleDeleteNode`, { id });
+    };
+
+    const displayName = id;
+
+    const [expandInfo, setExpandInfo] = useState(false);
+
     return (
         <>
             <NodeResizer minWidth={100} minHeight={30} />
+            <div className="absolute top-0 left-0 right-0 z-10 h-0">
+                <div className="absolute bottom-0 left-0 right-0 ">
+                    {expandInfo && (
+                        <div className="absolute top-0 left-0 right-0 h-0 scale-50">
+                            <div
+                                className="absolute bottom-10 flex min-h-[600px] flex-col justify-end gap-1"
+                                style={{ width: `200%`, marginLeft: `-50%` }}
+                            >
+                                <div className="flex flex-col flex-1 p-1 text-xs bg-blue-200 border border-blue-800 rounded nowheel nodrag nopan">
+                                    <div className="flex flex-row items-center justify-between gap-1">
+                                        <div>{id}</div>
+                                        <div>{data.typeName}</div>
+                                        <div
+                                            className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
+                                                expandInfo ? `bg-blue-800` : `bg-blue-400`
+                                            }`}
+                                            onClick={() => setExpandInfo((s) => !s)}
+                                        >
+                                            ?
+                                        </div>
+                                    </div>
+                                    <textarea
+                                        className="min-h-[200px] flex-1 resize-none bg-white p-1"
+                                        value={JSON.stringify(data, null, 2)}
+                                        readOnly
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <div className="flex flex-row items-center gap-1 opacity-0 hover:opacity-100">
+                        <input
+                            type="text"
+                            className={`mb-1 min-w-0 flex-1 font-bold`}
+                            // className={`mb-1 flex-1 overflow-hidden border-none font-bold bg-transparent overflow-ellipsis focus:outline-none`}
+                            title={`${displayName}: ${data.typeName}`}
+                            value={displayName}
+                            onChange={(x) => handleDisplayNameChange(x.target.value)}
+                        />
+                        <div
+                            className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                            onClick={() => console.log(`nodeData ${id}`, { ...data })}
+                        >
+                            {`🔎`}
+                        </div>
+                        {data.refresh && (
+                            <div
+                                className={`flex h-4 w-4 cursor-crosshair flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                                onClick={() => data.refresh()}
+                            >
+                                {`▶️`}
+                            </div>
+                        )}
+                        <div
+                            className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
+                                expandInfo ? `bg-blue-800` : `bg-blue-400`
+                            }`}
+                            onClick={() => setExpandInfo((s) => !s)}
+                        >
+                            {`ℹ`}
+                        </div>
+                        <div
+                            className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white bg-red-400 p-1 text-white`}
+                            onClick={handleDeleteNode}
+                        >
+                            {`🗑️`}
+                        </div>
+                    </div>
+                </div>
+            </div>
             {children}
             {Object.entries(data.inputs).map(([key, value], index) => (
                 <React.Fragment key={key}>
