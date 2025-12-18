@@ -1,6 +1,6 @@
 import { animateEnergyBar } from "../../prep/clock-mini-game/energy-bar";
 import { loadWorkflowDocument } from "../workflow-editor/loader";
-import { createObservable, WorkflowEditorController } from "../workflow-editor/types";
+import { WorkflowEditorController } from "../workflow-editor/types";
 import { _includeInHmr } from "./_hmr";
 import lofrWorkflowDocument from "./workflow.document.json";
 
@@ -161,44 +161,49 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
     },
   });
 
-  const x_lineCount = createObservable(1, {
-    source: {
-      nodeId: `n-example-component-05-output`,
-      handleId: `lineCount`,
-    },
-  });
-  const x_lines = createObservable(``, {
-    source: {
-      nodeId: `n-example-component-05-output`,
-      handleId: `lines`,
-    },
-  });
+  // const x_lineCount = createObservable(1, {
+  //   source: {
+  //     nodeId: `n-example-component-05-output`,
+  //     handleId: `lineCount`,
+  //   },
+  // });
+  // const x_lines = createObservable(``, {
+  //   source: {
+  //     nodeId: `n-example-component-05-output`,
+  //     handleId: `lines`,
+  //   },
+  // });
   // todoNode.content.subscribe((content) => {
   //   x_firstLine.next(content.split(`\n`)[0]?.trim() ?? ``);
   // });
-  workflowEditorController.addComponent({
+  const { lines: changedLines } = workflowEditorController.addComponent({
     id: `n-example-component-05-output`,
     path: `../../workflow/lofr-workflow/example-component.tsx`,
     exportName: `ExampleInputNumberComponent`,
     inputs: {
       text: todoNode.content,
-      value: x_lineCount,
-      onChange: (value: number) => {
-        console.log(`ExampleInputNumberComponent onChange`, value);
-        x_lineCount.next(value);
-        x_lines.next(todoNode.content.lastValue.split(`\n`).slice(0, value).join(`\n`));
-      },
+      value: 3,
+      // value: x_lineCount,
+      // onChange: (value: number) => {
+      //   console.log(`ExampleInputNumberComponent onChange`, value);
+      //   x_lineCount.next(value);
+      //   x_lines.next(todoNode.content.lastValue.split(`\n`).slice(0, value).join(`\n`));
+      // },
     },
     outputs: {
-      lineCount: x_lineCount,
-      lines: x_lines,
+      // lineCount: x_lineCount,
+      // lines: x_lines,
+      value: 0,
+      lines: ``,
     },
   });
 
   workflowEditorController.addTextNode({
     id: `n-example-component-05-output-display`,
-    content: x_lines
+    content: changedLines as unknown as string,
   });
+
+
 
   workflowEditorController.addTextFileNode({ id: `n-energy-bar-code`, path: `prep/clock-mini-game/energy-bar.ts` });
 

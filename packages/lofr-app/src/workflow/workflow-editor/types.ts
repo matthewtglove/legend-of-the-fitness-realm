@@ -97,7 +97,7 @@ export type WorkflowEditorController = {
             inputs: Record<string, unknown>,
             outputs: Record<string, unknown>,
         }
-    } & Record<string, unknown>) => void;
+    } & Record<string, unknown>) => WorkflowNodeAddResult<Record<string, WorkflowObservable<unknown>>>;
 };
 
 export type WorkflowNodeTypeLoadResult<

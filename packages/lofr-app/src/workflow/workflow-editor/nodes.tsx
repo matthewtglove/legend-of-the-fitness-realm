@@ -123,18 +123,31 @@ export const componentNodeType = registry.registerSimpleNodeType({
         return {};
     },
     Component: (props) => {
-        // const path = useObservable(props.data.inputs.path);
-        // const exportName = useObservable(props.data.inputs.exportName);
-        const inputs = useObservableRecord(props.data.inputs);
-        // const outputs = useObservableRecord(props.data.outputs);
+        const inputsRaw = useObservableRecord(props.data.inputs);
+        const callbacks = Object.fromEntries(
+            Object.entries(props.data.outputs)
+                .map(([key, value]) => {
+                    console.log(`[componentNodeType:Component] output`, { key, value });
+                    if (!value || typeof value !== `object`) {
+                        return [key, undefined];
+                    }
+                    if (!(`next` in value)) {
+                        return [key, undefined];
+                    }
+
+                    const onChangeKey = `on${key === `value` ? `` : key.charAt(0).toUpperCase() + key.slice(1)}Change`;
+                    console.log(`[componentNodeType:Component] created onChange callback`, { onChangeKey, key, value });
+                    return [onChangeKey, (val: unknown) => (value as WorkflowSubject<unknown>).next(val)];
+                })
+                .filter(([, v]) => v),
+        );
         return (
             <NodeWrapper {...props}>
                 <ComponentNode
                     {...props}
                     data={{
-                        // path,
-                        // exportName,
-                        ...inputs,
+                        ...callbacks,
+                        ...inputsRaw,
                     }}
                 />
             </NodeWrapper>
@@ -160,6 +173,7 @@ const ComponentNode = ({ data }: { data: { path: string; exportName?: string } }
         });
     }, [data.path, data.exportName, reloadId]);
 
+    console.log(`[ComponentNode] rendering component node`, { data });
     return (
         <>
             <div className="flex flex-col w-full h-full bg-white border border-gray-400 rounded shadow-md">
