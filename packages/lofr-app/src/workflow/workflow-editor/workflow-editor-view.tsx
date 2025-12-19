@@ -283,11 +283,13 @@ const ReactFlowView = (props: {
         }, 250);
     };
 
+    const [reloadDocumentId, setReloadDocumentId] = useState(0);
     const saveWorkflowDocumentFile_debounced_ref = useRef(0 as unknown as ReturnType<typeof setTimeout>);
     const saveWorkflowDocumentFile_debounced = async () => {
         clearTimeout(saveWorkflowDocumentFile_debounced_ref.current);
         saveWorkflowDocumentFile_debounced_ref.current = setTimeout(async () => {
             await saveWorkflowDocumentFile(workflowServerUrl, workflowDocumentPath, workflowDocumentRef.current);
+            setReloadDocumentId((s) => s + 1);
         }, 250);
     };
 
@@ -451,7 +453,7 @@ const ReactFlowView = (props: {
         return () => {
             abortController.abort();
         };
-    }, [props.loader, workflowServerUrl]);
+    }, [props.loader, workflowServerUrl, reloadDocumentId]);
 
     return (
         <div className="w-full h-full">
