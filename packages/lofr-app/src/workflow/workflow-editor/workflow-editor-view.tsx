@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { WorkflowDocument, WorkflowEditorController, WorkflowNodeType, WorkflowObservable } from './types';
+import {
+    WorkflowDocument,
+    WorkflowEditorController,
+    WorkflowNodeInstance,
+    WorkflowNodeType,
+    WorkflowObservable,
+} from './types';
 import '@xyflow/react/dist/style.css';
 import {
     ReactFlow,
@@ -18,7 +24,7 @@ import {
     XYPosition,
     ReactFlowProvider,
 } from '@xyflow/react';
-import { componentNodeType, numberNodeType, registry, textFileNodeType, textNodeType } from './nodes';
+import { registry } from './nodes';
 import { loadWorkflowDocument } from './loader';
 import { NodeSelectionMenu } from './node-selection-menu';
 
@@ -349,7 +355,28 @@ const ReactFlowView = (props: {
             console.log(`[addNode] adding ${args.id}: ${nodeType.typeName}`, { nodeType, args });
 
             const m = metadataRef.current[args.id];
-            const data = nodeType.load(args);
+
+            const existingNode = nodesRef.current.find((x) => x.id === args.id) as
+                | undefined
+                | (Node & {
+                      data: WorkflowNodeInstance<TInputs, TOutputs>;
+                      _stale?: boolean;
+                  });
+            const existingNodeInstance = existingNode?.data as undefined | WorkflowNodeInstance<TInputs, TOutputs>;
+            // if (existingNode && existingNodeInstance) {
+            //     console.log(`[addNode] node already exists: ${args.id}`, { existingNode: existingNodeInstance });
+            //     const result = existingNodeInstance.update(args);
+
+            //     // existingNode._stale = false;
+
+            //     // // update inputs
+
+            //     // // edgesRef.current.filter(x=>x.source===)
+
+            //     // return existingNodeInstance.outputs;
+            // }
+
+            const data = existingNodeInstance ? existingNodeInstance.update(args) : nodeType.load(args);
             // const data = {
             //     inputs: { ...dataRaw.inputs, ...((args as { defaults?: typeof dataRaw }).defaults?.inputs ?? {}) },
             //     outputs: { ...dataRaw.outputs, ...((args as { defaults?: typeof dataRaw }).defaults?.outputs ?? {}) },
@@ -469,10 +496,10 @@ const ReactFlowView = (props: {
                 }
                 return addNode(nodeType, args);
             },
-            addTextFileNode: (args) => addNode(textFileNodeType, { ...args, workflowServerUrl }),
-            addTextNode: (args) => addNode(textNodeType, args as Required<typeof args>),
-            addNumberNode: (args) => addNode(numberNodeType, args as Required<typeof args>),
-            addComponent: (args) => addNode(componentNodeType, args as Required<typeof args>),
+            // addTextFileNode: (args) => addNode(textFileNodeType, { ...args, workflowServerUrl }),
+            // addTextNode: (args) => addNode(textNodeType, args as Required<typeof args>),
+            // addNumberNode: (args) => addNode(numberNodeType, args as Required<typeof args>),
+            // addComponent: (args) => addNode(componentNodeType, args as Required<typeof args>),
         };
         // setNodes([]);
         // setEdges([]);

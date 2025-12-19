@@ -69,44 +69,47 @@ export type WorkflowEditorController = {
     setWorkflowMetadataPath: (path: string) => Promise<void>;
     setWorkflowDocumentPath: (path: string) => Promise<void>;
     addNode: (typeName: string, args: { id: string } & Record<string, WorkflowObservableLike<unknown>>) => WorkflowNodeAddResult<Record<string, WorkflowObservable<unknown>>>;
-    addTextNode: (args: {
-        id: string,
-        content: WorkflowObservableLike<string>,
-        onContentChange?: undefined | WorkflowObservableLike<undefined | ((value: string) => void)>,
-        startAtLine?: undefined | WorkflowObservableLike<undefined | string>,
-        endAtLine?: undefined | WorkflowObservableLike<undefined | string>
-    }) => WorkflowNodeAddResult<{
-        content: WorkflowObservable<string>;
-        onContentChange: WorkflowObservable<undefined | ((value: string) => void)>;
-    }>;
-    addNumberNode: (args: {
-        id: string,
-        value: WorkflowObservableLike<number>,
-        label: WorkflowObservableLike<string>,
-    }) => WorkflowNodeAddResult<{
-        value: WorkflowObservable<number>,
-    }>;
-    addTextFileNode: (args: { id: string, path: string }) => WorkflowNodeAddResult<{
-        content: WorkflowObservable<string>;
-        onContentChange: WorkflowObservable<undefined | ((value: string) => void)>;
-    }>
-    addComponent: (args: {
-        id: string,
-        path: string,
-        exportName: string,
-        defaults?: {
-            inputs: Record<string, unknown>,
-            outputs: Record<string, unknown>,
-        }
-    } & Record<string, unknown>) => WorkflowNodeAddResult<Record<string, WorkflowObservable<unknown>>>;
+    // addTextNode: (args: {
+    //     id: string,
+    //     content: WorkflowObservableLike<string>,
+    //     onContentChange?: undefined | WorkflowObservableLike<undefined | ((value: string) => void)>,
+    //     startAtLine?: undefined | WorkflowObservableLike<undefined | string>,
+    //     endAtLine?: undefined | WorkflowObservableLike<undefined | string>
+    // }) => WorkflowNodeAddResult<{
+    //     content: WorkflowObservable<string>;
+    //     onContentChange: WorkflowObservable<undefined | ((value: string) => void)>;
+    // }>;
+    // addNumberNode: (args: {
+    //     id: string,
+    //     value: WorkflowObservableLike<number>,
+    //     label: WorkflowObservableLike<string>,
+    // }) => WorkflowNodeAddResult<{
+    //     value: WorkflowObservable<number>,
+    // }>;
+    // addTextFileNode: (args: { id: string, path: string }) => WorkflowNodeAddResult<{
+    //     content: WorkflowObservable<string>;
+    //     onContentChange: WorkflowObservable<undefined | ((value: string) => void)>;
+    // }>
+    // addComponent: (args: {
+    //     id: string,
+    //     path: string,
+    //     exportName: string,
+    //     defaults?: {
+    //         inputs: Record<string, unknown>,
+    //         outputs: Record<string, unknown>,
+    //     }
+    // } & Record<string, unknown>) => WorkflowNodeAddResult<Record<string, WorkflowObservable<unknown>>>;
 };
 
-export type WorkflowNodeTypeLoadResult<
+export type WorkflowNodeInstance<
     TInputs extends Record<string, WorkflowObservable<unknown>>,
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
 > = {
+    typeName: string;
     inputs: TInputs,
     outputs: TOutputs,
+    refresh: () => void,
+    update: (args: Record<string, unknown> & { id: string }) => WorkflowNodeInstance<TInputs, TOutputs>;
 };
 
 export type WorkflowNodeAddResult<
@@ -123,7 +126,7 @@ export type WorkflowNodeTypeArgs<
         inputs: Record<string, unknown>,
         outputs: Record<string, unknown>,
     },
-    load: (args: TArgs) => WorkflowNodeTypeLoadResult<TInputs, TOutputs>,
+    load: (args: TArgs) => WorkflowNodeInstance<TInputs, TOutputs>,
     Component: React.ComponentType<{
         id: string;
         selected: boolean;
@@ -188,6 +191,8 @@ export type WorkflowRegistry = {
 };
 export const createRegistry = (): WorkflowRegistry => {
     const nodeTypes = {} as WorkflowNodeTypes;
+
+    let nextInstanceId = 1;
 
     return {
         get nodeTypes() {
@@ -272,12 +277,19 @@ export const createRegistry = (): WorkflowRegistry => {
                     updateDebounced();
 
                     console.log(`[registerSimpleNodeType:load] loaded called with args:`, { inputs, outputs, loadArgs, nodeTypeArgs });
-                    return {
+                    const instance = {
                         typeName: nodeTypeArgs.typeName,
+                        instanceId: nextInstanceId++,
                         inputs,
                         outputs,
                         refresh: () => { updateDebounced(); },
+                        update: (args: Record<string, unknown> & { id: string }) => {
+                            console.log(`[registerSimpleNodeType:instance:update] called with args:`, { args });
+                            return instance;
+                        }
                     };
+
+                    return instance;
                 },
                 Component: nodeTypeArgs.Component,
             };

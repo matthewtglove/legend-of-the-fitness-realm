@@ -4,6 +4,8 @@ export const loadWorkflowDocument = async (document: WorkflowDocument, workflowE
 
     // TODO: handle imports
 
+    // TODO: handle existing nodes (addOrUpdateNode?)
+
     // Load nodes
     const nodeResults = {} as Record<string, Record<string, WorkflowObservable<unknown>>>;
 

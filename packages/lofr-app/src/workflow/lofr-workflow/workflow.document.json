@@ -576,6 +576,37 @@
           "fromOutputName": "value"
         }
       ]
+    },
+    {
+      "id": "n-number-1766182474970",
+      "typeName": "number"
+    },
+    {
+      "id": "n-number-1766182479593",
+      "typeName": "number",
+      "inputEdges": [
+        {
+          "inputName": "value",
+          "fromNodeId": "n-number-1766182474970",
+          "fromOutputName": "value"
+        }
+      ]
+    },
+    {
+      "id": "n-number-1766182807120",
+      "typeName": "number",
+      "inputEdges": [
+        {
+          "inputName": "value",
+          "fromNodeId": "n-number-1766182474970",
+          "fromOutputName": "value"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "label"
+        }
+      ]
     }
   ]
 }

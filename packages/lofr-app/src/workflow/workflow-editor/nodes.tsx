@@ -40,7 +40,7 @@ const NodeWrapper = ({
 
     const displayName = id;
 
-    const [expandInfo, setExpandInfo] = useState(false);
+    const [expandInfo, setExpandInfo] = useState(false as false | `data` | `document`);
 
     return (
         <>
@@ -63,7 +63,9 @@ const NodeWrapper = ({
                                             } ${
                                                 `` //expandInfo ? `bg-blue-800` : `bg-blue-400`
                                             }`}
-                                            onClick={() => setExpandInfo((s) => !s)}
+                                            onClick={() => {
+                                                setExpandInfo(false);
+                                            }}
                                         >
                                             ✖
                                         </div>
@@ -71,11 +73,13 @@ const NodeWrapper = ({
                                     <textarea
                                         className="min-h-[200px] flex-1 resize-none bg-white p-1"
                                         value={JSON.stringify(
-                                            WorkflowDocumentFormat.nodeToDocument(registry, {
-                                                id,
-                                                typeName: data.typeName,
-                                                data,
-                                            }),
+                                            expandInfo === `data`
+                                                ? data
+                                                : WorkflowDocumentFormat.nodeToDocument(registry, {
+                                                      id,
+                                                      typeName: data.typeName,
+                                                      data,
+                                                  }),
                                             null,
                                             2,
                                         )}
@@ -85,7 +89,7 @@ const NodeWrapper = ({
                             </div>
                         </div>
                     )}
-                    <div className="flex flex-row items-center gap-1 opacity-0 hover:opacity-100 bg-slate-500/25 rounded-t p-1">
+                    <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
                         <input
                             type="text"
                             className={`min-w-0 flex-1 font-bold`}
@@ -96,7 +100,10 @@ const NodeWrapper = ({
                         />
                         <div
                             className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
-                            onClick={() => console.log(`nodeData ${id}`, data)}
+                            onClick={() => {
+                                setExpandInfo((s) => (s === `data` ? false : `data`));
+                                console.log(`nodeData ${id}`, data);
+                            }}
                         >
                             {`🔎`}
                         </div>
@@ -112,7 +119,7 @@ const NodeWrapper = ({
                             className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
                                 expandInfo ? `bg-blue-800` : `bg-blue-400`
                             }`}
-                            onClick={() => setExpandInfo((s) => !s)}
+                            onClick={() => setExpandInfo((s) => (s === `document` ? false : `document`))}
                         >
                             {`ℹ`}
                         </div>
