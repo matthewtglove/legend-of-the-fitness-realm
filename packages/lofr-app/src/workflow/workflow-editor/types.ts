@@ -7,7 +7,7 @@ export type WorkflowObservable<T> = {
     };
     hasSubscribers: boolean;
     lastValue: T;
-    subscribe: (callback: (data: T) => void) => { unsubscribe: () => void };
+    subscribe: (callback: (data: T) => void, options?: { skipCurrentValue?: boolean }) => { unsubscribe: () => void };
 };
 export type WorkflowSubject<T> = WorkflowObservable<T> & {
     next: (data: T) => void;
@@ -36,10 +36,12 @@ export const createObservable = <T>(initialValue: T, options?: { source?: { node
         source: options?.source,
         get lastValue() { return lastValue; },
         get hasSubscribers() { return subscribers.some(s => !!s); },
-        subscribe: (callback: (data: T) => void) => {
+        subscribe: (callback: (data: T) => void, options?: { skipCurrentValue?: boolean }) => {
             const iCallback = subscribers.length;
             subscribers.push(callback);
-            callback(lastValue);
+            if (!options?.skipCurrentValue) {
+                callback(lastValue);
+            }
             return {
                 unsubscribe: () => {
                     subscribers[iCallback] = undefined;
@@ -68,7 +70,7 @@ export type WorkflowEditorController = {
     setWorkflowServerUrl: (url: string) => void;
     setWorkflowMetadataPath: (path: string) => Promise<void>;
     setWorkflowDocumentPath: (path: string) => Promise<void>;
-    addNode: (typeName: string, args: { id: string } & Record<string, WorkflowObservableLike<unknown>>) => WorkflowNodeAddResult<Record<string, WorkflowObservable<unknown>>>;
+    addNode: (typeName: string, args: { id: string } & Record<string, WorkflowObservableLike<unknown>>) => WorkflowNodeInstance<Record<string, WorkflowObservable<unknown>>, Record<string, WorkflowObservable<unknown>>>;
     // addTextNode: (args: {
     //     id: string,
     //     content: WorkflowObservableLike<string>,
@@ -111,10 +113,6 @@ export type WorkflowNodeInstance<
     refresh: () => void,
     update: (args: Record<string, unknown> & { id: string }) => WorkflowNodeInstance<TInputs, TOutputs>;
 };
-
-export type WorkflowNodeAddResult<
-    TOutputs extends Record<string, WorkflowObservable<unknown>>,
-> = TOutputs;
 
 export type WorkflowNodeTypeArgs<
     TArgs extends Record<string, unknown> & { id: string },

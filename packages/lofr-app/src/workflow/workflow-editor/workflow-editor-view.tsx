@@ -453,7 +453,7 @@ const ReactFlowView = (props: {
             });
 
             console.log(`[addNode] added ${nodeType.typeName}`, { nodeType, args, data });
-            return data.outputs;
+            return data;
         };
 
         const controller: WorkflowEditorController = {
@@ -487,7 +487,27 @@ const ReactFlowView = (props: {
                 workflowDocumentRef.current = loadedDocument;
                 console.log(`Workflow document loaded:`, workflowDocumentRef.current);
 
-                await loadWorkflowDocument(workflowDocumentRef.current, controller, new AbortController());
+                await loadWorkflowDocument({
+                    document: workflowDocumentRef.current,
+                    workflowEditorController: controller,
+                    abortController: new AbortController(),
+                    onSaveInputLiteral: ({ nodeId, inputName, value }) => {
+                        const doc = workflowDocumentRef.current;
+                        const targetNode = doc.nodes.find((n) => n.id === nodeId);
+                        if (!targetNode) {
+                            console.warn(`[onSaveInputLiteral]  Target node not found: ${nodeId}`);
+                            return;
+                        }
+                        targetNode.inputLiterals = [
+                            ...(targetNode.inputLiterals ?? []).filter((x) => x.inputName !== inputName),
+                            {
+                                inputName,
+                                value,
+                            },
+                        ];
+                        saveWorkflowDocumentFile_debounced();
+                    },
+                });
             },
             addNode: (typeName, args) => {
                 const nodeType = registry.nodeTypes[typeName];
