@@ -1,7 +1,7 @@
-import { loadWorkflowDocument } from "../workflow-editor/loader";
+// import { loadWorkflowDocument } from "../workflow-editor/loader";
 import { WorkflowEditorController } from "../workflow-editor/types";
 import { _includeInHmr } from "./_hmr";
-import lofrWorkflowDocument from "./workflow.document.json";
+// import lofrWorkflowDocument from "./workflow.document.json";
 
 const workflowServerUrl = `http://localhost:7601`;
 
@@ -11,9 +11,11 @@ export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorC
   workflowEditorController.setWorkflowServerUrl(workflowServerUrl);
   await workflowEditorController.setWorkflowMetadataPath(`workflow/lofr-workflow/workflow.metadata.json`);
   if (abortController.signal.aborted) return;
-
-  await loadWorkflowDocument(lofrWorkflowDocument, workflowEditorController, abortController);
+  await workflowEditorController.setWorkflowDocumentPath(`workflow/lofr-workflow/workflow.document.json`);
   if (abortController.signal.aborted) return;
+
+  // await loadWorkflowDocument(lofrWorkflowDocument, workflowEditorController, abortController);
+  // if (abortController.signal.aborted) return;
 
   // let iTitle = 0;
   // workflowEditorController.addTextNode({ id: `n-title-${iTitle++}`, content: `WorkoutBuilder` });

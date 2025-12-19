@@ -67,6 +67,7 @@ export const createObservableName = (defaultValue?: string) => {
 export type WorkflowEditorController = {
     setWorkflowServerUrl: (url: string) => void;
     setWorkflowMetadataPath: (path: string) => Promise<void>;
+    setWorkflowDocumentPath: (path: string) => Promise<void>;
     addNode: (typeName: string, args: { id: string } & Record<string, WorkflowObservableLike<unknown>>) => WorkflowNodeAddResult<Record<string, WorkflowObservable<unknown>>>;
     addTextNode: (args: {
         id: string,

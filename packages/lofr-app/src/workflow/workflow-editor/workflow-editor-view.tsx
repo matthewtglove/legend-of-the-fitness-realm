@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { WorkflowEditorController, WorkflowNodeType, WorkflowObservable } from './types';
+import { WorkflowDocument, WorkflowEditorController, WorkflowNodeType, WorkflowObservable } from './types';
 import '@xyflow/react/dist/style.css';
 import {
     ReactFlow,
@@ -15,6 +15,7 @@ import {
     NodeTypes,
 } from '@xyflow/react';
 import { componentNodeType, numberNodeType, registry, textFileNodeType, textNodeType } from './nodes';
+import { loadWorkflowDocument } from './loader';
 
 export const WorkflowEditorView = (props: {
     loader: undefined | ((controller: WorkflowEditorController, abortController: AbortController) => Promise<void>);
@@ -89,10 +90,38 @@ const ReactFlowView = (props: {
     const onConnect: OnConnect = useCallback((params) => {
         console.log(`onConnect`, params);
         setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
+
+        // update node input's WorkflowObservable source
+        const doc = workflowDocumentRef.current;
+        const targetNode = doc.nodes.find((n) => n.id === params.target);
+        if (!targetNode) {
+            console.warn(`  Target node not found: ${params.target}`);
+            return;
+        }
+
+        const { sourceHandle: fromOutputName, source: fromNodeId, targetHandle: inputName } = params;
+        if (!fromOutputName || !fromNodeId || !inputName) {
+            console.warn(`  Missing connection parameters:`, { fromOutputName, fromNodeId, inputName });
+            return;
+        }
+
+        targetNode.inputEdges = [
+            ...(targetNode.inputEdges ?? []),
+            {
+                inputName,
+                fromNodeId,
+                fromOutputName,
+            },
+        ];
+        targetNode.inputLiterals = targetNode.inputLiterals?.filter((x) => x.inputName !== inputName);
+        console.log(`  Updated workflow document:`, { doc: workflowDocumentRef.current });
+
+        saveWorkflowDocumentFile_debounced();
     }, []);
 
     const [workflowServerUrl, setWorkflowServerUrl] = useState(`http://localhost:7601`);
     const [workflowMetadataPath, setWorkflowMetadataPath] = useState(`workflow/lofr-workflow/workflow.metadata.json`);
+    const [workflowDocumentPath, setWorkflowDocumentPath] = useState(`workflow/lofr-workflow/workflow.document.json`);
     const metadataRef = useRef(
         {} as {
             [id: string]: {
@@ -103,12 +132,21 @@ const ReactFlowView = (props: {
             };
         },
     );
+    const workflowDocumentRef = useRef({} as WorkflowDocument);
 
     const saveNodeMetadata_debounced_ref = useRef(0 as unknown as ReturnType<typeof setTimeout>);
     const saveNodeMetadata_debounced = async () => {
         clearTimeout(saveNodeMetadata_debounced_ref.current);
         saveNodeMetadata_debounced_ref.current = setTimeout(async () => {
             await saveMetadata(workflowServerUrl, workflowMetadataPath, metadataRef.current);
+        }, 250);
+    };
+
+    const saveWorkflowDocumentFile_debounced_ref = useRef(0 as unknown as ReturnType<typeof setTimeout>);
+    const saveWorkflowDocumentFile_debounced = async () => {
+        clearTimeout(saveWorkflowDocumentFile_debounced_ref.current);
+        saveWorkflowDocumentFile_debounced_ref.current = setTimeout(async () => {
+            await saveWorkflowDocumentFile(workflowServerUrl, workflowDocumentPath, workflowDocumentRef.current);
         }, 250);
     };
 
@@ -225,6 +263,21 @@ const ReactFlowView = (props: {
                 metadataRef.current = loadedMetadata as typeof metadataRef.current;
                 console.log(`Workflow metadata loaded:`, metadataRef.current);
             },
+            setWorkflowDocumentPath: async (path: string) => {
+                console.log(`Setting workflow document path to: ${path}`);
+                setWorkflowDocumentPath(path);
+
+                const loadedDocument = await loadWorkflowDocumentFile(workflowServerUrl, path);
+                if (!loadedDocument) {
+                    console.warn(`No existing metadata found.`);
+                    return;
+                }
+
+                workflowDocumentRef.current = loadedDocument;
+                console.log(`Workflow document loaded:`, workflowDocumentRef.current);
+
+                await loadWorkflowDocument(workflowDocumentRef.current, controller, new AbortController());
+            },
             addNode: (typeName, args) => {
                 const nodeType = registry.nodeTypes[typeName];
                 if (!nodeType) {
@@ -296,6 +349,33 @@ const saveMetadata = async (
         method: `POST`,
         headers: { 'Content-Type': `application/json` },
         body: JSON.stringify(metadata, null, 2),
+    });
+    if (!response.ok) {
+        console.error(`Failed to save workflow metadata: ${response.status} ${response.statusText}`);
+        return;
+    }
+    console.log(`Saved workflow metadata.`);
+};
+
+const loadWorkflowDocumentFile = async (workflowServerUrl: string, workflowDocumentPath: string) => {
+    const response = await fetch(`${workflowServerUrl}/load?path=${encodeURIComponent(workflowDocumentPath)}`);
+    if (!response.ok) {
+        console.error(`Failed to load workflow metadata: ${response.status} ${response.statusText}`);
+        return undefined;
+    }
+    const doc = await response.json();
+    console.log(`Loaded workflow metadata:`, doc);
+    return doc as WorkflowDocument;
+};
+const saveWorkflowDocumentFile = async (
+    workflowServerUrl: string,
+    workflowDocumentPath: string,
+    doc: WorkflowDocument,
+) => {
+    const response = await fetch(`${workflowServerUrl}/save?path=${encodeURIComponent(workflowDocumentPath)}`, {
+        method: `POST`,
+        headers: { 'Content-Type': `application/json` },
+        body: JSON.stringify(doc, null, 2),
     });
     if (!response.ok) {
         console.error(`Failed to save workflow metadata: ${response.status} ${response.statusText}`);
