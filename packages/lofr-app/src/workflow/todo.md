@@ -34,7 +34,9 @@
 - [ ] {1 hour} edit workflow from workflow
     - [x] {5 mins} display node instance json in node debug
     - [x] {5 mins} add edge
-    - [] {5 mins} add node
+    - [x] {5 mins} add node
+    - [x] {5 mins} remove edge
+    - [x] {5 mins} remove node
     - [] {5 mins} edit node inputs and output slots
     - [] {5 mins} edit literal input values
 - [ ] {1 hour} edit workflow node definition from workflow

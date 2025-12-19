@@ -87,8 +87,12 @@ const ReactFlowView = (props: {
             });
 
             saveWorkflowDocumentFile_debounced();
-            // // remove edges connected to this node
-            // setEdges((edgesSnapshot) => edgesSnapshot.filter((e) => e.source !== nodeId && e.target !== nodeId));
+
+            const allNodeIds = new Set(doc.nodes.map((n) => n.id));
+            metadataRef.current = Object.fromEntries(
+                Object.entries(metadataRef.current).filter(([k]) => allNodeIds.has(k)),
+            );
+            saveNodeMetadata_debounced();
         }
 
         const posChanges = changes.filter((c) => c.type === `position` || c.type === `dimensions`);
@@ -493,9 +497,8 @@ const ReactFlowView = (props: {
     }, [props.loader, workflowServerUrl, reloadDocumentId]);
 
     type MenuContext = { type: `pane` } | { type: `connection`; params: OnConnectStartParams };
-    const [menu, setMenu] = useState<{ x: number; y: number; context: MenuContext } | null>(null);
+    const [menu, setMenu] = useState<{ x: number; y: number; context: MenuContext; timestamp: number } | null>(null);
     const lastClickRef = useRef<{ time: number; x: number; y: number } | null>(null);
-    const connectingParams = useRef<OnConnectStartParams | null>(null);
     const { screenToFlowPosition } = useReactFlow();
     const addNodeToWorkflow = useCallback(
         async (typeName: string, position: XYPosition, connectionParams?: OnConnectStartParams) => {
@@ -555,17 +558,51 @@ const ReactFlowView = (props: {
                 fitView
                 minZoom={0.1}
                 deleteKeyCode={[`Delete`]}
-                onConnectStart={(_e, params) => (connectingParams.current = params)}
-                onConnectEnd={(e) => {
-                    if (connectingParams.current) {
+                onConnectStart={(_e, params) => {
+                    console.log(`onConnectStart`, params);
+                }}
+                onConnectEnd={(e, connectionState) => {
+                    const { fromNode, fromHandle, toNode, toHandle } = connectionState;
+                    const { x, y } = e as MouseEvent;
+
+                    console.log(`onConnectEnd`, {
+                        x,
+                        y,
+                        fromNode,
+                        fromHandle,
+                        toNode,
+                        toHandle,
+                        connectionState,
+                        e,
+                    });
+
+                    if (!toNode && fromHandle?.nodeId && fromHandle?.id) {
                         const { x, y } = e as MouseEvent;
-                        setMenu({ x, y, context: { type: `connection`, params: connectingParams.current } });
+                        console.log(`  Opening node selection menu at connection end point`, {
+                            x,
+                            y,
+                            fromNode,
+                            fromHandle,
+                        });
+                        setMenu({
+                            timestamp: Date.now(),
+                            x,
+                            y,
+                            context: {
+                                type: `connection`,
+                                params: {
+                                    nodeId: fromHandle.nodeId,
+                                    handleId: fromHandle.id,
+                                    handleType: fromHandle.type,
+                                },
+                            },
+                        });
                     }
-                    connectingParams.current = null;
                 }}
                 zoomOnDoubleClick={false}
                 onPaneClick={(e) => {
-                    if (menu) {
+                    console.log(`onPaneClick`, { e });
+                    if (menu && Date.now() > menu.timestamp + 500) {
                         setMenu(null);
                         return;
                     }
@@ -573,7 +610,16 @@ const ReactFlowView = (props: {
                     const now = Date.now();
 
                     if (lastClickRef.current && now - lastClickRef.current.time < 300) {
-                        setMenu({ x: e.clientX, y: e.clientY, context: { type: `pane` } });
+                        console.log(`Double click detected, opening node selection menu`, {
+                            x: e.clientX,
+                            y: e.clientY,
+                        });
+                        setMenu({
+                            timestamp: Date.now(),
+                            x: e.clientX,
+                            y: e.clientY,
+                            context: { type: `pane` },
+                        });
                         lastClickRef.current = null;
                     } else {
                         lastClickRef.current = { time: now, x: e.clientX, y: e.clientY };
