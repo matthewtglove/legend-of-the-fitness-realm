@@ -102,14 +102,7 @@ const ReactFlowView = (props: {
                     continue;
                 }
                 const originalInputEdges = [...(targetNode.inputEdges ?? [])];
-                targetNode.inputEdges = (targetNode.inputEdges ?? []).filter(
-                    (ie) =>
-                        !(
-                            ie.inputName === toInputName &&
-                            ie.fromNodeId === fromNodeId &&
-                            ie.fromOutputName === fromOutputName
-                        ),
-                );
+                targetNode.inputEdges = (targetNode.inputEdges ?? []).filter((x) => !(x.inputName === toInputName));
                 const lastValueObj = (
                     nodes.find((n) => n.id === toNodeId)?.data as { inputs: Record<string, { lastValue: unknown }> }
                 )?.inputs?.[toInputName] ?? { lastValue: undefined };
@@ -152,7 +145,7 @@ const ReactFlowView = (props: {
 
         const originalInputEdges = [...(targetNode.inputEdges ?? [])];
         targetNode.inputEdges = [
-            ...(targetNode.inputEdges ?? []),
+            ...(targetNode.inputEdges ?? []).filter((x) => x.inputName !== inputName),
             {
                 inputName,
                 fromNodeId,

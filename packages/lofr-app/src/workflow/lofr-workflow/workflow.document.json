@@ -7,20 +7,6 @@
   ],
   "nodes": [
     {
-      "id": "n-doc-number-1",
-      "typeName": "number",
-      "inputLiterals": [
-        {
-          "inputName": "value",
-          "value": 42
-        },
-        {
-          "inputName": "label",
-          "value": "The Answer"
-        }
-      ]
-    },
-    {
       "id": "n-title-0",
       "typeName": "textSimple",
       "inputLiterals": [
@@ -243,22 +229,6 @@
       ]
     },
     {
-      "id": "n-title-11",
-      "typeName": "textSimple",
-      "inputEdges": [
-        {
-          "inputName": "content",
-          "fromNodeId": "n-title-10",
-          "fromOutputName": "content"
-        },
-        {
-          "inputName": "onContentChange",
-          "fromNodeId": "n-title-10",
-          "fromOutputName": "onContentChange"
-        }
-      ]
-    },
-    {
       "id": "n-title-12",
       "typeName": "textSimple",
       "inputEdges": [
@@ -285,6 +255,22 @@
       ]
     },
     {
+      "id": "n-title-11",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-title-10",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-title-10",
+          "fromOutputName": "onContentChange"
+        }
+      ]
+    },
+    {
       "id": "n-example-component-03",
       "typeName": "component",
       "inputLiterals": [
@@ -304,6 +290,21 @@
           "fromOutputName": "content"
         }
       ]
+    },
+    {
+      "id": "n-doc-number-1",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "value",
+          "value": 42
+        },
+        {
+          "inputName": "label",
+          "value": "The Answer"
+        }
+      ],
+      "inputEdges": []
     },
     {
       "id": "n-workflow",
@@ -560,11 +561,6 @@
       ],
       "inputEdges": [
         {
-          "inputName": "startCharge",
-          "fromNodeId": "n-startEnergy",
-          "fromOutputName": "value"
-        },
-        {
           "inputName": "endCharge",
           "fromNodeId": "n-endEnergy",
           "fromOutputName": "value"
@@ -572,6 +568,11 @@
         {
           "inputName": "speed",
           "fromNodeId": "n-speed",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "startCharge",
+          "fromNodeId": "n-startEnergy",
           "fromOutputName": "value"
         }
       ]
