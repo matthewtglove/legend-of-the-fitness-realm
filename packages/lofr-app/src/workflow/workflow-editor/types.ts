@@ -264,9 +264,11 @@ export const createRegistry = (): WorkflowRegistry => {
                         clearTimeout(updateTimeout);
                         updateTimeout = setTimeout(update, 0);
                     };
+
+                    const inputSubs: Record<string, { unsubscribe: () => void }> = {};
                     let loading = true;
                     for (const key in inputs) {
-                        inputs[key].subscribe(() => {
+                        inputSubs[key] = inputs[key].subscribe(() => {
                             if (loading) { return }
                             updateDebounced();
                         });
@@ -277,14 +279,47 @@ export const createRegistry = (): WorkflowRegistry => {
                     updateDebounced();
 
                     console.log(`[registerSimpleNodeType:load] loaded called with args:`, { inputs, outputs, loadArgs, nodeTypeArgs });
+                    let lastArgs = loadArgs;
                     const instance = {
                         typeName: nodeTypeArgs.typeName,
                         instanceId: nextInstanceId++,
                         inputs,
                         outputs,
                         refresh: () => { updateDebounced(); },
-                        update: (args: Record<string, unknown> & { id: string }) => {
-                            console.log(`[registerSimpleNodeType:instance:update] called with args:`, { args });
+                        update: (newArgsRaw: Record<string, unknown> & { id: string }) => {
+                            const newArgs = newArgsRaw as typeof loadArgs;
+                            // console.log(`[registerSimpleNodeType:instance:update] called with args:`, { args: newArgs });
+
+                            const newInputs = newArgs.inputs ?? {};
+                            for (const key in newInputs) {
+                                if (newArgs.inputs?.[key] === lastArgs.inputs?.[key]) {
+                                    continue;
+                                }
+
+                                console.log(`[registerSimpleNodeType:instance:update] input changes:`, {
+                                    newInput: newInputs[key],
+                                    oldInput: lastArgs.inputs?.[key],
+                                    key,
+                                    newArgs,
+                                    lastArgs,
+                                    loadArgs
+                                });
+
+                                inputSubs[key]?.unsubscribe();
+
+                                const obs = toObservable(newInputs[key], getSourceOptions(key));
+                                (inputs as Record<string, unknown>)[key] = obs;
+
+                                let loading = true;
+                                inputSubs[key] = obs.subscribe(() => {
+                                    if (loading) { return }
+                                    updateDebounced();
+                                });
+                                loading = false;
+                                updateDebounced();
+                            }
+
+                            lastArgs = newArgs;
                             return instance;
                         }
                     };

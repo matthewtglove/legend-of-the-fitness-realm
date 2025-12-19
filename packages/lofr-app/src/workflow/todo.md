@@ -37,7 +37,7 @@
     - [x] {5 mins} add node
     - [x] {5 mins} remove edge
     - [x] {5 mins} remove node
-    - [] {5 mins} handle reloading nodes
+    - [x] {5 mins} handle reloading nodes
     - [] {5 mins} edit literal input values
 - [ ] {1 hour} edit workflow node definition from workflow
     - [] {5 mins} register imported nodes
