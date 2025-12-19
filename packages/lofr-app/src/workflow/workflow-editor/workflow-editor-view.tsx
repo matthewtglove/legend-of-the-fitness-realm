@@ -13,16 +13,23 @@ import {
     Node,
     Edge,
     NodeTypes,
+    OnConnectStartParams,
+    useReactFlow,
+    XYPosition,
+    ReactFlowProvider,
 } from '@xyflow/react';
 import { componentNodeType, numberNodeType, registry, textFileNodeType, textNodeType } from './nodes';
 import { loadWorkflowDocument } from './loader';
+import { NodeSelectionMenu } from './node-selection-menu';
 
 export const WorkflowEditorView = (props: {
     loader: undefined | ((controller: WorkflowEditorController, abortController: AbortController) => Promise<void>);
 }) => {
     return (
         <div className="w-full h-full bg-lime-300">
-            <ReactFlowView loader={props.loader} />
+            <ReactFlowProvider>
+                <ReactFlowView loader={props.loader} />
+            </ReactFlowProvider>
         </div>
     );
 };
@@ -448,6 +455,54 @@ const ReactFlowView = (props: {
         };
     }, [props.loader, workflowServerUrl, reloadDocumentId]);
 
+    type MenuContext = { type: `pane` } | { type: `connection`; params: OnConnectStartParams };
+    const [menu, setMenu] = useState<{ x: number; y: number; context: MenuContext } | null>(null);
+    const lastClickRef = useRef<{ time: number; x: number; y: number } | null>(null);
+    const connectingParams = useRef<OnConnectStartParams | null>(null);
+    const { screenToFlowPosition } = useReactFlow();
+    const addNodeToWorkflow = useCallback(
+        (typeName: string, position: XYPosition, connectionParams?: OnConnectStartParams) => {
+            const nodeType = registry.nodeTypes[typeName];
+            if (!nodeType) {
+                throw new Error(`Unknown node type: ${typeName}`);
+            }
+            const doc = workflowDocumentRef.current;
+            const newId = `n-${typeName}-${Date.now()}`;
+
+            const inputEdge = (() => {
+                const { nodeId, handleId } = connectionParams ?? {};
+                if (!nodeId || !handleId) return;
+
+                const targetInputName =
+                    Object.entries(nodeType.defaults.inputs).find(([k]) => k === connectionParams?.handleId)?.[0] ??
+                    Object.keys(nodeType.defaults.inputs)[0];
+
+                if (!targetInputName) {
+                    console.warn(`[addNode]  Target input not found: ${handleId} on node type: ${typeName}`);
+                    return;
+                }
+
+                return {
+                    inputName: targetInputName,
+                    fromNodeId: nodeId,
+                    fromOutputName: handleId,
+                };
+            })();
+
+            doc.nodes.push({
+                id: newId,
+                typeName: typeName,
+                inputEdges: !inputEdge ? undefined : [inputEdge],
+            });
+            metadataRef.current[newId] = {
+                x: position.x,
+                y: position.y,
+            };
+            saveWorkflowDocumentFile_debounced();
+        },
+        [],
+    );
+
     return (
         <div className="w-full h-full">
             <ReactFlow
@@ -460,9 +515,51 @@ const ReactFlowView = (props: {
                 fitView
                 minZoom={0.1}
                 deleteKeyCode={[`Delete`]}
+                onConnectStart={(_e, params) => (connectingParams.current = params)}
+                onConnectEnd={(e) => {
+                    if (connectingParams.current) {
+                        const { x, y } = e as MouseEvent;
+                        setMenu({ x, y, context: { type: `connection`, params: connectingParams.current } });
+                    }
+                    connectingParams.current = null;
+                }}
+                zoomOnDoubleClick={false}
+                onPaneClick={(e) => {
+                    if (menu) {
+                        setMenu(null);
+                        return;
+                    }
+
+                    const now = Date.now();
+
+                    if (lastClickRef.current && now - lastClickRef.current.time < 300) {
+                        setMenu({ x: e.clientX, y: e.clientY, context: { type: `pane` } });
+                        lastClickRef.current = null;
+                    } else {
+                        lastClickRef.current = { time: now, x: e.clientX, y: e.clientY };
+                    }
+                }}
             >
                 <MiniMap nodeStrokeWidth={3} />
             </ReactFlow>
+            {menu && (
+                <NodeSelectionMenu
+                    registry={registry}
+                    position={menu}
+                    onSelect={(def) => {
+                        const position = screenToFlowPosition({ x: menu.x, y: menu.y });
+
+                        if (menu.context.type === `connection`) {
+                            addNodeToWorkflow(def.typeName, position, menu.context.params);
+                        } else {
+                            addNodeToWorkflow(def.typeName, position);
+                        }
+
+                        setMenu(null);
+                    }}
+                    onClose={() => setMenu(null)}
+                />
+            )}
         </div>
     );
 };

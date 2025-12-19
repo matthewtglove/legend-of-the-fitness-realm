@@ -561,6 +561,11 @@
       ],
       "inputEdges": [
         {
+          "inputName": "startCharge",
+          "fromNodeId": "n-startEnergy",
+          "fromOutputName": "value"
+        },
+        {
           "inputName": "endCharge",
           "fromNodeId": "n-endEnergy",
           "fromOutputName": "value"
@@ -568,11 +573,6 @@
         {
           "inputName": "speed",
           "fromNodeId": "n-speed",
-          "fromOutputName": "value"
-        },
-        {
-          "inputName": "startCharge",
-          "fromNodeId": "n-startEnergy",
           "fromOutputName": "value"
         }
       ]
