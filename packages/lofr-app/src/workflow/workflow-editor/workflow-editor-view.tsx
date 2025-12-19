@@ -85,26 +85,72 @@ const ReactFlowView = (props: {
     }, []);
     const onEdgesChange: OnEdgesChange<EdgeType> = useCallback((changes) => {
         console.log(`onEdgesChange`, changes);
+
+        for (const change of changes) {
+            if (change.type === `remove`) {
+                // update node input's WorkflowObservable source
+                const doc = workflowDocumentRef.current;
+                const [fromNodeId, fromOutputName, toNodeId, toInputName] = change.id.split(`::`);
+                if (!fromNodeId || !fromOutputName || !toNodeId || !toInputName) {
+                    console.warn(`[onEdgesChange]  Invalid edge id format: ${change.id}`);
+                    continue;
+                }
+
+                const targetNode = doc.nodes.find((n) => n.id === toNodeId);
+                if (!targetNode) {
+                    console.warn(`[onEdgesChange]  Target node not found: ${toNodeId}`);
+                    continue;
+                }
+                const originalInputEdges = [...(targetNode.inputEdges ?? [])];
+                targetNode.inputEdges = (targetNode.inputEdges ?? []).filter(
+                    (ie) =>
+                        !(
+                            ie.inputName === toInputName &&
+                            ie.fromNodeId === fromNodeId &&
+                            ie.fromOutputName === fromOutputName
+                        ),
+                );
+                const lastValueObj = (
+                    nodes.find((n) => n.id === toNodeId)?.data as { inputs: Record<string, { lastValue: unknown }> }
+                )?.inputs?.[toInputName] ?? { lastValue: undefined };
+
+                targetNode.inputLiterals = [
+                    ...(targetNode.inputLiterals ?? []),
+                    {
+                        inputName: toInputName,
+                        value: lastValueObj.lastValue as string,
+                    },
+                ];
+                console.log(`[onEdgesChange]  Updated workflow document:`, {
+                    doc: workflowDocumentRef.current,
+                    originalInputEdges,
+                });
+                saveWorkflowDocumentFile_debounced();
+                setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
+                continue;
+            }
+        }
+
         setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
     }, []);
     const onConnect: OnConnect = useCallback((params) => {
-        console.log(`onConnect`, params);
-        setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
+        console.log(`[onConnect]`, params);
 
         // update node input's WorkflowObservable source
         const doc = workflowDocumentRef.current;
         const targetNode = doc.nodes.find((n) => n.id === params.target);
         if (!targetNode) {
-            console.warn(`  Target node not found: ${params.target}`);
+            console.warn(`[onConnect]  Target node not found: ${params.target}`);
             return;
         }
 
         const { sourceHandle: fromOutputName, source: fromNodeId, targetHandle: inputName } = params;
         if (!fromOutputName || !fromNodeId || !inputName) {
-            console.warn(`  Missing connection parameters:`, { fromOutputName, fromNodeId, inputName });
+            console.warn(`[onConnect]  Missing connection parameters:`, { fromOutputName, fromNodeId, inputName });
             return;
         }
 
+        const originalInputEdges = [...(targetNode.inputEdges ?? [])];
         targetNode.inputEdges = [
             ...(targetNode.inputEdges ?? []),
             {
@@ -113,10 +159,105 @@ const ReactFlowView = (props: {
                 fromOutputName,
             },
         ];
+
+        // solve node dependency order
+        const solveNodeOrders = () => {
+            const nodeOrders = doc.nodes.map((x, i) => ({
+                node: x,
+                order: i * 1000000,
+                originalOrder: i,
+                dependencies: undefined as
+                    | undefined
+                    | {
+                          node: (typeof doc.nodes)[0];
+                          order: number;
+                      }[],
+            }));
+            nodeOrders.forEach((nOrder) => {
+                const inputEdges = nOrder.node.inputEdges;
+                if (!inputEdges?.length) {
+                    return;
+                }
+                nOrder.dependencies = inputEdges.map((ie) => {
+                    const depNode = nodeOrders.find((x) => x.node.id === ie.fromNodeId);
+                    if (!depNode) {
+                        throw new Error(
+                            `[onConnect:solveNodeOrders] Input edge references unknown node id: ${ie.fromNodeId}`,
+                        );
+                    }
+                    return depNode;
+                });
+            });
+
+            const calculateOrderBelowDependencies = (
+                nOrder: (typeof nodeOrders)[0],
+                visited: Set<(typeof nodeOrders)[0]>,
+            ): number => {
+                if (visited.has(nOrder)) {
+                    return nOrder.order;
+                }
+                visited.add(nOrder);
+                if (!nOrder.dependencies?.length) {
+                    return nOrder.order;
+                }
+
+                const childOrders = nOrder.dependencies.map((dep) => {
+                    return calculateOrderBelowDependencies(nodeOrders.find((x) => x.node.id === dep.node.id)!, visited);
+                });
+                const maxDepOrder = childOrders.length > 0 ? Math.max(...childOrders) : 0;
+                nOrder.order = maxDepOrder + 1;
+                return nOrder.order;
+            };
+            for (const no of nodeOrders) {
+                calculateOrderBelowDependencies(no, new Set());
+            }
+
+            const areDependenciesValid = nodeOrders.every((nOrder) => {
+                if (!nOrder.dependencies?.length) {
+                    return true;
+                }
+                return nOrder.dependencies.every((dep) => {
+                    const depNodeOrder = nodeOrders.find((x) => x.node.id === dep.node.id);
+                    if (!depNodeOrder) {
+                        throw new Error(`[onConnect:solveNodeOrders] Dependency node not found: ${dep.node.id}`);
+                    }
+                    return depNodeOrder.order < nOrder.order;
+                });
+            });
+            if (!areDependenciesValid) {
+                console.warn(`[onConnect:solveNodeOrders]  Circular dependency detected in node orders:`, {
+                    nodeOrders,
+                });
+                return false;
+            }
+
+            const nodesSorted = [...nodeOrders].sort((a, b) => {
+                if (a.order === b.order) {
+                    return a.originalOrder - b.originalOrder;
+                }
+                return a.order - b.order;
+            });
+
+            console.log(`[onConnect:solveNodeOrders]  Node order after calculation:`, {
+                nodesSorted,
+                nodesBefore: doc.nodes,
+            });
+            doc.nodes = nodesSorted.map((x) => x.node);
+
+            return true;
+        };
+        if (!solveNodeOrders()) {
+            // revert on failure
+            targetNode.inputEdges = originalInputEdges;
+            console.log(`[onConnect]  Reverted workflow document changes:`, { doc: workflowDocumentRef.current });
+            return;
+        }
+
         targetNode.inputLiterals = targetNode.inputLiterals?.filter((x) => x.inputName !== inputName);
-        console.log(`  Updated workflow document:`, { doc: workflowDocumentRef.current });
+        console.log(`[onConnect]  Updated workflow document:`, { doc: workflowDocumentRef.current });
 
         saveWorkflowDocumentFile_debounced();
+        setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
     }, []);
 
     const [workflowServerUrl, setWorkflowServerUrl] = useState(`http://localhost:7601`);
@@ -210,7 +351,7 @@ const ReactFlowView = (props: {
                     return;
                 }
 
-                const edgeId = `${nodeId}-${handleId}-${args.id}-${inputKey}`;
+                const edgeId = `${nodeId}::${handleId}::${args.id}::${inputKey}`;
                 setEdges((s) => {
                     const old = s.find((x) => x.id === edgeId);
 
@@ -323,6 +464,7 @@ const ReactFlowView = (props: {
                 onConnect={onConnect}
                 fitView
                 minZoom={0.1}
+                deleteKeyCode={[`Delete`]}
             >
                 <MiniMap nodeStrokeWidth={3} />
             </ReactFlow>
