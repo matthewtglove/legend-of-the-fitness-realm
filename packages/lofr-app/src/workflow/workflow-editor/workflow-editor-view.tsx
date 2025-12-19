@@ -50,9 +50,46 @@ const ReactFlowView = (props: {
 }) => {
     const [nodes, setNodes] = useState(initialNodes);
     const [edges, setEdges] = useState(initialEdges);
+    const nodesRef = useRef(nodes);
+    nodesRef.current = nodes;
+    const edgesRef = useRef(edges);
+    edgesRef.current = edges;
 
     const onNodesChange: OnNodesChange<NodeType> = useCallback((changes) => {
         console.log(`onNodesChange`, changes);
+
+        const removeChanges = changes.filter((c) => c.type === `remove`);
+        for (const change of removeChanges) {
+            const nodeId = change.id;
+            const doc = workflowDocumentRef.current;
+            const nodeToRemove = nodesRef.current.find((n) => n.id === nodeId);
+            if (!nodeToRemove) {
+                console.warn(`[onNodesChange]  Node to remove not found: ${nodeId}`);
+                continue;
+            }
+
+            doc.nodes = doc.nodes.filter((n) => n.id !== nodeId);
+
+            // also remove edges that use this node
+            doc.nodes.forEach((n) => {
+                const brokenEdges = (n.inputEdges ?? []).filter((ie) => ie.fromNodeId === nodeId);
+                if (!brokenEdges.length) return;
+
+                n.inputEdges = (n.inputEdges ?? []).filter((ie) => ie.fromNodeId !== nodeId);
+                n.inputLiterals = [
+                    ...(n.inputLiterals ?? []),
+                    ...brokenEdges.map((be) => ({
+                        inputName: be.inputName,
+                        value: (nodeToRemove.data as { outputs: Record<string, WorkflowObservable<unknown>> })
+                            .outputs?.[be.fromOutputName]?.lastValue as string,
+                    })),
+                ];
+            });
+
+            saveWorkflowDocumentFile_debounced();
+            // // remove edges connected to this node
+            // setEdges((edgesSnapshot) => edgesSnapshot.filter((e) => e.source !== nodeId && e.target !== nodeId));
+        }
 
         const posChanges = changes.filter((c) => c.type === `position` || c.type === `dimensions`);
         if (posChanges.length > 0) {
@@ -461,7 +498,7 @@ const ReactFlowView = (props: {
     const connectingParams = useRef<OnConnectStartParams | null>(null);
     const { screenToFlowPosition } = useReactFlow();
     const addNodeToWorkflow = useCallback(
-        (typeName: string, position: XYPosition, connectionParams?: OnConnectStartParams) => {
+        async (typeName: string, position: XYPosition, connectionParams?: OnConnectStartParams) => {
             const nodeType = registry.nodeTypes[typeName];
             if (!nodeType) {
                 throw new Error(`Unknown node type: ${typeName}`);
@@ -498,7 +535,10 @@ const ReactFlowView = (props: {
                 x: position.x,
                 y: position.y,
             };
-            saveWorkflowDocumentFile_debounced();
+
+            await saveMetadata(workflowServerUrl, workflowMetadataPath, metadataRef.current);
+            await saveWorkflowDocumentFile(workflowServerUrl, workflowDocumentPath, workflowDocumentRef.current);
+            setReloadDocumentId((s) => s + 1);
         },
         [],
     );
