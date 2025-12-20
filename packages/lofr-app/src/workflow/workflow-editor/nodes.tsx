@@ -7,7 +7,7 @@ import {
     WorkflowSubject,
 } from './types';
 import '@xyflow/react/dist/style.css';
-import { NodeResizer, Handle, Position } from '@xyflow/react';
+import { NodeResizer, Handle, Position, useReactFlow } from '@xyflow/react';
 import { useObservable, useObservableRecord } from './use-observable';
 import { TextCodeEditorComponent } from './code-editor/text-code-editor-main';
 import { WorkflowDocumentFormat } from './document';
@@ -34,7 +34,8 @@ const NodeWrapper = ({
         outputs: Record<string, WorkflowObservable<unknown>>;
     };
 }) => {
-    console.log(`[NodeWrapper] rendering node ${id}`, { data });
+    // console.log(`[NodeWrapper] rendering node ${id}`, { data });
+    const { deleteElements } = useReactFlow();
 
     const handleDisplayNameChange = (value: string) => {
         console.log(`[NodeWrapper] handleDisplayNameChange`, { value });
@@ -42,6 +43,7 @@ const NodeWrapper = ({
 
     const handleDeleteNode = () => {
         console.log(`[NodeWrapper] handleDeleteNode`, { id });
+        deleteElements({ nodes: [{ id }] });
     };
 
     const displayName = id;
