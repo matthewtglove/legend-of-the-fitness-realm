@@ -769,7 +769,70 @@
         },
         {
           "inputName": "content",
-          "value": "ok what  \n   that why no enter?\n"
+          "value": "ok what  \n   that why no enter?"
+        }
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1766252433285",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "functionPath",
+          "value": "../../workflow/lofr-workflow/example-fun.ts"
+        },
+        {
+          "inputName": "functionExportName",
+          "value": "exampleFun04"
+        },
+        {
+          "inputName": "componentPath",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "outputTypeDefinition",
+          "value": "{\"text\":\"\"}"
+        },
+        {
+          "inputName": "componentExportName",
+          "value": "ExampleInputComponent"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{\"value\":\"\"}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "dyn-example-fun-and-component"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766252659724",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "some text ok"
+        }
+      ]
+    },
+    {
+      "id": "n-dyn-example-fun-and-component-1766252623734",
+      "typeName": "dyn-example-fun-and-component",
+      "requires": [
+        "n-registerNodeType-1766252433285"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "value",
+          "fromNodeId": "n-textSimple-1766252659724",
+          "fromOutputName": "content"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "prefix"
         }
       ]
     }

@@ -45,7 +45,7 @@
     - [x] {5 mins} edit node inputs and output slots (by default values)
     - [x] {5 mins} function only backed implementation
     - [x] {5 mins} component only backed implementation
-    - [] {5 mins} component + function backed implementation
+    - [x] {5 mins} component + function backed implementation
     - [] {5 mins} workflow backed implementation
 - [ ] {1 hour} complete MiniGame_NightPrep as LofrMiniGame
     - [] {5 mins} plan 1st hour

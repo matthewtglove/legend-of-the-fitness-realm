@@ -7,3 +7,7 @@ export const exampleFun02 = () => {
 export const exampleFun03 = ({ prefix }: { prefix: string }) => {
   return { text: `${prefix} This is fun ${a} @ ${new Date()}!` };
 };
+
+export const exampleFun04 = ({ value }: { value: string }) => {
+  return { text: `${value} @ ${new Date()}!` };
+};
