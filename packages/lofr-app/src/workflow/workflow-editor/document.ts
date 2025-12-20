@@ -18,7 +18,7 @@ export const WorkflowDocumentFormat = {
             throw new Error(`Unknown node type: ${node.typeName}`);
         }
 
-        const reservedNames = new Set([`workflowServerUrl`, `id`, `typeName`]);
+        const reservedNames = new Set([`workflowServerUrl`, `__registry`, `id`, `typeName`]);
 
         const inputLiterals = Object.entries(node.data.inputs).map(([inputName, value]) => ({
             inputName,

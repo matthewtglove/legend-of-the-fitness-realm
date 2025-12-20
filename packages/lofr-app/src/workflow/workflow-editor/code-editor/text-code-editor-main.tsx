@@ -7,13 +7,16 @@ export const TextCodeEditorComponent = ({
     onSave,
     isSelected,
     disabled = false,
+    language: languageInit,
+    onLanguageChange,
 }: {
     value: string;
     onChange: (value: string) => void;
     onSave: (value: string) => void;
     isSelected: boolean;
     disabled?: boolean;
-    // TODO: language
+    language?: CodeLanguage;
+    onLanguageChange?: (value: undefined | CodeLanguage) => void;
 }) => {
     const [text, setText] = useState(valueRaw);
     const [editorState, setEditorState] = useState<EditorState | undefined>(undefined);
@@ -45,11 +48,11 @@ export const TextCodeEditorComponent = ({
         hasChangedRef.current = false;
     };
 
-    const [language, setLanguage] = useState(`typescript` as undefined | CodeLanguage);
+    const [language, setLanguage] = useState((languageInit ?? `typescript`) as undefined | CodeLanguage);
     const changeLanguage = (value: undefined | CodeLanguage) => {
         hasChangedRef.current = true;
         setLanguage(value);
-        // onInputManualValues({ language: value });
+        onLanguageChange?.(value);
     };
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null);

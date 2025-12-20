@@ -222,13 +222,15 @@ const NodeWrapper = ({
 };
 
 registry.registerSimpleNodeType({
-    typeName: `registerComponentNodeType`,
+    typeName: `registerNodeType`,
     defaults: {
         inputs: {
             __registry: undefined as undefined | WorkflowRegistry,
             typeName: ``,
-            path: ``,
-            exportName: undefined as undefined | string,
+            componentPath: undefined as undefined | string,
+            componentExportName: undefined as undefined | string,
+            functionPath: undefined as undefined | string,
+            functionExportName: undefined as undefined | string,
             inputTypeDefinition: `{}`,
             outputTypeDefinition: `{}`,
         },
@@ -241,13 +243,17 @@ registry.registerSimpleNodeType({
         inputs: {
             __registry: undefined | WorkflowRegistry;
             typeName: string;
-            path: string;
-            exportName?: string;
+            componentPath?: string;
+            componentExportName?: string;
+            functionPath?: string;
+            functionExportName?: string;
             inputTypeDefinition: string;
             outputTypeDefinition: string;
         },
         { id },
     ) => {
+        console.log(`[registerNodeType:execute] START`, { inputs, id });
+
         if (!inputs.__registry) {
             throw new Error(`registry input is required`);
         }
@@ -270,10 +276,31 @@ registry.registerSimpleNodeType({
                     : {},
             },
             execute: async () => {
-                return {};
+                if (!inputs.functionPath) {
+                    return {};
+                }
+
+                console.log(`[registerNodeType:functionNodeType:execute] START`, { inputs });
+
+                const path = inputs.functionPath + (import.meta.env.DEV ? `?t=${Date.now()}` : ``);
+                const module = await import(path);
+                console.log(`[registerNodeType:functionNodeType:execute] imported module '${path}'`, {
+                    module,
+                    inputs,
+                });
+
+                const fun = (module[inputs.functionExportName ?? `default`] ?? module.default) as (
+                    args: unknown,
+                ) => unknown;
+                console.log(`[registerNodeType:functionNodeType:execute] loaded function '${path}'`, { fun, inputs });
+                const result = await fun(inputs);
+
+                console.log(`[registerNodeType:functionNodeType:execute] DONE '${path}'`, { result, fun, inputs });
+                return result as unknown as Record<string, unknown>;
             },
             Component: (props) => {
-                const inputsComp = useObservableRecord(props.data.inputs);
+                const inputsInner = useObservableRecord(props.data.inputs);
+                const outputsInner = useObservableRecord(props.data.outputs);
                 // console.log(`[registerComponentNodeType:componentNodeType:Component] rendering '${props.id}'`, {
                 //     inputsComp,
                 //     inputs: props.data.inputs,
@@ -281,38 +308,56 @@ registry.registerSimpleNodeType({
                 //     props,
                 // });
 
-                const callbacks = Object.fromEntries(
-                    Object.entries(props.data.outputs)
-                        .map(([key, value]) => {
-                            console.log(`[componentNodeType:Component] output`, { key, value });
-                            if (!value || typeof value !== `object`) {
-                                return [key, undefined];
-                            }
-                            if (!(`next` in value)) {
-                                return [key, undefined];
-                            }
+                const callbacks = !inputs.componentPath
+                    ? undefined
+                    : (Object.fromEntries(
+                          Object.entries(props.data.outputs)
+                              .map(([key, value]) => {
+                                  console.log(`[componentNodeType:Component] output`, { key, value });
+                                  if (!value || typeof value !== `object`) {
+                                      return [key, undefined];
+                                  }
+                                  if (!(`next` in value)) {
+                                      return [key, undefined];
+                                  }
 
-                            const onChangeKey = `on${key === `value` ? `` : key.charAt(0).toUpperCase() + key.slice(1)}Change`;
-                            console.log(`[componentNodeType:Component] created onChange callback`, {
-                                onChangeKey,
-                                key,
-                                value,
-                            });
-                            return [onChangeKey, (val: unknown) => (value as WorkflowSubject<unknown>).next(val)];
-                        })
-                        .filter(([, v]) => v),
-                );
+                                  const onChangeKey = `on${key === `value` ? `` : key.charAt(0).toUpperCase() + key.slice(1)}Change`;
+                                  console.log(`[componentNodeType:Component] created onChange callback`, {
+                                      onChangeKey,
+                                      key,
+                                      value,
+                                  });
+                                  return [onChangeKey, (val: unknown) => (value as WorkflowSubject<unknown>).next(val)];
+                              })
+                              .filter(([, v]) => v),
+                      ) as Record<string, (val: unknown) => void>);
                 return (
                     <NodeWrapper {...props}>
-                        <ComponentNode
-                            {...props}
-                            data={{
-                                ...callbacks,
-                                ...inputsComp,
-                                path: inputs.path,
-                                exportName: inputs.exportName,
-                            }}
-                        />
+                        {inputs.functionPath && (
+                            <FunctionNode
+                                {...props}
+                                data={{
+                                    inputs: inputsInner,
+                                    outputs: outputsInner,
+                                    path: inputs.functionPath,
+                                    exportName: inputs.functionExportName,
+                                }}
+                                onRerun={() => {
+                                    props.data.refresh();
+                                }}
+                            />
+                        )}
+                        {inputs.componentPath && (
+                            <ComponentNode
+                                {...props}
+                                data={{
+                                    ...callbacks,
+                                    ...inputsInner,
+                                    path: inputs.componentPath,
+                                    exportName: inputs.componentExportName,
+                                }}
+                            />
+                        )}
                     </NodeWrapper>
                 );
             },
@@ -330,24 +375,26 @@ registry.registerSimpleNodeType({
                     {...props}
                     data={{
                         ...inputs,
-                        onTypeNameChange: (newTypeName: string) => {
-                            (props.data.inputs.typeName as WorkflowSubject<string>).next(newTypeName);
+                        onTypeNameChange: (x) => {
+                            (props.data.inputs.typeName as WorkflowSubject<string>).next(x);
                         },
-                        onPathChange: (newPath: string) => {
-                            (props.data.inputs.path as WorkflowSubject<string>).next(newPath);
+                        onComponentPathChange: (x) => {
+                            (props.data.inputs.componentPath as WorkflowSubject<string>).next(x);
                         },
-                        onExportNameChange: (newExportName: string) => {
-                            (props.data.inputs.exportName as WorkflowSubject<string | undefined>).next(newExportName);
+                        onComponentExportNameChange: (x) => {
+                            (props.data.inputs.componentExportName as WorkflowSubject<string>).next(x);
                         },
-                        onInputTypeDefinitionChange: (newInputTypeDefinition: string) => {
-                            (props.data.inputs.inputTypeDefinition as WorkflowSubject<string>).next(
-                                newInputTypeDefinition,
-                            );
+                        onFunctionPathChange: (x) => {
+                            (props.data.inputs.functionPath as WorkflowSubject<string>).next(x);
                         },
-                        onOutputTypeDefinitionChange: (newOutputTypeDefinition: string) => {
-                            (props.data.inputs.outputTypeDefinition as WorkflowSubject<string>).next(
-                                newOutputTypeDefinition,
-                            );
+                        onFunctionExportNameChange: (x) => {
+                            (props.data.inputs.functionExportName as WorkflowSubject<string>).next(x);
+                        },
+                        onInputTypeDefinitionChange: (x) => {
+                            (props.data.inputs.inputTypeDefinition as WorkflowSubject<string>).next(x);
+                        },
+                        onOutputTypeDefinitionChange: (x) => {
+                            (props.data.inputs.outputTypeDefinition as WorkflowSubject<string>).next(x);
                         },
                     }}
                 />
@@ -361,13 +408,17 @@ const RegisterComponentNodeTypeEditor = ({
 }: {
     data: {
         typeName: string;
-        path: string;
-        exportName?: string;
+        componentPath?: string;
+        componentExportName?: string;
+        functionPath?: string;
+        functionExportName?: string;
         inputTypeDefinition: string;
         outputTypeDefinition: string;
         onTypeNameChange: (newTypeName: string) => void;
-        onPathChange: (newPath: string) => void;
-        onExportNameChange: (newExportName: string) => void;
+        onComponentPathChange: (newPath: string) => void;
+        onComponentExportNameChange: (newExportName: string) => void;
+        onFunctionPathChange: (newPath: string) => void;
+        onFunctionExportNameChange: (newExportName: string) => void;
         onInputTypeDefinitionChange: (newInputTypeDefinition: string) => void;
         onOutputTypeDefinitionChange: (newOutputTypeDefinition: string) => void;
     };
@@ -386,21 +437,39 @@ const RegisterComponentNodeTypeEditor = ({
                         />
                     </div>
                     <div className="flex flex-row items-center gap-1 p-1 ">
-                        <label>path</label>
+                        <label>componentPath</label>
                         <input
                             type="text"
                             className="flex-1"
-                            value={data.path}
-                            onChange={(e) => data.onPathChange(e.target.value)}
+                            value={data.componentPath}
+                            onChange={(e) => data.onComponentPathChange(e.target.value)}
                         />
                     </div>
                     <div className="flex flex-row items-center gap-1 p-1 ">
-                        <label>exportName</label>
+                        <label>componentExportName</label>
                         <input
                             type="text"
                             className="flex-1"
-                            value={data.exportName}
-                            onChange={(e) => data.onExportNameChange(e.target.value)}
+                            value={data.componentExportName}
+                            onChange={(e) => data.onComponentExportNameChange(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-row items-center gap-1 p-1 ">
+                        <label>functionPath</label>
+                        <input
+                            type="text"
+                            className="flex-1"
+                            value={data.functionPath}
+                            onChange={(e) => data.onFunctionPathChange(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-row items-center gap-1 p-1 ">
+                        <label>functionExportName</label>
+                        <input
+                            type="text"
+                            className="flex-1"
+                            value={data.functionExportName}
+                            onChange={(e) => data.onFunctionExportNameChange(e.target.value)}
                         />
                     </div>
                     <div className="flex flex-row items-center gap-1 p-1 ">
@@ -806,6 +875,7 @@ export const textNodeType = registry.registerSimpleNodeType({
             onContentChange: undefined as undefined | ((value: string) => void),
             startAtLine: undefined as undefined | string,
             endAtLine: undefined as undefined | string,
+            language: undefined as undefined | string,
         },
         outputs: {
             content: ``,
@@ -818,6 +888,7 @@ export const textNodeType = registry.registerSimpleNodeType({
             onContentChange: undefined | ((value: string) => void);
             startAtLine: undefined | string;
             endAtLine: undefined | string;
+            language: undefined | string;
         },
         { refresh },
     ) => {
@@ -878,6 +949,7 @@ export const textNodeType = registry.registerSimpleNodeType({
         const inputContent = useObservable(props.data.inputs.content);
         const startAtLine = useObservable(props.data.inputs.startAtLine);
         const endAtLine = useObservable(props.data.inputs.endAtLine);
+        const language = useObservable(props.data.inputs.language);
         const outputContent = useObservable(props.data.outputs.content);
         const onContentChange = useObservable(props.data.outputs.onContentChange);
 
@@ -889,7 +961,15 @@ export const textNodeType = registry.registerSimpleNodeType({
                         startAtLine,
                         endAtLine,
                         content: outputContent ?? inputContent,
-                        onContentChange,
+                        onContentChange:
+                            onContentChange ??
+                            ((x) => {
+                                (props.data.inputs.content as WorkflowSubject<string>).next(x);
+                            }),
+                        language,
+                        onLanguageChange: (x) => {
+                            (props.data.inputs.language as WorkflowSubject<undefined | string>).next(x);
+                        },
                         before: outputContent
                             ? inputContent.substring(0, inputContent.indexOf(outputContent))
                             : undefined,
@@ -915,9 +995,16 @@ const TextNode = ({
         after?: string;
         startAtLine?: string;
         endAtLine?: string;
+        language?: string;
+        onLanguageChange?: (newLanguage: undefined | string) => void;
     };
 }) => {
-    const isLong = data.startAtLine || data.endAtLine || data.onContentChange || data.content.split(`\n`).length > 2;
+    const isCodeEditor =
+        data.startAtLine ||
+        data.endAtLine ||
+        data.onContentChange ||
+        data.content.split(`\n`).length > 2 ||
+        data.language;
 
     useEffect(() => {
         if (!scrollTargerRef.current) return;
@@ -928,7 +1015,7 @@ const TextNode = ({
     return (
         <>
             <div className="flex flex-col w-full h-full p-1 whitespace-pre-wrap border border-gray-400 rounded shadow-md bg-slate-100">
-                {isLong && (
+                {isCodeEditor && (
                     <>
                         {data.startAtLine && (
                             <div className="flex flex-row items-center gap-1">
@@ -965,6 +1052,8 @@ const TextNode = ({
                                             console.log(`[TextNode:TextCodeEditorComponent:onChange]`, { x });
                                             // data.onContentChange?.(x)
                                         }}
+                                        language={data.language as `typescript`}
+                                        onLanguageChange={(x) => data.onLanguageChange?.(x)}
                                         onSave={(x) => data.onContentChange?.(x)}
                                         isSelected={selected}
                                     />
@@ -984,7 +1073,7 @@ const TextNode = ({
                         )}
                     </>
                 )}
-                {!isLong && (
+                {!isCodeEditor && (
                     <>
                         <div className="flex flex-col items-center justify-center">{data.content}</div>
                     </>
