@@ -783,6 +783,13 @@ const saveFileText = async (data: { workflowServerUrl: string; path: string }, f
     }
     console.log(`Saved file content.`);
 };
+const openFileInEditor = async (data: { workflowServerUrl: string; path: string }) => {
+    const response = await fetch(`${data.workflowServerUrl}/open?path=${encodeURIComponent(data.path)}`);
+    if (!response.ok) {
+        console.error(`Failed to open file: ${response.status} ${response.statusText}`);
+    }
+    console.log(`Opened file in editor.`);
+};
 
 const TextFileNode = ({
     data,
@@ -813,6 +820,10 @@ const TextFileNode = ({
         data.onContentChange?.(value ?? fileContent);
     };
 
+    const openFile = async () => {
+        await openFileInEditor(data);
+    };
+
     useEffect(() => {
         if (data.content) {
             setFileContent(data.content);
@@ -824,8 +835,13 @@ const TextFileNode = ({
     return (
         <>
             <div className="w-full h-full p-2 bg-white border border-gray-400 rounded shadow-md">
-                <div className="flex flex-row">
-                    <div className="font-mono text-sm">{data.path}</div>
+                <div className="flex flex-row p-0.5 nodrag nopan nowheel">
+                    <input
+                        type="text"
+                        value={data.path}
+                        readOnly
+                        className="flex-1 font-mono text-sm bg-gray-100 border border-gray-300 rounded p-0.5"
+                    />
                     {data.onContentChange && (
                         <button
                             className="px-2 py-1 ml-2 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
@@ -836,6 +852,14 @@ const TextFileNode = ({
                             Save
                         </button>
                     )}
+                    <button
+                        className="px-2 py-1 ml-2 text-xs text-white bg-purple-500 rounded hover:opacity-80 active:opacity-70"
+                        onClick={() => {
+                            void openFile();
+                        }}
+                    >
+                        Open ↗
+                    </button>
                     <button
                         className="px-2 py-1 ml-2 text-xs text-white bg-green-500 rounded hover:opacity-80 active:opacity-70"
                         onClick={() => {

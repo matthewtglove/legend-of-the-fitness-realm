@@ -46,7 +46,9 @@
     - [x] {5 mins} function only backed implementation
     - [x] {5 mins} component only backed implementation
     - [x] {5 mins} component + function backed implementation
-    - [] {5 mins} workflow backed implementation
+- [ ] {1 hour} nested workflows
+    - [] {5 mins} workflow to function
+    - [] {5 mins} register workflow as node
 - [ ] {1 hour} complete MiniGame_NightPrep as LofrMiniGame
     - [] {5 mins} plan 1st hour
     - [] {5 mins} plan 2nd hour

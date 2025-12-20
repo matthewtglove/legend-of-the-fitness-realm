@@ -96,6 +96,27 @@ export const run = async () => {
       }
 
       try {
+        if (pathname === `/open` && method === `GET`) {
+          console.log(`Handler: GET /open`);
+          const reqPath = url.searchParams.get(`path`);
+          console.log(`  Path Param: ${reqPath}`);
+          const absolutePath = safeResolvePath(reqPath);
+          if (!absolutePath) {
+            console.log(`  Error: Invalid path resolved.`);
+            return new Response(`{"error":"Invalid path"}`, {
+              status: 400,
+              headers: { ...headers, "Content-Type": `application/json` },
+            });
+          }
+
+          // open in code
+          console.log(`opening in editor: ${absolutePath}`);
+          Bun.spawn({ cmd: [`code`, absolutePath] });
+
+          return new Response(undefined, {
+            status: 200
+          });
+        }
         if (pathname === `/load` && method === `GET`) {
           console.log(`Handler: GET /load`);
           const reqPath = url.searchParams.get(`path`);
