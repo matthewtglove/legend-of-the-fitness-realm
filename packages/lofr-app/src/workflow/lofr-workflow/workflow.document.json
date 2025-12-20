@@ -740,6 +740,22 @@
       ]
     },
     {
+      "id": "n-textSimple-1766248725304",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-dyn-example-fun-execute-1766247830810",
+          "fromOutputName": "text"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "language"
+        }
+      ]
+    },
+    {
       "id": "n-textSimple-1766248524271",
       "typeName": "textSimple",
       "inputLiterals": [

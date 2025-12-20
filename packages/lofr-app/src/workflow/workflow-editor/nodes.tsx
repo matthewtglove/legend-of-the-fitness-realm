@@ -963,9 +963,11 @@ export const textNodeType = registry.registerSimpleNodeType({
                         content: outputContent ?? inputContent,
                         onContentChange:
                             onContentChange ??
-                            ((x) => {
-                                (props.data.inputs.content as WorkflowSubject<string>).next(x);
-                            }),
+                            ((props.data.inputs.content.source?.nodeId ?? props.id) === props.id
+                                ? (x) => {
+                                      (props.data.inputs.content as WorkflowSubject<string>).next(x);
+                                  }
+                                : undefined),
                         language,
                         onLanguageChange: (x) => {
                             (props.data.inputs.language as WorkflowSubject<undefined | string>).next(x);
