@@ -138,6 +138,38 @@
       "requires": [
         "n-registerNodeType-1766264710990-03"
       ]
+    },
+    {
+      "id": "n-registerNodeType-1766268028003",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "componentPath",
+          "value": "../../systems/director-state.debug.tsx"
+        },
+        {
+          "inputName": "componentExportName",
+          "value": "DirectorStateDebugView"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{\"directorState\":\"\"}"
+        }
+      ]
+    },
+    {
+      "id": "n-DirectorStateDebugView-1766268063911",
+      "typeName": "DirectorStateDebugView",
+      "requires": [
+        "n-registerNodeType-1766268028003"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "directorState",
+          "fromNodeId": "n-createDirectorStateDebug-1766267863866",
+          "fromOutputName": "directorState"
+        }
+      ]
     }
   ]
 }
