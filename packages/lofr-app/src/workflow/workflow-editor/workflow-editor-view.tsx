@@ -376,7 +376,13 @@ const ReactFlowView = (props: {
             //     // return existingNodeInstance.outputs;
             // }
 
-            const data = existingNodeInstance ? existingNodeInstance.update(args) : nodeType.load(args);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { instance: data, hasChanged } = existingNodeInstance
+                ? existingNodeInstance.update(args)
+                : {
+                      hasChanged: true,
+                      instance: nodeType.load(args),
+                  };
             // const data = {
             //     inputs: { ...dataRaw.inputs, ...((args as { defaults?: typeof dataRaw }).defaults?.inputs ?? {}) },
             //     outputs: { ...dataRaw.outputs, ...((args as { defaults?: typeof dataRaw }).defaults?.outputs ?? {}) },

@@ -44,7 +44,7 @@ export const useObservableRecord = <TRecord extends Record<string, unknown>>(val
         return () => {
             subs.forEach((s) => s.unsubscribe());
         };
-    }, [value]);
+    }, [value, ...Object.values(value ?? {})]);
 
     return state.value as TRecord;
 }

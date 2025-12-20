@@ -111,7 +111,7 @@ export type WorkflowNodeInstance<
     inputs: TInputs,
     outputs: TOutputs,
     refresh: () => void,
-    update: (args: Record<string, unknown> & { id: string }) => WorkflowNodeInstance<TInputs, TOutputs>;
+    update: (args: Record<string, unknown> & { id: string }) => { hasChanged: boolean, instance: WorkflowNodeInstance<TInputs, TOutputs> };
 };
 
 export type WorkflowNodeTypeArgs<
@@ -217,7 +217,7 @@ export const createRegistry = (): WorkflowRegistry => {
                     inputs?: Record<string, unknown>,
                     outputs?: Record<string, unknown>
                 }) => {
-                    console.log(`[registerSimpleNodeType:load] loading called with args:`, { loadArgs, nodeTypeArgs });
+                    console.log(`[registerSimpleNodeType:load] '${loadArgs.id}' loading called with args:`, { loadArgs, nodeTypeArgs });
 
                     const getSourceOptions = (handleId: string) => ({ source: { nodeId: loadArgs.id, handleId } });
 
@@ -243,8 +243,14 @@ export const createRegistry = (): WorkflowRegistry => {
                         try {
                             const inputValues = Object.fromEntries(Object.entries(inputs).map(([key, value]) => [key, value.lastValue])) as TInputs;
                             const outputValues = await nodeTypeArgs.execute(inputValues, {
-                                refresh: () => updateDebounced(),
+                                refresh: () => updateDebounced(`refresh`),
                             });
+
+                            console.log(`[registerSimpleNodeType:update] '${loadArgs.id}'`, {
+                                inputValues,
+                                outputValues,
+                            });
+
                             for (const key in outputValues) {
                                 if (outputs[key]) {
                                     outputs[key].next(outputValues[key]);
@@ -254,47 +260,48 @@ export const createRegistry = (): WorkflowRegistry => {
                             }
 
                         } catch (e) {
-                            console.error(`[registerSimpleNodeType] Error getting input values`, e);
+                            console.error(`[registerSimpleNodeType:update:catch] '${loadArgs.id}' Error getting input values`, e);
                         }
                     };
                     let updateTimeout = 0 as unknown as ReturnType<typeof setTimeout>;
-                    const updateDebounced = () => {
+                    const updateDebounced = (label: string) => {
+                        console.log(`[registerSimpleNodeType:updateDebounced] '${loadArgs.id}' ${label}`, {
+                            // instance
+                        });
                         clearTimeout(updateTimeout);
                         updateTimeout = setTimeout(update, 0);
                     };
 
                     const inputSubs: Record<string, { unsubscribe: () => void }> = {};
-                    let loading = true;
                     for (const key in inputs) {
                         inputSubs[key] = inputs[key].subscribe(() => {
-                            if (loading) { return }
-                            updateDebounced();
-                        });
+                            updateDebounced(`input:${key}:subscribe()`);
+                        }, { skipCurrentValue: true });
                     }
 
                     // initialize outputs
-                    loading = false;
-                    updateDebounced();
+                    updateDebounced(`initialization`);
 
-                    console.log(`[registerSimpleNodeType:load] loaded called with args:`, { inputs, outputs, loadArgs, nodeTypeArgs });
+                    console.log(`[registerSimpleNodeType:load] '${loadArgs.id}'loaded called with args:`, { inputs, outputs, loadArgs, nodeTypeArgs });
                     let lastArgs = loadArgs;
                     const instance = {
                         typeName: nodeTypeArgs.typeName,
                         instanceId: nextInstanceId++,
                         inputs,
                         outputs,
-                        refresh: () => { updateDebounced(); },
+                        refresh: () => { updateDebounced(`refresh`); },
                         update: (newArgsRaw: Record<string, unknown> & { id: string }) => {
                             const newArgs = newArgsRaw as typeof loadArgs;
                             // console.log(`[registerSimpleNodeType:instance:update] called with args:`, { args: newArgs });
 
+                            let hasChanged = false;
                             const newInputs = newArgs.inputs ?? {};
                             for (const key in newInputs) {
                                 if (newArgs.inputs?.[key] === lastArgs.inputs?.[key]) {
                                     continue;
                                 }
 
-                                console.log(`[registerSimpleNodeType:instance:update] input changes:`, {
+                                console.log(`[registerSimpleNodeType:instance:update] '${loadArgs.id}'input changes:`, {
                                     newInput: newInputs[key],
                                     oldInput: lastArgs.inputs?.[key],
                                     key,
@@ -303,22 +310,32 @@ export const createRegistry = (): WorkflowRegistry => {
                                     loadArgs
                                 });
 
+                                hasChanged = true;
                                 inputSubs[key]?.unsubscribe();
 
-                                const obs = toObservable(newInputs[key], getSourceOptions(key));
-                                (inputs as Record<string, unknown>)[key] = obs;
+                                const obs = toObservable(newInputs[key], getSourceOptions(key)) as WorkflowObservable<unknown>;
+                                (inputs as Record<string, WorkflowObservable<unknown>>)[key] = obs;
 
-                                let loading = true;
                                 inputSubs[key] = obs.subscribe(() => {
-                                    if (loading) { return }
-                                    updateDebounced();
-                                });
-                                loading = false;
-                                updateDebounced();
+                                    updateDebounced(`input:${key}:update:subscribe()`);
+                                }, { skipCurrentValue: true });
+                                updateDebounced(`input:${key}:update`);
                             }
 
                             lastArgs = newArgs;
-                            return instance;
+
+                            // change instance obj to help with rerender?
+                            if (hasChanged) {
+                                return {
+                                    hasChanged,
+                                    instance
+                                };
+                            }
+
+                            return {
+                                hasChanged: false,
+                                instance
+                            };
                         }
                     };
 

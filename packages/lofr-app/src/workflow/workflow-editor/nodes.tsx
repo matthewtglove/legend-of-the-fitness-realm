@@ -227,6 +227,13 @@ export const componentNodeType = registry.registerSimpleNodeType({
     },
     Component: (props) => {
         const inputsRaw = useObservableRecord(props.data.inputs);
+        console.log(`[componentNodeType:Component] rendering '${props.id}'`, {
+            inputsRaw,
+            inputs: props.data.inputs,
+            outputs: props.data.outputs,
+            props,
+        });
+
         const callbacks = Object.fromEntries(
             Object.entries(props.data.outputs)
                 .map(([key, value]) => {

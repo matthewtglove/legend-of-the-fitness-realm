@@ -31,7 +31,7 @@
     - [x] add output example
 - [x] {1 hour} convert workflow to document
     - [x] {5 mins} loadWorkflowDocument = async (document: WorkflowDocument, workflowEditorController: WorkflowEditorController, abortController: AbortController)
-- [ ] {1 hour} edit workflow from workflow
+- [x] {1 hour} edit workflow from workflow
     - [x] {5 mins} display node instance json in node debug
     - [x] {5 mins} add edge
     - [x] {5 mins} add node
