@@ -614,6 +614,49 @@
           "inputName": "label"
         }
       ]
+    },
+    {
+      "id": "n-registerComponentNodeType-1766236315450",
+      "typeName": "registerComponentNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../prep/clock-mini-game/energy-bar-view.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "MiniGame_EnergyBar"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{\"startCharge\": 0, \"endCharge\":42, \"speed\": 76}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "MiniGame_EnergyBar_decl"
+        }
+      ]
+    },
+    {
+      "id": "n-MiniGame_EnergyBar_decl-1766239274889",
+      "typeName": "MiniGame_EnergyBar_decl",
+      "inputEdges": [
+        {
+          "inputName": "startCharge",
+          "fromNodeId": "n-startEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "endCharge",
+          "fromNodeId": "n-endEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "speed",
+          "fromNodeId": "n-speed",
+          "fromOutputName": "value"
+        }
+      ]
     }
   ]
 }

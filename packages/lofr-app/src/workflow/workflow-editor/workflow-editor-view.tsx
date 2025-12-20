@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     WorkflowDocument,
     WorkflowEditorController,
@@ -351,7 +351,16 @@ const ReactFlowView = (props: {
             nodeType: WorkflowNodeType<TArgs, TInputs, TOutputs>,
             argsRaw: TArgs,
         ) => {
-            const args = { ...argsRaw, workflowServerUrl, __registry: registry };
+            const args = {
+                ...argsRaw,
+                workflowServerUrl,
+                __registry: {
+                    get nodeTypes() {
+                        return registry.nodeTypes;
+                    },
+                    registerSimpleNodeType: controller.registerSimpleNodeType,
+                },
+            };
             console.log(`[addNode] adding ${args.id}: ${nodeType.typeName}`, { nodeType, args });
 
             const m = metadataRef.current[args.id];
@@ -463,7 +472,15 @@ const ReactFlowView = (props: {
         };
 
         const controller: WorkflowEditorController = {
-            registerSimpleNodeType: registry.registerSimpleNodeType,
+            registerSimpleNodeType: (args) => {
+                console.log(`[controller.registerSimpleNodeType]`, { args });
+                const result = registry.registerSimpleNodeType(args);
+                repopulateNodeTypes();
+                setTimeout(() => {
+                    repopulateNodeTypes();
+                }, 100);
+                return result;
+            },
             setWorkflowServerUrl: (url: string) => {
                 console.log(`Setting workflow server URL to: ${url}`);
                 setWorkflowServerUrl(url);
@@ -602,12 +619,17 @@ const ReactFlowView = (props: {
         [],
     );
 
-    const nodeTypes: NodeTypes = useMemo(() => {
-        return {
+    const [nodeTypes, setNodeTypes] = useState({
+        ...(Object.fromEntries(Object.entries(registry.nodeTypes).map(([k, x]) => [k, x.Component])) as NodeTypes),
+    });
+    const repopulateNodeTypes = () => {
+        console.log(`[repopulateNodeTypes] Repopulating node types...`, { nodeTypes: { ...registry.nodeTypes } });
+        setNodeTypes({
             ...(Object.fromEntries(Object.entries(registry.nodeTypes).map(([k, x]) => [k, x.Component])) as NodeTypes),
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [registry.nodeTypes.length]);
+        });
+        setReloadDocumentId((s) => s + 1);
+        // setNodes((s) => [...s]);
+    };
 
     return (
         <div className="w-full h-full">

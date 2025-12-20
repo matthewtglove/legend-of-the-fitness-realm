@@ -252,7 +252,7 @@ registry.registerSimpleNodeType({
             };
         }
 
-        const nodeType = registry.registerSimpleNodeType({
+        const nodeType = inputs.__registry.registerSimpleNodeType({
             typeName: inputs.typeName,
             defaults: {
                 inputs: inputs.inputTypeDefinition
@@ -332,6 +332,16 @@ registry.registerSimpleNodeType({
                         onExportNameChange: (newExportName: string) => {
                             (props.data.inputs.exportName as WorkflowSubject<string | undefined>).next(newExportName);
                         },
+                        onInputTypeDefinitionChange: (newInputTypeDefinition: string) => {
+                            (props.data.inputs.inputTypeDefinition as WorkflowSubject<string>).next(
+                                newInputTypeDefinition,
+                            );
+                        },
+                        onOutputTypeDefinitionChange: (newOutputTypeDefinition: string) => {
+                            (props.data.inputs.outputTypeDefinition as WorkflowSubject<string>).next(
+                                newOutputTypeDefinition,
+                            );
+                        },
                     }}
                 />
             </NodeWrapper>
@@ -346,9 +356,13 @@ const RegisterComponentNodeTypeEditor = ({
         typeName: string;
         path: string;
         exportName?: string;
+        inputTypeDefinition: string;
+        outputTypeDefinition: string;
         onTypeNameChange: (newTypeName: string) => void;
         onPathChange: (newPath: string) => void;
         onExportNameChange: (newExportName: string) => void;
+        onInputTypeDefinitionChange: (newInputTypeDefinition: string) => void;
+        onOutputTypeDefinitionChange: (newOutputTypeDefinition: string) => void;
     };
 }) => {
     return (
@@ -379,6 +393,24 @@ const RegisterComponentNodeTypeEditor = ({
                         className="flex-1"
                         value={data.exportName}
                         onChange={(e) => data.onExportNameChange(e.target.value)}
+                    />
+                </div>
+                <div className="flex flex-row items-center gap-1 p-1 ">
+                    <label>inputTypeDefinition</label>
+                    <input
+                        type="text"
+                        className="flex-1"
+                        value={data.inputTypeDefinition}
+                        onChange={(e) => data.onInputTypeDefinitionChange(e.target.value)}
+                    />
+                </div>
+                <div className="flex flex-row items-center gap-1 p-1 ">
+                    <label>outputTypeDefinition</label>
+                    <input
+                        type="text"
+                        className="flex-1"
+                        value={data.outputTypeDefinition}
+                        onChange={(e) => data.onOutputTypeDefinitionChange(e.target.value)}
                     />
                 </div>
             </div>
