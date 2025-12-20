@@ -15,6 +15,91 @@
           "value": "WorkoutBuilder"
         }
       ]
+    },
+    {
+      "id": "n-textFile-1766262506400",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "systems/lofr-system-types.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1766264501374",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "componentPath",
+          "value": "../../systems/user-state-debug-view.tsx"
+        },
+        {
+          "inputName": "componentExportName",
+          "value": "UserStateDebugView"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{\"userState\":\"\"}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "user-state-debug-view"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766264515118",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "packages/lofr-app/src/systems/user-state-debug-view.tsx\n\ncreateUserState\n\nUserStateDebugView\n\n\n{\"userState\":\"\"}\n"
+        }
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1766264710990",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "functionPath",
+          "value": "../../systems/user-state-debug-view.tsx"
+        },
+        {
+          "inputName": "outputTypeDefinition",
+          "value": "{\"userState\":\"\"}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "createUserState"
+        },
+        {
+          "inputName": "functionExportName",
+          "value": "createUserState_debug"
+        }
+      ]
+    },
+    {
+      "id": "n-createUserState-1766264748648",
+      "typeName": "createUserState",
+      "requires": [
+        "n-registerNodeType-1766264710990"
+      ]
+    },
+    {
+      "id": "n-user-state-debug-view-1766264631469",
+      "typeName": "user-state-debug-view",
+      "requires": [
+        "n-registerNodeType-1766264501374"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "userState",
+          "fromNodeId": "n-createUserState-1766264748648",
+          "fromOutputName": "userState"
+        }
+      ]
     }
   ]
 }

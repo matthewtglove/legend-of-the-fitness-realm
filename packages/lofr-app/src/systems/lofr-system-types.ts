@@ -52,7 +52,7 @@ import { WorkoutSession, WorkoutStep } from '@lofr/workout-parser';
 
 export const lofrSystemTypesDummy = null;
 
-type Observable<T> = {
+export type Observable<T> = {
   get lastValue(): undefined | T;
   subscribe: (callback: (value: T) => void) => { unsubscribe: () => void };
 };
@@ -117,7 +117,7 @@ export type LofrUserState<T extends Record<string, unknown>> = {
   update: (changed: Partial<T>) => void;
   observe: () => Observable<undefined | { newData: T; changed: Partial<T> }>;
 };
-type LofrUserStateBase = LofrUserState<Record<string, unknown>>;
+export type LofrUserStateBase = LofrUserState<Record<string, unknown>>;
 
 export type LofrGameTheme = {
   assets: {

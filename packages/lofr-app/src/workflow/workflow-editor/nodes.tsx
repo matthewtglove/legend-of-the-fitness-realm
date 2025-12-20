@@ -102,7 +102,7 @@ const NodeWrapper = ({
                         <div className="flex flex-row items-center flex-1 min-w-0 gap-1 nowheel nodrag nopan ">
                             <input
                                 type="text"
-                                className={`min-w-0 flex-1 font-bold`}
+                                className={`min-w-0 flex-1 font-bold text-xs`}
                                 // className={`mb-1 flex-1 overflow-hidden border-none font-bold bg-transparent overflow-ellipsis focus:outline-none`}
                                 title={`${displayName}: ${data.typeName}`}
                                 value={displayName}
@@ -750,6 +750,9 @@ export const textFileNodeType = registry.registerSimpleNodeType({
                     data={{
                         workflowServerUrl,
                         path,
+                        onPathChange: (newPath: string) => {
+                            (props.data.inputs.path as WorkflowSubject<string>).next(newPath);
+                        },
                         content,
                         onContentChange,
                         onReload: () => {
@@ -800,12 +803,14 @@ const TextFileNode = ({
     data: {
         workflowServerUrl: string;
         path: string;
+        onPathChange: (newPath: string) => void;
         content: string;
         onContentChange: undefined | ((value: string) => void);
         onReload: () => void;
     };
     selected: boolean;
 }) => {
+    const [pathText, setPathText] = useState(data.path);
     const [fileContent, setFileContent] = useState(data.content);
     const [reloadId, setReloadId] = useState(0);
 
@@ -840,8 +845,14 @@ const TextFileNode = ({
                 <div className="flex flex-row p-0.5 nodrag nopan nowheel">
                     <input
                         type="text"
-                        value={data.path}
-                        readOnly
+                        value={pathText}
+                        onChange={(e) => setPathText(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === `Enter`) {
+                                data.onPathChange(pathText);
+                            }
+                        }}
+                        onBlur={(e) => data.onPathChange(e.target.value)}
                         className="flex-1 font-mono text-sm bg-gray-100 border border-gray-300 rounded p-0.5"
                     />
                     {data.onContentChange && (
@@ -1027,7 +1038,9 @@ const TextNode = ({
         onLanguageChange?: (newLanguage: undefined | string) => void;
     };
 }) => {
-    const isCodeEditor = data.startAtLine || data.endAtLine || data.content.split(`\n`).length > 10;
+    const [isCodeEditor, setIsCodeEditor] = useState(
+        Boolean(data.startAtLine || data.endAtLine || data.content.split(`\n`).length > 10),
+    );
     // (data.language ?? `none`) !== `none`;
 
     useEffect(() => {
@@ -1115,6 +1128,18 @@ const TextNode = ({
                                 onChange={(e) => data.onContentChange?.(e.target.value)}
                                 className="flex-1 min-w-0 px-1 font-mono text-xs resize-none nopan nodrag nowheel"
                             />
+                        </div>
+                        <div className="absolute bottom-0 h-0">
+                            <div className="relative top-0 opacity-0 hover:opacity-100">
+                                <button
+                                    className="px-2 py-1 mt-1 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70"
+                                    onClick={() => {
+                                        setIsCodeEditor(true);
+                                    }}
+                                >
+                                    Switch to Code Editor
+                                </button>
+                            </div>
                         </div>
                     </>
                 )}
