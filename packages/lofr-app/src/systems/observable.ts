@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Observable } from "./lofr-system-types";
 
 export type Subject<T> = Observable<T> & {
@@ -32,3 +33,19 @@ export const createObservable = <T,>(initialValue: T): Subject<T> => {
         },
     };
 };
+
+type MaybeLike<T> = T extends undefined ? undefined | T : NonNullable<T>;
+export const useObservable = <T>(value: undefined | Observable<T>): MaybeLike<T> => {
+    const [state, setState] = useState({ value: value?.lastValue });
+
+    useEffect(() => {
+        const subscription = value?.subscribe((data: T) => {
+            setState({ value: data });
+        });
+        return () => {
+            subscription?.unsubscribe();
+        };
+    }, [value]);
+
+    return state.value as MaybeLike<T>;
+}

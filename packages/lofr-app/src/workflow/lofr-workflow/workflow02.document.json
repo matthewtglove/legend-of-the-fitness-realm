@@ -32,7 +32,7 @@
       "inputLiterals": [
         {
           "inputName": "componentPath",
-          "value": "../../systems/user-state-debug-view.tsx"
+          "value": "../../systems/user-state.debug.tsx"
         },
         {
           "inputName": "componentExportName",
@@ -64,7 +64,7 @@
       "inputLiterals": [
         {
           "inputName": "functionPath",
-          "value": "../../systems/user-state-debug-view.tsx"
+          "value": "../../systems/user-state.debug.tsx"
         },
         {
           "inputName": "outputTypeDefinition",
@@ -76,7 +76,7 @@
         },
         {
           "inputName": "functionExportName",
-          "value": "createUserState_debug"
+          "value": "createUserStateDebug"
         }
       ]
     },
