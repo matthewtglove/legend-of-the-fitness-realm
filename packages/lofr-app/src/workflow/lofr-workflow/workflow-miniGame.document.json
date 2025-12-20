@@ -188,12 +188,12 @@
           "value": "MiniGameView"
         },
         {
-          "inputName": "inputTypeDefinition",
-          "value": "{     \"path\": \"string\",     \"exportName\": \" string\",     \"userState\": \"LofrUserStateBase\",     \"directorState\": \"LofrDirectorState\",     \"narrativeService\": \"LofrNarrativeService\",     \"onDone\": \"() => void\" }"
-        },
-        {
           "inputName": "typeName",
           "value": "MiniGameView"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{     \"miniGamePath\": \"string\",     \"miniGameExportName\": \" string\",     \"userState\": \"LofrUserStateBase\",     \"directorState\": \"LofrDirectorState\",     \"narrativeService\": \"LofrNarrativeService\"}"
         }
       ]
     },
@@ -203,7 +203,7 @@
       "inputLiterals": [
         {
           "inputName": "content",
-          "value": "../../mini-game/games/energy-bar/mini-game.tsx"
+          "value": "./games/energy-bar/mini-game.tsx"
         }
       ]
     },
@@ -240,14 +240,22 @@
           "fromOutputName": "directorState"
         },
         {
-          "inputName": "path",
-          "fromNodeId": "n-textSimple-1766272167274",
+          "inputName": "miniGameExportName",
+          "fromNodeId": "n-textSimple-1766272182352",
           "fromOutputName": "content"
         },
         {
-          "inputName": "exportName",
-          "fromNodeId": "n-textSimple-1766272182352",
+          "inputName": "miniGamePath",
+          "fromNodeId": "n-textSimple-1766272167274",
           "fromOutputName": "content"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "path"
+        },
+        {
+          "inputName": "exportName"
         }
       ]
     }
