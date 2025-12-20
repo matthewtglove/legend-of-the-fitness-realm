@@ -39,16 +39,6 @@
       ]
     },
     {
-      "id": "n-textSimple-1766264515118",
-      "typeName": "textSimple",
-      "inputLiterals": [
-        {
-          "inputName": "content",
-          "value": "packages/lofr-app/src/systems/user-state-debug-view.tsx\n\ncreateUserState\n\nUserStateDebugView\n\n\n{\"userState\":\"\"}\n"
-        }
-      ]
-    },
-    {
       "id": "n-registerNodeType-1766264710990",
       "typeName": "registerNodeType",
       "inputLiterals": [
@@ -89,6 +79,64 @@
           "fromNodeId": "n-createUserState-1766264748648",
           "fromOutputName": "userState"
         }
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1766264710990-02",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "functionPath",
+          "value": "../../systems/narrative-service.debug.tsx"
+        },
+        {
+          "inputName": "functionExportName",
+          "value": "createNarrativeServiceDebug"
+        },
+        {
+          "inputName": "outputTypeDefinition",
+          "value": "{\"narrativeService\":\"\"}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "createNarrativeServiceDebug"
+        }
+      ]
+    },
+    {
+      "id": "n-createNarrativeServiceDebug-1766267616500",
+      "typeName": "createNarrativeServiceDebug",
+      "requires": [
+        "n-registerNodeType-1766264710990-02"
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1766264710990-03",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "functionExportName",
+          "value": "createDirectorStateDebug"
+        },
+        {
+          "inputName": "functionPath",
+          "value": "../../systems/director-state.debug.tsx"
+        },
+        {
+          "inputName": "outputTypeDefinition",
+          "value": "{\"directorState\":\"\"}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "createDirectorStateDebug"
+        }
+      ]
+    },
+    {
+      "id": "n-createDirectorStateDebug-1766267863866",
+      "typeName": "createDirectorStateDebug",
+      "requires": [
+        "n-registerNodeType-1766264710990-03"
       ]
     }
   ]

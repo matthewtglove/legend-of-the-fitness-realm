@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LofrUserStateBase } from './lofr-system-types';
 import { useObservable } from './observable';
 import { createUserState } from './user-state';
@@ -19,6 +19,9 @@ export const UserStateDebugView = ({ userState }: { userState: LofrUserStateBase
     const userStateData = useObservable(userState.observe());
 
     const [newDataText, setNewDataText] = useState(JSON.stringify(userStateData?.newData ?? {}, null, 2));
+    useEffect(() => {
+        setNewDataText(JSON.stringify(userStateData?.newData ?? {}, null, 2));
+    }, [userStateData]);
 
     const updateData = () => {
         const newData = JSON.parse(newDataText);
@@ -34,7 +37,7 @@ export const UserStateDebugView = ({ userState }: { userState: LofrUserStateBase
     return (
         <>
             <div className="flex flex-col w-full h-full p-2 bg-white border border-gray-400 rounded">
-                <div className="font-bold">Data:</div>
+                <div className="font-bold">User Data:</div>
                 <pre className="p-2 mt-1 overflow-auto text-xs bg-gray-100 border border-gray-300 rounded max-h-64">
                     {JSON.stringify(userStateData, null, 2)}
                 </pre>
