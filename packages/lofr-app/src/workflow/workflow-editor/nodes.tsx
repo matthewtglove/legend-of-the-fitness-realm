@@ -275,7 +275,7 @@ registry.registerSimpleNodeType({
                     ? (JSON.parse(inputs.outputTypeDefinition) as Record<string, unknown>)
                     : {},
             },
-            execute: async () => {
+            execute: async (inputsInner) => {
                 if (!inputs.functionPath) {
                     return {};
                 }
@@ -293,7 +293,7 @@ registry.registerSimpleNodeType({
                     args: unknown,
                 ) => unknown;
                 console.log(`[registerNodeType:functionNodeType:execute] loaded function '${path}'`, { fun, inputs });
-                const result = await fun(inputs);
+                const result = await fun(inputsInner);
 
                 console.log(`[registerNodeType:functionNodeType:execute] DONE '${path}'`, { result, fun, inputs });
                 return result as unknown as Record<string, unknown>;

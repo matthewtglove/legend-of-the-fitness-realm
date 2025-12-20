@@ -686,20 +686,6 @@
       ]
     },
     {
-      "id": "n-textSimple-1766246651968",
-      "typeName": "textSimple",
-      "inputLiterals": [
-        {
-          "inputName": "language",
-          "value": "json"
-        },
-        {
-          "inputName": "content",
-          "value": "{\r\n  \"id\": \"n-example-fun-execute\",\r\n  \"typeName\": \"function\",\r\n  \"inputLiterals\": [\r\n    {\r\n      \"inputName\": \"path\",\r\n      \"value\": \"../../workflow/lofr-workflow/example-fun.ts\"\r\n    },\r\n    {\r\n      \"inputName\": \"exportName\",\r\n      \"value\": \"exampleFun02\"\r\n    }\r\n  ],\r\n  \"outputs\": [\r\n    {\r\n      \"outputName\": \"text\",\r\n      \"defaultValue\": \"This is fun 42 @ Sat Dec 20 2025 10:23:46 GMT-0600 (Central Standard Time)!\"\r\n    }\r\n  ]\r\n}"
-        }
-      ]
-    },
-    {
       "id": "n-registerNodeType-1766247174571",
       "typeName": "registerNodeType",
       "inputLiterals": [
@@ -708,16 +694,34 @@
           "value": "../../workflow/lofr-workflow/example-fun.ts"
         },
         {
-          "inputName": "functionExportName",
-          "value": "exampleFun02"
-        },
-        {
           "inputName": "typeName",
           "value": "dyn-example-fun-execute"
         },
         {
           "inputName": "outputTypeDefinition",
           "value": "{\"text\":\"\"}"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{\"prefix\":\"\"}"
+        },
+        {
+          "inputName": "functionExportName",
+          "value": "exampleFun03"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766248261471",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "language",
+          "value": "markdown"
+        },
+        {
+          "inputName": "content",
+          "value": "this is some stuff 02!!!\n"
         }
       ]
     },
@@ -726,6 +730,27 @@
       "typeName": "dyn-example-fun-execute",
       "requires": [
         "n-registerNodeType-1766247174571"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "prefix",
+          "fromNodeId": "n-textSimple-1766248261471",
+          "fromOutputName": "content"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766248524271",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "language",
+          "value": "markdown"
+        },
+        {
+          "inputName": "content",
+          "value": "try again!\n"
+        }
       ]
     }
   ]

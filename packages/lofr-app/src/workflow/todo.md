@@ -43,7 +43,7 @@
     - [] {5 mins} register imported nodes
     - [x] {5 mins} register node type from workflow
     - [x] {5 mins} edit node inputs and output slots (by default values)
-    - [] {5 mins} function only backed implementation
+    - [x] {5 mins} function only backed implementation
     - [x] {5 mins} component only backed implementation
     - [] {5 mins} component + function backed implementation
     - [] {5 mins} workflow backed implementation
