@@ -579,7 +579,14 @@
     },
     {
       "id": "n-number-1766182474970",
-      "typeName": "number"
+      "typeName": "number",
+      "inputEdges": [],
+      "inputLiterals": [
+        {
+          "inputName": "value",
+          "value": 15
+        }
+      ]
     },
     {
       "id": "n-number-1766182479593",

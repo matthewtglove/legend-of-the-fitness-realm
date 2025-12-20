@@ -492,6 +492,8 @@ const ReactFlowView = (props: {
                     workflowEditorController: controller,
                     abortController: new AbortController(),
                     onSaveInputLiteral: ({ nodeId, inputName, value }) => {
+                        console.warn(`[onSaveInputLiteral] start:`, { nodeId, inputName, value });
+
                         const doc = workflowDocumentRef.current;
                         const targetNode = doc.nodes.find((n) => n.id === nodeId);
                         if (!targetNode) {
