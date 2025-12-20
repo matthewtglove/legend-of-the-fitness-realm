@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createRegistry, WorkflowObservable, WorkflowSubject } from './types';
+import {
+    createRegistry,
+    WorkflowNodeTypeUnknown,
+    WorkflowObservable,
+    WorkflowRegistry,
+    WorkflowSubject,
+} from './types';
 import '@xyflow/react/dist/style.css';
 import { NodeResizer, Handle, Position } from '@xyflow/react';
 import { useObservable, useObservableRecord } from './use-observable';
@@ -208,6 +214,174 @@ const NodeWrapper = ({
                     </Handle>
                 </React.Fragment>
             ))}
+        </>
+    );
+};
+
+registry.registerSimpleNodeType({
+    typeName: `registerComponentNodeType`,
+    defaults: {
+        inputs: {
+            __registry: undefined as undefined | WorkflowRegistry,
+            typeName: ``,
+            path: ``,
+            exportName: undefined as undefined | string,
+            inputTypeDefinition: `{}`,
+            outputTypeDefinition: `{}`,
+        },
+        outputs: {
+            nodeType: undefined as undefined | WorkflowNodeTypeUnknown,
+        },
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    execute: async (inputs: {
+        __registry: undefined | WorkflowRegistry;
+        typeName: string;
+        path: string;
+        exportName?: string;
+        inputTypeDefinition: string;
+        outputTypeDefinition: string;
+    }) => {
+        if (!inputs.__registry) {
+            throw new Error(`registry input is required`);
+        }
+        // only register once
+        if (inputs.__registry.nodeTypes[inputs.typeName]) {
+            return {
+                nodeType: inputs.__registry.nodeTypes[inputs.typeName],
+            };
+        }
+
+        const nodeType = registry.registerSimpleNodeType({
+            typeName: inputs.typeName,
+            defaults: {
+                inputs: inputs.inputTypeDefinition
+                    ? (JSON.parse(inputs.inputTypeDefinition) as Record<string, unknown>)
+                    : {},
+                outputs: inputs.outputTypeDefinition
+                    ? (JSON.parse(inputs.outputTypeDefinition) as Record<string, unknown>)
+                    : {},
+            },
+            execute: async () => {
+                return {};
+            },
+            Component: (props) => {
+                const inputsComp = useObservableRecord(props.data.inputs);
+                // console.log(`[registerComponentNodeType:componentNodeType:Component] rendering '${props.id}'`, {
+                //     inputsComp,
+                //     inputs: props.data.inputs,
+                //     outputs: props.data.outputs,
+                //     props,
+                // });
+
+                const callbacks = Object.fromEntries(
+                    Object.entries(props.data.outputs)
+                        .map(([key, value]) => {
+                            console.log(`[componentNodeType:Component] output`, { key, value });
+                            if (!value || typeof value !== `object`) {
+                                return [key, undefined];
+                            }
+                            if (!(`next` in value)) {
+                                return [key, undefined];
+                            }
+
+                            const onChangeKey = `on${key === `value` ? `` : key.charAt(0).toUpperCase() + key.slice(1)}Change`;
+                            console.log(`[componentNodeType:Component] created onChange callback`, {
+                                onChangeKey,
+                                key,
+                                value,
+                            });
+                            return [onChangeKey, (val: unknown) => (value as WorkflowSubject<unknown>).next(val)];
+                        })
+                        .filter(([, v]) => v),
+                );
+                return (
+                    <NodeWrapper {...props}>
+                        <ComponentNode
+                            {...props}
+                            data={{
+                                ...callbacks,
+                                ...inputsComp,
+                                path: inputs.path,
+                                exportName: inputs.exportName,
+                            }}
+                        />
+                    </NodeWrapper>
+                );
+            },
+        });
+
+        return {
+            nodeType,
+        };
+    },
+    Component: (props) => {
+        const inputs = useObservableRecord(props.data.inputs);
+        return (
+            <NodeWrapper {...props}>
+                <RegisterComponentNodeTypeEditor
+                    {...props}
+                    data={{
+                        ...inputs,
+                        onTypeNameChange: (newTypeName: string) => {
+                            (props.data.inputs.typeName as WorkflowSubject<string>).next(newTypeName);
+                        },
+                        onPathChange: (newPath: string) => {
+                            (props.data.inputs.path as WorkflowSubject<string>).next(newPath);
+                        },
+                        onExportNameChange: (newExportName: string) => {
+                            (props.data.inputs.exportName as WorkflowSubject<string | undefined>).next(newExportName);
+                        },
+                    }}
+                />
+            </NodeWrapper>
+        );
+    },
+});
+
+const RegisterComponentNodeTypeEditor = ({
+    data,
+}: {
+    data: {
+        typeName: string;
+        path: string;
+        exportName?: string;
+        onTypeNameChange: (newTypeName: string) => void;
+        onPathChange: (newPath: string) => void;
+        onExportNameChange: (newExportName: string) => void;
+    };
+}) => {
+    return (
+        <>
+            <div className="flex flex-col w-full h-full border rounded shadow-md bg-slate-200">
+                <div className="flex flex-row items-center gap-1 p-1 ">
+                    <label>typeName</label>
+                    <input
+                        type="text"
+                        className="flex-1"
+                        value={data.typeName}
+                        onChange={(e) => data.onTypeNameChange(e.target.value)}
+                    />
+                </div>
+                <div className="flex flex-row items-center gap-1 p-1 ">
+                    <label>path</label>
+                    <input
+                        type="text"
+                        className="flex-1"
+                        value={data.path}
+                        onChange={(e) => data.onPathChange(e.target.value)}
+                    />
+                </div>
+                <div className="flex flex-row items-center gap-1 p-1 ">
+                    <label>exportName</label>
+                    <input
+                        type="text"
+                        className="flex-1"
+                        value={data.exportName}
+                        onChange={(e) => data.onExportNameChange(e.target.value)}
+                    />
+                </div>
+            </div>
         </>
     );
 };

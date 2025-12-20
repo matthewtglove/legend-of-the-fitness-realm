@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     WorkflowDocument,
     WorkflowEditorController,
@@ -351,7 +351,7 @@ const ReactFlowView = (props: {
             nodeType: WorkflowNodeType<TArgs, TInputs, TOutputs>,
             argsRaw: TArgs,
         ) => {
-            const args = { ...argsRaw, workflowServerUrl };
+            const args = { ...argsRaw, workflowServerUrl, __registry: registry };
             console.log(`[addNode] adding ${args.id}: ${nodeType.typeName}`, { nodeType, args });
 
             const m = metadataRef.current[args.id];
@@ -463,6 +463,7 @@ const ReactFlowView = (props: {
         };
 
         const controller: WorkflowEditorController = {
+            registerSimpleNodeType: registry.registerSimpleNodeType,
             setWorkflowServerUrl: (url: string) => {
                 console.log(`Setting workflow server URL to: ${url}`);
                 setWorkflowServerUrl(url);
@@ -600,6 +601,13 @@ const ReactFlowView = (props: {
         },
         [],
     );
+
+    const nodeTypes: NodeTypes = useMemo(() => {
+        return {
+            ...(Object.fromEntries(Object.entries(registry.nodeTypes).map(([k, x]) => [k, x.Component])) as NodeTypes),
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [registry.nodeTypes.length]);
 
     return (
         <div className="w-full h-full">
@@ -757,11 +765,4 @@ const saveWorkflowDocumentFile = async (
         return;
     }
     console.log(`Saved workflow metadata.`);
-};
-
-const nodeTypes: NodeTypes = {
-    ...(Object.fromEntries(Object.entries(registry.nodeTypes).map(([k, x]) => [k, x.Component])) as NodeTypes),
-    // text: TextNode,
-    // textFile: TextFileNode,
-    // component: ComponentNode,
 };

@@ -41,7 +41,7 @@
     - [x] {5 mins} edit literal input values
 - [ ] {1 hour} edit workflow node definition from workflow
     - [] {5 mins} register imported nodes
-    - [] {5 mins} register node from workflow
+    - [] {5 mins} register node type from workflow
     - [] {5 mins} edit node inputs and output slots
     - [] {5 mins} function only backed implementation
     - [] {5 mins} component only backed implementation

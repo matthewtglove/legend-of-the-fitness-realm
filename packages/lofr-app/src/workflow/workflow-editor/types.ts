@@ -70,6 +70,7 @@ export type WorkflowEditorController = {
     setWorkflowServerUrl: (url: string) => void;
     setWorkflowMetadataPath: (path: string) => Promise<void>;
     setWorkflowDocumentPath: (path: string) => Promise<void>;
+    registerSimpleNodeType: WorkflowRegistry[`registerSimpleNodeType`];
     addNode: (typeName: string, args: { id: string } & Record<string, WorkflowObservableLike<unknown>>) => WorkflowNodeInstance<Record<string, WorkflowObservable<unknown>>, Record<string, WorkflowObservable<unknown>>>;
     // addTextNode: (args: {
     //     id: string,
@@ -175,6 +176,7 @@ export type WorkflowNodeType<
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
 > = WorkflowNodeTypeArgs<TArgs, TInputs, TOutputs>;
 export type WorkflowNodeTypes = Record<string, WorkflowNodeType<Record<string, unknown> & { id: string }, Record<string, WorkflowObservable<unknown>>, Record<string, WorkflowObservable<unknown>>>>;
+export type WorkflowNodeTypeUnknown = WorkflowNodeTypes[string];
 export type WorkflowRegistry = {
     nodeTypes: WorkflowNodeTypes;
     // registerNodeType: <
