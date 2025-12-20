@@ -4,6 +4,9 @@ import { createObservable } from './observable';
 type UserStateData = {
     name: string;
     race: string;
+    fighterClass: string;
+    level: number;
+    experience: number;
 };
 export const createUserState = (initial: UserStateData): LofrUserState<UserStateData> => {
     const data = createObservable<{ newData: UserStateData; changed: Partial<UserStateData> }>({

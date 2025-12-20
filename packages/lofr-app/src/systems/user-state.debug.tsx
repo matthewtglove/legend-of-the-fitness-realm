@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { LofrUserStateBase } from './lofr-system-types';
 import { useObservable } from './observable';
 import { createUserState } from './user-state';
@@ -7,12 +8,28 @@ export const createUserStateDebug = () => {
         userState: createUserState({
             name: `Rock Smasher`,
             race: `Dwarf`,
+            fighterClass: `Warrior`,
+            level: 1,
+            experience: 0,
         }),
     };
 };
 
 export const UserStateDebugView = ({ userState }: { userState: LofrUserStateBase }) => {
     const userStateData = useObservable(userState.observe());
+
+    const [newDataText, setNewDataText] = useState(JSON.stringify(userStateData?.newData ?? {}, null, 2));
+
+    const updateData = () => {
+        const newData = JSON.parse(newDataText);
+        const changed: Partial<typeof newData> = {};
+        for (const key of [...Object.keys(newData), ...Object.keys(userState.data)]) {
+            if (userState.data[key] !== newData[key]) {
+                changed[key] = newData[key] ?? null;
+            }
+        }
+        userState.update(changed);
+    };
 
     return (
         <>
@@ -24,17 +41,15 @@ export const UserStateDebugView = ({ userState }: { userState: LofrUserStateBase
                 <textarea
                     className="flex-1 w-full h-8 p-1 mt-2 text-xs border border-gray-400 rounded resize-none"
                     placeholder="Edit user data"
-                    value={JSON.stringify(userStateData?.newData ?? {}, null, 2)}
-                    onChange={(e) => {
-                        const newData = JSON.parse(e.target.value);
-                        const changed: Partial<typeof newData> = {};
-                        for (const key of Object.keys(newData)) {
-                            if (userState.data[key] !== newData[key]) {
-                                changed[key] = newData[key];
-                            }
+                    value={newDataText}
+                    onChange={(e) => setNewDataText(e.target.value)}
+                    onBlur={updateData}
+                    onKeyDown={(e) => {
+                        if (e.key === `Enter` && (e.ctrlKey || e.metaKey)) {
+                            updateData();
                         }
-                        userState.update(changed);
                     }}
+                    spellCheck={false}
                 />
             </div>
         </>

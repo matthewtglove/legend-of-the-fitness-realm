@@ -7,16 +7,6 @@
   ],
   "nodes": [
     {
-      "id": "n-title-0",
-      "typeName": "textSimple",
-      "inputLiterals": [
-        {
-          "inputName": "content",
-          "value": "WorkoutBuilder"
-        }
-      ]
-    },
-    {
       "id": "n-textFile-1766262506400",
       "typeName": "textFile",
       "inputLiterals": [
