@@ -53,6 +53,10 @@
         {
           "inputName": "content",
           "value": "NarrativeEngine"
+        },
+        {
+          "inputName": "language",
+          "value": "none"
         }
       ]
     },
@@ -716,12 +720,12 @@
       "typeName": "textSimple",
       "inputLiterals": [
         {
-          "inputName": "language",
-          "value": "markdown"
+          "inputName": "content",
+          "value": "this is some stuff 02!!!"
         },
         {
-          "inputName": "content",
-          "value": "this is some stuff 02!!!\n"
+          "inputName": "language",
+          "value": "none"
         }
       ]
     },
@@ -761,11 +765,11 @@
       "inputLiterals": [
         {
           "inputName": "language",
-          "value": "markdown"
+          "value": "none"
         },
         {
           "inputName": "content",
-          "value": "try again!\n"
+          "value": "ok what  \n   that why no enter?\n"
         }
       ]
     }

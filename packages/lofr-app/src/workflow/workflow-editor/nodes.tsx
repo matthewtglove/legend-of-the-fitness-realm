@@ -1001,12 +1001,8 @@ const TextNode = ({
         onLanguageChange?: (newLanguage: undefined | string) => void;
     };
 }) => {
-    const isCodeEditor =
-        data.startAtLine ||
-        data.endAtLine ||
-        data.onContentChange ||
-        data.content.split(`\n`).length > 2 ||
-        data.language;
+    const isCodeEditor = data.startAtLine || data.endAtLine || data.content.split(`\n`).length > 10;
+    // (data.language ?? `none`) !== `none`;
 
     useEffect(() => {
         if (!scrollTargerRef.current) return;
@@ -1055,7 +1051,7 @@ const TextNode = ({
                                             // data.onContentChange?.(x)
                                         }}
                                         language={data.language as `typescript`}
-                                        onLanguageChange={(x) => data.onLanguageChange?.(x)}
+                                        onLanguageChange={(x) => data.onLanguageChange?.(x ?? `none`)}
                                         onSave={(x) => data.onContentChange?.(x)}
                                         isSelected={selected}
                                     />
@@ -1077,7 +1073,23 @@ const TextNode = ({
                 )}
                 {!isCodeEditor && (
                     <>
-                        <div className="flex flex-col items-center justify-center">{data.content}</div>
+                        <div className="flex flex-row flex-1 min-w-0">
+                            {/* <input
+                                type="text"
+                                placeholder="Content"
+                                value={data.content}
+                                readOnly={!data.onContentChange}
+                                onChange={(e) => data.onContentChange?.(e.target.value)}
+                                className="flex-1 min-w-0 px-1 font-mono text-xs nopan nodrag nowheel"
+                            /> */}
+                            <textarea
+                                placeholder="Content"
+                                value={data.content}
+                                readOnly={!data.onContentChange}
+                                onChange={(e) => data.onContentChange?.(e.target.value)}
+                                className="flex-1 min-w-0 px-1 font-mono text-xs resize-none nopan nodrag nowheel"
+                            />
+                        </div>
                     </>
                 )}
             </div>

@@ -12,13 +12,16 @@ export const TextCodeEditorComponent = ({
 }: {
     value: string;
     onChange: (value: string) => void;
-    onSave: (value: string) => void;
+    onSave?: (value: string) => void;
     isSelected: boolean;
     disabled?: boolean;
     language?: CodeLanguage;
     onLanguageChange?: (value: undefined | CodeLanguage) => void;
 }) => {
     const [text, setText] = useState(valueRaw);
+    const textRef = useRef(text);
+    textRef.current = text;
+
     const [editorState, setEditorState] = useState<EditorState | undefined>(undefined);
 
     const hasChangedRef = useRef(false);
@@ -37,6 +40,10 @@ export const TextCodeEditorComponent = ({
     }, [valueRaw]);
 
     const changeValue = (value: string) => {
+        if (value === textRef.current) {
+            return;
+        }
+
         hasChangedRef.current = true;
         setText(value);
         onChange(value);
@@ -44,13 +51,13 @@ export const TextCodeEditorComponent = ({
 
     const saveValue = (value: string) => {
         setText(value);
-        onSave(value);
+        (onSave ?? onChange)(value);
         hasChangedRef.current = false;
     };
 
     const [language, setLanguage] = useState((languageInit ?? `typescript`) as undefined | CodeLanguage);
     const changeLanguage = (value: undefined | CodeLanguage) => {
-        hasChangedRef.current = true;
+        // hasChangedRef.current = true;
         setLanguage(value);
         onLanguageChange?.(value);
     };
@@ -109,7 +116,7 @@ export const TextCodeEditorComponent = ({
         <>
             <div className="relative z-0 w-full h-full">
                 <div className="z-0 w-full h-full">
-                    {hasChangedRef.current && (
+                    {onSave && hasChangedRef.current && (
                         <div className="absolute z-10 p-1 text-xs text-white bg-red-500 rounded top-3 right-3 opacity-90 z-1">
                             Unsaved Changes
                         </div>
