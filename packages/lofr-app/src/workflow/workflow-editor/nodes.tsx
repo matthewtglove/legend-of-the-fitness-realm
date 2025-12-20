@@ -106,6 +106,14 @@ const NodeWrapper = ({
                                 value={displayName}
                                 onChange={(x) => handleDisplayNameChange(x.target.value)}
                             />
+                            {data.refresh && (
+                                <div
+                                    className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                                    onClick={() => data.refresh()}
+                                >
+                                    {`▶️`}
+                                </div>
+                            )}
                             <div
                                 className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
                                 onClick={() => {
@@ -115,14 +123,6 @@ const NodeWrapper = ({
                             >
                                 {`🔎`}
                             </div>
-                            {data.refresh && (
-                                <div
-                                    className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
-                                    onClick={() => data.refresh()}
-                                >
-                                    {`▶️`}
-                                </div>
-                            )}
                             <div
                                 className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
                                     expandInfo ? `bg-blue-800` : `bg-blue-400`
