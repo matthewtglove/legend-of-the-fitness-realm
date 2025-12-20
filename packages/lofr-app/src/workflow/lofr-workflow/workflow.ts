@@ -5,13 +5,13 @@ import { _includeInHmr } from "./_hmr";
 
 const workflowServerUrl = `http://localhost:7601`;
 
-export const loadLofrWorkflow = async (workflowEditorController: WorkflowEditorController, abortController: AbortController) => {
+export const loadLofrWorkflow = (rootPath = `workflow/lofr-workflow/workflow00.metadata`) => async (workflowEditorController: WorkflowEditorController, abortController: AbortController) => {
   _includeInHmr();
 
   workflowEditorController.setWorkflowServerUrl(workflowServerUrl);
-  await workflowEditorController.setWorkflowMetadataPath(`workflow/lofr-workflow/workflow.metadata.json`);
+  await workflowEditorController.setWorkflowMetadataPath(`${rootPath}.metadata.json`);
   if (abortController.signal.aborted) return;
-  await workflowEditorController.setWorkflowDocumentPath(`workflow/lofr-workflow/workflow.document.json`);
+  await workflowEditorController.setWorkflowDocumentPath(`${rootPath}.document.json`);
   if (abortController.signal.aborted) return;
 
   // await loadWorkflowDocument(lofrWorkflowDocument, workflowEditorController, abortController);

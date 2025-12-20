@@ -1,0 +1,24 @@
+{
+  "imports": [
+    {
+      "path": "../workflow-editor/nodes.tsx",
+      "name": "numberNodeType"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n-title-0",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "WorkoutBuilder"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766260335669",
+      "typeName": "textSimple"
+    }
+  ]
+}

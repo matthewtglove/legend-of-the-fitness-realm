@@ -19,20 +19,47 @@ const isDev = import.meta.env.DEV;
 
 export const App = () => {
     const [mode, setMode] = useState(isDev ? `workflow` : `app`);
+    const [rootPath, setRootPath] = useState(
+        localStorage.getItem(`lofr-workflow-root-path`) || `workflow/lofr-workflow/workflow00`,
+    );
+    const changeRootPath = (newPath: string) => {
+        localStorage.setItem(`lofr-workflow-root-path`, newPath);
+        setRootPath(newPath);
+    };
+    const [rootPathText, setRootPathText] = useState(rootPath);
 
     if (mode === `workflow`) {
         return (
             <>
                 <div className="flex flex-col w-screen h-screen">
-                    <div className="p-1 bg-gray-300">
+                    <div className="flex flex-row items-center gap-1 p-1 bg-gray-300">
                         <button
                             className={`p-1 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70`}
                             onClick={() => setMode(`app`)}
                         >
                             Switch to App
                         </button>
+                        <input
+                            type="text"
+                            className="p-1 text-xs border border-gray-400 rounded w-96"
+                            value={rootPathText}
+                            onChange={(e) => setRootPathText(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === `Enter`) {
+                                    changeRootPath(rootPathText);
+                                }
+                            }}
+                        />
+                        <button
+                            className={`p-1 text-xs text-white bg-blue-500 rounded hover:opacity-80 active:opacity-70`}
+                            onClick={() => {
+                                changeRootPath(rootPathText);
+                            }}
+                        >
+                            Open
+                        </button>
                     </div>
-                    <WorkflowEditorView loader={loadLofrWorkflow} />
+                    <WorkflowEditorView loader={loadLofrWorkflow(rootPath)} />
                 </div>
             </>
         );

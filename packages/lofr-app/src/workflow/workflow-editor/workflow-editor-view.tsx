@@ -319,8 +319,8 @@ const ReactFlowView = (props: {
     }, []);
 
     const [workflowServerUrl, setWorkflowServerUrl] = useState(`http://localhost:7601`);
-    const [workflowMetadataPath, setWorkflowMetadataPath] = useState(`workflow/lofr-workflow/workflow.metadata.json`);
-    const [workflowDocumentPath, setWorkflowDocumentPath] = useState(`workflow/lofr-workflow/workflow.document.json`);
+    const workflowMetadataPathRef = useRef(`workflow/lofr-workflow/workflow.metadata.json`);
+    const workflowDocumentPathRef = useRef(`workflow/lofr-workflow/workflow.document.json`);
     const metadataRef = useRef(
         {} as {
             [id: string]: {
@@ -337,7 +337,7 @@ const ReactFlowView = (props: {
     const saveNodeMetadata_debounced = async () => {
         clearTimeout(saveNodeMetadata_debounced_ref.current);
         saveNodeMetadata_debounced_ref.current = setTimeout(async () => {
-            await saveMetadata(workflowServerUrl, workflowMetadataPath, metadataRef.current);
+            await saveMetadata(workflowServerUrl, workflowMetadataPathRef.current, metadataRef.current);
         }, 250);
     };
 
@@ -346,7 +346,11 @@ const ReactFlowView = (props: {
     const saveWorkflowDocumentFile_debounced = async () => {
         clearTimeout(saveWorkflowDocumentFile_debounced_ref.current);
         saveWorkflowDocumentFile_debounced_ref.current = setTimeout(async () => {
-            await saveWorkflowDocumentFile(workflowServerUrl, workflowDocumentPath, workflowDocumentRef.current);
+            await saveWorkflowDocumentFile(
+                workflowServerUrl,
+                workflowDocumentPathRef.current,
+                workflowDocumentRef.current,
+            );
             setReloadDocumentId((s) => s + 1);
         }, 250);
     };
@@ -498,7 +502,7 @@ const ReactFlowView = (props: {
             },
             setWorkflowMetadataPath: async (path: string) => {
                 console.log(`Setting workflow metadata path to: ${path}`);
-                setWorkflowMetadataPath(path);
+                workflowMetadataPathRef.current = path;
 
                 const loadedMetadata = await loadMetadata(workflowServerUrl, path);
                 if (!loadedMetadata) {
@@ -511,7 +515,7 @@ const ReactFlowView = (props: {
             },
             setWorkflowDocumentPath: async (path: string) => {
                 console.log(`Setting workflow document path to: ${path}`);
-                setWorkflowDocumentPath(path);
+                workflowDocumentPathRef.current = path;
 
                 const loadedDocument = await loadWorkflowDocumentFile(workflowServerUrl, path);
                 if (!loadedDocument) {
@@ -624,8 +628,12 @@ const ReactFlowView = (props: {
                 y: position.y,
             };
 
-            await saveMetadata(workflowServerUrl, workflowMetadataPath, metadataRef.current);
-            await saveWorkflowDocumentFile(workflowServerUrl, workflowDocumentPath, workflowDocumentRef.current);
+            await saveMetadata(workflowServerUrl, workflowMetadataPathRef.current, metadataRef.current);
+            await saveWorkflowDocumentFile(
+                workflowServerUrl,
+                workflowDocumentPathRef.current,
+                workflowDocumentRef.current,
+            );
             setReloadDocumentId((s) => s + 1);
         },
         [],

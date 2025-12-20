@@ -1,0 +1,840 @@
+{
+  "imports": [
+    {
+      "path": "../workflow-editor/nodes.tsx",
+      "name": "numberNodeType"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n-title-0",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "WorkoutBuilder"
+        }
+      ]
+    },
+    {
+      "id": "n-title-1",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "WorkoutTimer"
+        }
+      ]
+    },
+    {
+      "id": "n-title-2",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "WorkoutGame"
+        }
+      ]
+    },
+    {
+      "id": "n-title-3",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "MiniGame"
+        }
+      ]
+    },
+    {
+      "id": "n-title-4",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "NarrativeEngine"
+        },
+        {
+          "inputName": "language",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "id": "n-title-5",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-title-4",
+          "fromOutputName": "content"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-02",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleComponent"
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "text",
+          "fromNodeId": "n-title-5",
+          "fromOutputName": "content"
+        }
+      ]
+    },
+    {
+      "id": "n-system-types",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "systems/lofr-system-types.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-title-6",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrWorkoutTimer"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-7",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrWorkoutBuilder"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-8",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrWorkoutGame"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-9",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrMiniGame"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-10",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "export type LofrNarrativeEngine"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": "};"
+        }
+      ]
+    },
+    {
+      "id": "n-title-12",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-system-types",
+          "fromOutputName": "onContentChange"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "startAtLine",
+          "value": "/**\n\n# Systems"
+        },
+        {
+          "inputName": "endAtLine",
+          "value": " */"
+        }
+      ]
+    },
+    {
+      "id": "n-title-11",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-title-10",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onContentChange",
+          "fromNodeId": "n-title-10",
+          "fromOutputName": "onContentChange"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-03",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleComponent"
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "text",
+          "fromNodeId": "n-title-10",
+          "fromOutputName": "content"
+        }
+      ]
+    },
+    {
+      "id": "n-doc-number-1",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "value",
+          "value": 42
+        },
+        {
+          "inputName": "label",
+          "value": "The Answer"
+        }
+      ],
+      "inputEdges": []
+    },
+    {
+      "id": "n-workflow",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "workflow/lofr-workflow/workflow.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-workflow-metadata",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "workflow/lofr-workflow/workflow.metadata.json"
+        }
+      ]
+    },
+    {
+      "id": "n-example-fun",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "workflow/lofr-workflow/example-fun.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-example-fun-execute",
+      "typeName": "function",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-fun.ts"
+        },
+        {
+          "inputName": "exportName",
+          "value": "exampleFun02"
+        }
+      ],
+      "outputs": [
+        {
+          "outputName": "text",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "id": "n-clock-mini-game-code",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "prep/clock-mini-game/game-view.tsx"
+        }
+      ]
+    },
+    {
+      "id": "n-clock-mini-game",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../prep/clock-mini-game/game-view.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "MiniGame_PocketWatch"
+        }
+      ]
+    },
+    {
+      "id": "n-app",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../app.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "AppInner"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleComponent"
+        },
+        {
+          "inputName": "text",
+          "value": "hello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\nhello!!!\n"
+        }
+      ]
+    },
+    {
+      "id": "n-todo",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "workflow/todo.md"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-input-04",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleInputComponent"
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "value",
+          "fromNodeId": "n-todo",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "onChange",
+          "fromNodeId": "n-todo",
+          "fromOutputName": "onContentChange"
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-05-output",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "ExampleInputNumberComponent"
+        },
+        {
+          "inputName": "value",
+          "value": 3
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "text",
+          "fromNodeId": "n-todo",
+          "fromOutputName": "content"
+        }
+      ],
+      "outputs": [
+        {
+          "outputName": "value",
+          "defaultValue": 0
+        },
+        {
+          "outputName": "lines",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "id": "n-example-component-05-output-display",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-example-component-05-output",
+          "fromOutputName": "lines"
+        }
+      ]
+    },
+    {
+      "id": "n-energy-bar-code",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "prep/clock-mini-game/energy-bar.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-startEnergy",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "label",
+          "value": "Start Energy"
+        },
+        {
+          "inputName": "value",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "n-endEnergy",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "label",
+          "value": "End Energy"
+        },
+        {
+          "inputName": "value",
+          "value": 55
+        }
+      ]
+    },
+    {
+      "id": "n-speed",
+      "typeName": "number",
+      "inputLiterals": [
+        {
+          "inputName": "label",
+          "value": "Speed"
+        },
+        {
+          "inputName": "value",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "n-energy-bar-simple",
+      "typeName": "component",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "../../prep/clock-mini-game/energy-bar-view.tsx"
+        },
+        {
+          "inputName": "exportName",
+          "value": "MiniGame_EnergyBar"
+        }
+      ],
+      "inputEdges": [
+        {
+          "inputName": "startCharge",
+          "fromNodeId": "n-startEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "endCharge",
+          "fromNodeId": "n-endEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "speed",
+          "fromNodeId": "n-speed",
+          "fromOutputName": "value"
+        }
+      ]
+    },
+    {
+      "id": "n-number-1766182474970",
+      "typeName": "number",
+      "inputEdges": [],
+      "inputLiterals": [
+        {
+          "inputName": "value",
+          "value": 15
+        }
+      ]
+    },
+    {
+      "id": "n-number-1766182479593",
+      "typeName": "number",
+      "inputEdges": [
+        {
+          "inputName": "value",
+          "fromNodeId": "n-number-1766182474970",
+          "fromOutputName": "value"
+        }
+      ]
+    },
+    {
+      "id": "n-number-1766182807120",
+      "typeName": "number",
+      "inputEdges": [
+        {
+          "inputName": "value",
+          "fromNodeId": "n-number-1766182474970",
+          "fromOutputName": "value"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "label"
+        }
+      ]
+    },
+    {
+      "id": "n-registerComponentNodeType-1766236315450",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "componentPath",
+          "value": "../../prep/clock-mini-game/energy-bar-view.tsx"
+        },
+        {
+          "inputName": "componentExportName",
+          "value": "MiniGame_EnergyBar"
+        },
+        {
+          "inputName": "typeName",
+          "value": "MiniGame_EnergyBar_decl"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{\"startCharge\": 0, \"endCharge\":42, \"speed\": 76}"
+        }
+      ]
+    },
+    {
+      "id": "n-MiniGame_EnergyBar_decl-1766239274889",
+      "typeName": "MiniGame_EnergyBar_decl",
+      "requires": [
+        "n-registerComponentNodeType-1766236315450"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "startCharge",
+          "fromNodeId": "n-startEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "endCharge",
+          "fromNodeId": "n-endEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "speed",
+          "fromNodeId": "n-speed",
+          "fromOutputName": "value"
+        }
+      ]
+    },
+    {
+      "id": "n-MiniGame_EnergyBar_decl-1766240434742",
+      "typeName": "MiniGame_EnergyBar_decl",
+      "requires": [
+        "n-registerComponentNodeType-1766236315450"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "startCharge",
+          "fromNodeId": "n-startEnergy",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "endCharge",
+          "fromNodeId": "n-speed",
+          "fromOutputName": "value"
+        },
+        {
+          "inputName": "speed",
+          "fromNodeId": "n-endEnergy",
+          "fromOutputName": "value"
+        }
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1766247174571",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "functionPath",
+          "value": "../../workflow/lofr-workflow/example-fun.ts"
+        },
+        {
+          "inputName": "typeName",
+          "value": "dyn-example-fun-execute"
+        },
+        {
+          "inputName": "outputTypeDefinition",
+          "value": "{\"text\":\"\"}"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{\"prefix\":\"\"}"
+        },
+        {
+          "inputName": "functionExportName",
+          "value": "exampleFun03"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766248261471",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "this is some stuff 02!!!"
+        },
+        {
+          "inputName": "language",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "id": "n-dyn-example-fun-execute-1766247830810",
+      "typeName": "dyn-example-fun-execute",
+      "requires": [
+        "n-registerNodeType-1766247174571"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "prefix",
+          "fromNodeId": "n-textSimple-1766248261471",
+          "fromOutputName": "content"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766248725304",
+      "typeName": "textSimple",
+      "inputEdges": [
+        {
+          "inputName": "content",
+          "fromNodeId": "n-dyn-example-fun-execute-1766247830810",
+          "fromOutputName": "text"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "language"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766248524271",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "language",
+          "value": "none"
+        },
+        {
+          "inputName": "content",
+          "value": "ok what  \n   that why no enter?"
+        }
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1766252433285",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "functionPath",
+          "value": "../../workflow/lofr-workflow/example-fun.ts"
+        },
+        {
+          "inputName": "functionExportName",
+          "value": "exampleFun04"
+        },
+        {
+          "inputName": "componentPath",
+          "value": "../../workflow/lofr-workflow/example-component.tsx"
+        },
+        {
+          "inputName": "outputTypeDefinition",
+          "value": "{\"text\":\"\"}"
+        },
+        {
+          "inputName": "componentExportName",
+          "value": "ExampleInputComponent"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{\"value\":\"\"}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "dyn-example-fun-and-component"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766252659724",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "some text ok 02"
+        }
+      ]
+    },
+    {
+      "id": "n-dyn-example-fun-and-component-1766252623734",
+      "typeName": "dyn-example-fun-and-component",
+      "requires": [
+        "n-registerNodeType-1766252433285"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "value",
+          "fromNodeId": "n-textSimple-1766252659724",
+          "fromOutputName": "content"
+        }
+      ],
+      "inputLiterals": [
+        {
+          "inputName": "prefix"
+        }
+      ]
+    }
+  ]
+}
