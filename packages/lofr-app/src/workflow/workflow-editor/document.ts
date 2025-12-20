@@ -7,6 +7,7 @@ export const WorkflowDocumentFormat = {
             id: string;
             typeName: string;
             data: {
+                requires?: string[];
                 inputs: Record<string, WorkflowObservable<unknown>>;
                 outputs: Record<string, WorkflowObservable<unknown>>;
             }
@@ -45,6 +46,7 @@ export const WorkflowDocumentFormat = {
         const result = {
             id: node.id,
             typeName: node.typeName,
+            requires: node.data.requires,
             inputLiterals: Object.keys(inputLiterals).length > 0 ? inputLiterals : undefined,
             inputEdges: Object.keys(inputEdges).length > 0 ? inputEdges : undefined,
             outputs: Object.keys(outputs).length > 0 ? outputs : undefined,

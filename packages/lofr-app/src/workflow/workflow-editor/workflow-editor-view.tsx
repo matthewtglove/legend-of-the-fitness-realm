@@ -221,19 +221,30 @@ const ReactFlowView = (props: {
                       }[],
             }));
             nodeOrders.forEach((nOrder) => {
-                const inputEdges = nOrder.node.inputEdges;
-                if (!inputEdges?.length) {
+                const { inputEdges, requires } = nOrder.node;
+                if (!inputEdges?.length && !requires?.length) {
                     return;
                 }
-                nOrder.dependencies = inputEdges.map((ie) => {
-                    const depNode = nodeOrders.find((x) => x.node.id === ie.fromNodeId);
-                    if (!depNode) {
-                        throw new Error(
-                            `[onConnect:solveNodeOrders] Input edge references unknown node id: ${ie.fromNodeId}`,
-                        );
-                    }
-                    return depNode;
-                });
+                nOrder.dependencies = [
+                    ...(inputEdges?.map((ie) => {
+                        const depNode = nodeOrders.find((x) => x.node.id === ie.fromNodeId);
+                        if (!depNode) {
+                            throw new Error(
+                                `[onConnect:solveNodeOrders] Input edge references unknown node id: ${ie.fromNodeId}`,
+                            );
+                        }
+                        return depNode;
+                    }) ?? []),
+                    ...(requires?.map((reqNodeId) => {
+                        const depNode = nodeOrders.find((x) => x.node.id === reqNodeId);
+                        if (!depNode) {
+                            throw new Error(
+                                `[onConnect:solveNodeOrders] Input edge references unknown node id: ${reqNodeId}`,
+                            );
+                        }
+                        return depNode;
+                    }) ?? []),
+                ];
             });
 
             const calculateOrderBelowDependencies = (
@@ -605,6 +616,7 @@ const ReactFlowView = (props: {
             doc.nodes.push({
                 id: newId,
                 typeName: typeName,
+                requires: nodeType.requires,
                 inputEdges: !inputEdge ? undefined : [inputEdge],
             });
             metadataRef.current[newId] = {

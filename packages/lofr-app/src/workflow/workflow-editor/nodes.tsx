@@ -234,14 +234,17 @@ registry.registerSimpleNodeType({
         },
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    execute: async (inputs: {
-        __registry: undefined | WorkflowRegistry;
-        typeName: string;
-        path: string;
-        exportName?: string;
-        inputTypeDefinition: string;
-        outputTypeDefinition: string;
-    }) => {
+    execute: async (
+        inputs: {
+            __registry: undefined | WorkflowRegistry;
+            typeName: string;
+            path: string;
+            exportName?: string;
+            inputTypeDefinition: string;
+            outputTypeDefinition: string;
+        },
+        { id },
+    ) => {
         if (!inputs.__registry) {
             throw new Error(`registry input is required`);
         }
@@ -254,6 +257,7 @@ registry.registerSimpleNodeType({
 
         const nodeType = inputs.__registry.registerSimpleNodeType({
             typeName: inputs.typeName,
+            requires: [id],
             defaults: {
                 inputs: inputs.inputTypeDefinition
                     ? (JSON.parse(inputs.inputTypeDefinition) as Record<string, unknown>)

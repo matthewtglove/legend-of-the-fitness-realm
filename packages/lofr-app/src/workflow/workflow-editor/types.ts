@@ -121,6 +121,7 @@ export type WorkflowNodeTypeArgs<
     TOutputs extends Record<string, WorkflowObservable<unknown>>,
 > = {
     typeName: string,
+    requires?: string[],
     defaults: {
         inputs: Record<string, unknown>,
         outputs: Record<string, unknown>,
@@ -153,11 +154,12 @@ export type WorkflowNodeTypeSimpleArgs<
     TOutputs extends Record<string, unknown>,
 > = {
     typeName: string,
+    requires?: string[],
     defaults: {
         inputs: TInputs,
         outputs: TOutputs,
     },
-    execute: (inputs: TInputs, { refresh }: { refresh: () => void }) => PromiseLike<TOutputs>,
+    execute: (inputs: TInputs, { id, refresh }: { id: string, refresh: () => void }) => PromiseLike<TOutputs>,
     Component: React.ComponentType<{
         id: string;
         selected: boolean;
@@ -211,6 +213,7 @@ export const createRegistry = (): WorkflowRegistry => {
             console.log(`[registerSimpleNodeType] Registering simple node type: ${nodeTypeArgs.typeName}`, { nodeTypeArgs });
             const nodeType: WorkflowNodeType<Record<string, unknown> & { id: string }, ObservableOf<TInputs>, ObservableOf<TOutputs>> = {
                 typeName: nodeTypeArgs.typeName,
+                requires: nodeTypeArgs.requires,
                 defaults: nodeTypeArgs.defaults,
                 // execute: nodeTypeArgs.execute,
                 load: (loadArgs: Record<string, unknown> & {
@@ -245,6 +248,7 @@ export const createRegistry = (): WorkflowRegistry => {
                         try {
                             const inputValues = Object.fromEntries(Object.entries(inputs).map(([key, value]) => [key, value.lastValue])) as TInputs;
                             const outputValues = await nodeTypeArgs.execute(inputValues, {
+                                id: loadArgs.id,
                                 refresh: () => updateDebounced(`refresh`),
                             });
 
@@ -288,6 +292,7 @@ export const createRegistry = (): WorkflowRegistry => {
                     let lastArgs = loadArgs;
                     const instance = {
                         typeName: nodeTypeArgs.typeName,
+                        requires: nodeTypeArgs.requires,
                         instanceId: nextInstanceId++,
                         inputs,
                         outputs,
@@ -361,6 +366,7 @@ export type WorkflowDocument = {
     nodes: {
         id: string;
         typeName: string;
+        requires?: string[];
         inputEdges?: { inputName: string; fromNodeId: string; fromOutputName: string }[];
         inputLiterals?: { inputName: string; value: string | number | Record<string, unknown> }[];
         outputs?: { outputName: string; defaultValue: string | number | Record<string, unknown> }[];

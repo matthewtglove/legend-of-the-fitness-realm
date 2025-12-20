@@ -528,7 +528,7 @@
         },
         {
           "inputName": "value",
-          "value": 50
+          "value": 55
         }
       ]
     },
@@ -640,6 +640,9 @@
     {
       "id": "n-MiniGame_EnergyBar_decl-1766239274889",
       "typeName": "MiniGame_EnergyBar_decl",
+      "requires": [
+        "n-registerComponentNodeType-1766236315450"
+      ],
       "inputEdges": [
         {
           "inputName": "startCharge",
@@ -656,6 +659,13 @@
           "fromNodeId": "n-speed",
           "fromOutputName": "value"
         }
+      ]
+    },
+    {
+      "id": "n-MiniGame_EnergyBar_decl-1766240434742",
+      "typeName": "MiniGame_EnergyBar_decl",
+      "requires": [
+        "n-registerComponentNodeType-1766236315450"
       ]
     }
   ]
