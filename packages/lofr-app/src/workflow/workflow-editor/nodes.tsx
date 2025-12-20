@@ -51,7 +51,7 @@ const NodeWrapper = ({
     return (
         <>
             <NodeResizer minWidth={100} minHeight={30} />
-            <div className="absolute top-0 left-0 right-0 z-10 h-0 nowheel nodrag nopan">
+            <div className="absolute top-0 left-0 right-0 z-10 h-0">
                 <div className="absolute bottom-0 left-0 right-0 ">
                     {expandInfo && (
                         <div className="absolute top-0 left-0 right-0 h-0 scale-50">
@@ -96,44 +96,47 @@ const NodeWrapper = ({
                         </div>
                     )}
                     <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
-                        <input
-                            type="text"
-                            className={`min-w-0 flex-1 font-bold`}
-                            // className={`mb-1 flex-1 overflow-hidden border-none font-bold bg-transparent overflow-ellipsis focus:outline-none`}
-                            title={`${displayName}: ${data.typeName}`}
-                            value={displayName}
-                            onChange={(x) => handleDisplayNameChange(x.target.value)}
-                        />
-                        <div
-                            className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
-                            onClick={() => {
-                                setExpandInfo((s) => (s === `data` ? false : `data`));
-                                console.log(`nodeData ${id}`, data);
-                            }}
-                        >
-                            {`🔎`}
-                        </div>
-                        {data.refresh && (
+                        <div className="">{`🔷`}</div>
+                        <div className="flex flex-row items-center flex-1 min-w-0 gap-1 nowheel nodrag nopan ">
+                            <input
+                                type="text"
+                                className={`min-w-0 flex-1 font-bold`}
+                                // className={`mb-1 flex-1 overflow-hidden border-none font-bold bg-transparent overflow-ellipsis focus:outline-none`}
+                                title={`${displayName}: ${data.typeName}`}
+                                value={displayName}
+                                onChange={(x) => handleDisplayNameChange(x.target.value)}
+                            />
                             <div
-                                className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
-                                onClick={() => data.refresh()}
+                                className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                                onClick={() => {
+                                    setExpandInfo((s) => (s === `data` ? false : `data`));
+                                    console.log(`nodeData ${id}`, data);
+                                }}
                             >
-                                {`▶️`}
+                                {`🔎`}
                             </div>
-                        )}
-                        <div
-                            className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
-                                expandInfo ? `bg-blue-800` : `bg-blue-400`
-                            }`}
-                            onClick={() => setExpandInfo((s) => (s === `document` ? false : `document`))}
-                        >
-                            {`ℹ`}
-                        </div>
-                        <div
-                            className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white bg-red-400 p-1 text-white`}
-                            onClick={handleDeleteNode}
-                        >
-                            {`🗑️`}
+                            {data.refresh && (
+                                <div
+                                    className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                                    onClick={() => data.refresh()}
+                                >
+                                    {`▶️`}
+                                </div>
+                            )}
+                            <div
+                                className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
+                                    expandInfo ? `bg-blue-800` : `bg-blue-400`
+                                }`}
+                                onClick={() => setExpandInfo((s) => (s === `document` ? false : `document`))}
+                            >
+                                {`ℹ`}
+                            </div>
+                            <div
+                                className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white bg-red-400 p-1 text-white`}
+                                onClick={handleDeleteNode}
+                            >
+                                {`🗑️`}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -371,51 +374,53 @@ const RegisterComponentNodeTypeEditor = ({
 }) => {
     return (
         <>
-            <div className="flex flex-col w-full h-full border rounded shadow-md bg-slate-200">
-                <div className="flex flex-row items-center gap-1 p-1 ">
-                    <label>typeName</label>
-                    <input
-                        type="text"
-                        className="flex-1"
-                        value={data.typeName}
-                        onChange={(e) => data.onTypeNameChange(e.target.value)}
-                    />
-                </div>
-                <div className="flex flex-row items-center gap-1 p-1 ">
-                    <label>path</label>
-                    <input
-                        type="text"
-                        className="flex-1"
-                        value={data.path}
-                        onChange={(e) => data.onPathChange(e.target.value)}
-                    />
-                </div>
-                <div className="flex flex-row items-center gap-1 p-1 ">
-                    <label>exportName</label>
-                    <input
-                        type="text"
-                        className="flex-1"
-                        value={data.exportName}
-                        onChange={(e) => data.onExportNameChange(e.target.value)}
-                    />
-                </div>
-                <div className="flex flex-row items-center gap-1 p-1 ">
-                    <label>inputTypeDefinition</label>
-                    <input
-                        type="text"
-                        className="flex-1"
-                        value={data.inputTypeDefinition}
-                        onChange={(e) => data.onInputTypeDefinitionChange(e.target.value)}
-                    />
-                </div>
-                <div className="flex flex-row items-center gap-1 p-1 ">
-                    <label>outputTypeDefinition</label>
-                    <input
-                        type="text"
-                        className="flex-1"
-                        value={data.outputTypeDefinition}
-                        onChange={(e) => data.onOutputTypeDefinitionChange(e.target.value)}
-                    />
+            <div className="flex flex-col w-full h-full border rounded shadow-md bg-slate-200 ">
+                <div className="flex flex-col nowheel nodrag nopan">
+                    <div className="flex flex-row items-center gap-1 p-1 ">
+                        <label>typeName</label>
+                        <input
+                            type="text"
+                            className="flex-1"
+                            value={data.typeName}
+                            onChange={(e) => data.onTypeNameChange(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-row items-center gap-1 p-1 ">
+                        <label>path</label>
+                        <input
+                            type="text"
+                            className="flex-1"
+                            value={data.path}
+                            onChange={(e) => data.onPathChange(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-row items-center gap-1 p-1 ">
+                        <label>exportName</label>
+                        <input
+                            type="text"
+                            className="flex-1"
+                            value={data.exportName}
+                            onChange={(e) => data.onExportNameChange(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-row items-center gap-1 p-1 ">
+                        <label>inputTypeDefinition</label>
+                        <input
+                            type="text"
+                            className="flex-1"
+                            value={data.inputTypeDefinition}
+                            onChange={(e) => data.onInputTypeDefinitionChange(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-row items-center gap-1 p-1 ">
+                        <label>outputTypeDefinition</label>
+                        <input
+                            type="text"
+                            className="flex-1"
+                            value={data.outputTypeDefinition}
+                            onChange={(e) => data.onOutputTypeDefinitionChange(e.target.value)}
+                        />
+                    </div>
                 </div>
             </div>
         </>
