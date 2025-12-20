@@ -11,6 +11,7 @@ export const createUserStateDebug = () => {
             fighterClass: `Warrior`,
             level: 1,
             experience: 0,
+            sleepCyclesCompleted: 3,
         }),
     };
 };

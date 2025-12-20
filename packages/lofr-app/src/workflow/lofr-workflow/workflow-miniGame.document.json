@@ -154,6 +154,10 @@
         {
           "inputName": "inputTypeDefinition",
           "value": "{\"directorState\":\"\"}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "DirectorStateDebugView"
         }
       ]
     },
@@ -168,6 +172,82 @@
           "inputName": "directorState",
           "fromNodeId": "n-createDirectorStateDebug-1766267863866",
           "fromOutputName": "directorState"
+        }
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1766271067658",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "componentPath",
+          "value": "../../mini-game/mini-game.debug.tsx"
+        },
+        {
+          "inputName": "componentExportName",
+          "value": "MiniGameView"
+        },
+        {
+          "inputName": "inputTypeDefinition",
+          "value": "{     \"path\": \"string\",     \"exportName\": \" string\",     \"userState\": \"LofrUserStateBase\",     \"directorState\": \"LofrDirectorState\",     \"narrativeService\": \"LofrNarrativeService\",     \"onDone\": \"() => void\" }"
+        },
+        {
+          "inputName": "typeName",
+          "value": "MiniGameView"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766272167274",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "../../mini-game/games/energy-bar/mini-game.tsx"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766272182352",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "MiniGame_EnergyBar"
+        }
+      ]
+    },
+    {
+      "id": "n-MiniGameView-1766272089229",
+      "typeName": "MiniGameView",
+      "requires": [
+        "n-registerNodeType-1766271067658"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "userState",
+          "fromNodeId": "n-createUserState-1766264748648",
+          "fromOutputName": "userState"
+        },
+        {
+          "inputName": "narrativeService",
+          "fromNodeId": "n-createNarrativeServiceDebug-1766267616500",
+          "fromOutputName": "narrativeService"
+        },
+        {
+          "inputName": "directorState",
+          "fromNodeId": "n-createDirectorStateDebug-1766267863866",
+          "fromOutputName": "directorState"
+        },
+        {
+          "inputName": "path",
+          "fromNodeId": "n-textSimple-1766272167274",
+          "fromOutputName": "content"
+        },
+        {
+          "inputName": "exportName",
+          "fromNodeId": "n-textSimple-1766272182352",
+          "fromOutputName": "content"
         }
       ]
     }

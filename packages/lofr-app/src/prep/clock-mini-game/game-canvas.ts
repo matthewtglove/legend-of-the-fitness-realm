@@ -1,7 +1,7 @@
 // pocketWatchGame.ts
 
 import watchImage from './assets/watch.png';
-import { renderEnergyScene } from './energy-bar';
+import { renderEnergyScene } from '../../mini-game/games/energy-bar/energy-bar';
 
 export type GameControl = ReturnType<typeof createPocketWatchGame>;
 

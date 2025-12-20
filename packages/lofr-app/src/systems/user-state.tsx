@@ -7,6 +7,7 @@ type UserStateData = {
     fighterClass: string;
     level: number;
     experience: number;
+    sleepCyclesCompleted: number;
 };
 export const createUserState = (initial: UserStateData): LofrUserState<UserStateData> => {
     const data = createObservable<{ newData: UserStateData; changed: Partial<UserStateData> }>({
