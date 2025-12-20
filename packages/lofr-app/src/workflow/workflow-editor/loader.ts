@@ -59,14 +59,15 @@ export const loadWorkflowDocument = async ({
             const result = nodeInstances[node.id];
             if (!result) continue;
 
-            // Handle input literals saving
-            for (const inputLiteral of node.inputLiterals ?? []) {
-                const inputObs = result.inputs?.[inputLiteral.inputName];
-                if (!inputObs) continue;
+            // Handle input saving (for any value not an edge)
+            for (const [inputName, inputObs] of Object.entries(result.inputs ?? [])) {
+                const inputEdge = node.inputEdges?.find(x => x.inputName === inputName);
+                if (inputEdge) continue;
+
                 inputObs.subscribe((newValue) => {
                     onSaveInputLiteral({
                         nodeId: node.id,
-                        inputName: inputLiteral.inputName,
+                        inputName: inputName,
                         value: newValue as string | number | Record<string, unknown>,
                     });
                 }, {
