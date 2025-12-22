@@ -58,15 +58,17 @@ export const MiniGameView = (props: {
                 </div>
                 <div className="text-xs">Title: {miniGameModule?.title}</div>
                 {MiniGameComponent && hasDeps && (
-                    <MiniGameComponent.GameComponent
-                        {...props}
-                        onDone={
-                            props.onDone ??
-                            (() => {
-                                //ignore
-                            })
-                        }
-                    />
+                    <div className="flex-1">
+                        <MiniGameComponent.GameComponent
+                            {...props}
+                            onDone={
+                                props.onDone ??
+                                (() => {
+                                    //ignore
+                                })
+                            }
+                        />
+                    </div>
                 )}
             </div>
         </>
