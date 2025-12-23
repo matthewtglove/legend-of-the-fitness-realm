@@ -104,6 +104,8 @@ export const RhythmRunGame: Animation<RhythmRunArgs, RhythmRunResult> = {
             // Else: Keep speed constant (don't ramp infinitely)
 
             distance += gameSpeed;
+            // GROUND_Y = 450 + 20 * Math.sin(distance * 0.0007);
+
 
             // Physics
             player.vy += GRAVITY;
@@ -205,6 +207,9 @@ export const RhythmRunGame: Animation<RhythmRunArgs, RhythmRunResult> = {
             drawParallaxLayer(ctx, bgLayers[1]!, VIRTUAL_HEIGHT - 150, `#222`, 50);
 
             // Draw Ground
+            const stageUpDown = 30 * Math.sin(distance * 0.00047);
+            ctx.translate(0, stageUpDown);
+
             ctx.fillStyle = `#111`;
             ctx.fillRect(0, GROUND_Y + player.h, VIRTUAL_WIDTH, 200);
             ctx.fillStyle = isVictoryLap ? `#ffd700` : `#4facfe`; // Gold line on victory
@@ -261,6 +266,8 @@ export const RhythmRunGame: Animation<RhythmRunArgs, RhythmRunResult> = {
                 ctx.globalAlpha = 1;
             }
 
+            ctx.translate(0, -stageUpDown);
+
             // UI: Progress Bar
             if (!isVictoryLap) {
                 ctx.fillStyle = `rgba(255,255,255,0.2)`;
@@ -276,7 +283,7 @@ export const RhythmRunGame: Animation<RhythmRunArgs, RhythmRunResult> = {
 
                 // Pulsing instruction
                 ctx.fillStyle = `rgba(255,255,255, ${0.5 + Math.sin(Date.now() / 200) * 0.5})`;
-                ctx.font = `20px sans-serif`;
+                ctx.font = `32px sans-serif`;
                 ctx.fillText(`Nice job! Stay strong!`, VIRTUAL_WIDTH / 2, 110);
             }
 
@@ -287,6 +294,7 @@ export const RhythmRunGame: Animation<RhythmRunArgs, RhythmRunResult> = {
             ctx.fillText(`⚡ ${energy}`, 50, 60);
 
             ctx.restore();
+
             animId = requestAnimationFrame(render);
         };
 
