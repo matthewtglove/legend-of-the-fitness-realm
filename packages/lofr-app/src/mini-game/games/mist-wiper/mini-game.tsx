@@ -20,7 +20,7 @@ export const MiniGame_MistWiper: LofrMiniGame = {
                         animation={MistWiperGame}
                         animationArgs={{
                             difficulty: `easy`,
-                            brushSize: sleepCyclesCompleted * 10,
+                            brushSizeRatio: Math.max(0.05, Math.min(0.25, sleepCyclesCompleted * 0.05)),
                         }}
                         isPaused={gamePaused}
                         debug={props.debug}

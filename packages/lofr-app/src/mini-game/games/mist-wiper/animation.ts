@@ -4,7 +4,7 @@ import { calculatePointerPos } from "../../utils";
 
 type MistArgs = {
     difficulty: `easy` | `hard`;
-    brushSize?: number;
+    brushSizeRatio?: number;
 };
 
 type MistResult = {
@@ -32,7 +32,7 @@ export const MistWiperGame: Animation<MistArgs, MistResult> = {
         let totalPixels = 0;
         let clearedPixels = 0;
         let lastCheckTime = 0;
-        let brushSize = 40;
+        let brushSizeRatio = 0.1;
 
         // Input tracking
         let lastPos = { x: 0, y: 0 };
@@ -43,7 +43,7 @@ export const MistWiperGame: Animation<MistArgs, MistResult> = {
             mistCanvas.width = canvas.width;
             mistCanvas.height = canvas.height;
             totalPixels = canvas.width * canvas.height;
-            resetMist();
+            // resetMist();
         };
 
         const resetMist = () => {
@@ -86,7 +86,7 @@ export const MistWiperGame: Animation<MistArgs, MistResult> = {
 
             // D. Periodic Check (Performance optimization: don't check pixels every frame)
             const now = Date.now();
-            if (isRunning && now - lastCheckTime > 200) {
+            if (isRunning && now - lastCheckTime > 500) {
                 checkCompletion();
                 lastCheckTime = now;
             }
@@ -99,6 +99,8 @@ export const MistWiperGame: Animation<MistArgs, MistResult> = {
         // 4. Input Logic (The Wiping)
         const wipe = (x: number, y: number) => {
             if (!isRunning || !mistCtx) return;
+
+            const brushSize = Math.ceil(brushSizeRatio * (canvas.width + canvas.height) / 2);
 
             mistCtx.globalCompositeOperation = `destination-out`; // This makes ink transparent
             mistCtx.beginPath();
@@ -171,8 +173,9 @@ export const MistWiperGame: Animation<MistArgs, MistResult> = {
         // --- Interface Implementation ---
         return {
             start: (args: MistArgs) => {
-                resize(); // Ensure size matches
-                brushSize = args.brushSize ?? (args.difficulty === `hard` ? 20 : 50);
+                resize();
+                resetMist();
+                brushSizeRatio = args.brushSizeRatio ?? (args.difficulty === `hard` ? 0.1 : 0.25);
 
                 // Reset State
                 startTime = Date.now();
