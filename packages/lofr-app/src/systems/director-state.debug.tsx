@@ -35,6 +35,7 @@ export const DirectorStateDebugView = ({
                 <div className="">Game Activity: {gameActivity}</div>
                 <select
                     className=""
+                    value={gameActivity}
                     onChange={(e) => {
                         const value = e.target.value as (typeof gameActivities)[number];
                         const activityObservable = directorState?.observeGameActivity?.() as
@@ -44,7 +45,7 @@ export const DirectorStateDebugView = ({
                     }}
                 >
                     {gameActivities.map((activity) => (
-                        <option key={activity} value={activity} selected={activity === gameActivity}>
+                        <option key={activity} value={activity}>
                             {activity}
                         </option>
                     ))}
