@@ -1,17 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { Canvas2dView, Canvas2dViewDrawingController } from './canvas-2d-view';
 
-export const AnimationView = <
-    TAnimationArgs extends Record<string, unknown>,
-    TAnimation extends {
-        setup: (canvas: HTMLCanvasElement) => {
-            start: (args: TAnimationArgs) => void;
-            stop: () => void;
-            pause: (isPaused: boolean) => void;
-        };
-    },
->(props: {
-    animation: TAnimation;
+export type Animation<TArgs extends Record<string, unknown>> = {
+    setup: (canvas: HTMLCanvasElement) => {
+        start: (args: TArgs) => void;
+        stop: () => void;
+        pause: (isPaused: boolean) => void;
+    };
+};
+
+export const AnimationView = <TAnimationArgs extends Record<string, unknown>>(props: {
+    animation: Animation<TAnimationArgs>;
     animationArgs: TAnimationArgs;
     isPaused: boolean;
 }) => {

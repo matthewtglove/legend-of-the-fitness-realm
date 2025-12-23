@@ -1,3 +1,5 @@
+import { Animation } from "../../animation-view";
+
 interface EnergyBarConfig {
   percentage: number; // 0 to 100
   animationPercentage: number; // 0 to 100
@@ -303,7 +305,7 @@ export type EnergyBarArgs = {
   endCharge: number;
   speed: number;
 };
-export const energyBarAnimation = {
+export const energyBarAnimation: Animation<EnergyBarArgs> = {
   setup: (canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext(`2d`);
     if (!ctx) {
