@@ -9,16 +9,18 @@ export type Canvas2dViewDrawingController = {
 export const Canvas2dView = (props: {
     createDrawing: (canvas: HTMLCanvasElement) => Canvas2dViewDrawingController;
 }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const drawingRef = useRef(undefined as undefined | Canvas2dViewDrawingController);
     const [isPaused, setIsPaused] = React.useState(false);
 
     useEffect(() => {
+        const container = containerRef.current;
         const canvas = canvasRef.current;
+        if (!container) return;
         if (!canvas) return;
-
-        canvas.width = canvas.clientWidth * devicePixelRatio;
-        canvas.height = canvas.clientHeight * devicePixelRatio;
+        canvas.width = container.clientWidth * devicePixelRatio;
+        canvas.height = container.clientHeight * devicePixelRatio;
 
         const drawing = (drawingRef.current = props.createDrawing(canvas));
         drawing.start();
@@ -30,19 +32,20 @@ export const Canvas2dView = (props: {
         };
     }, [props.createDrawing]);
 
+    const resize = () => {
+        const container = containerRef.current;
+        const canvas = canvasRef.current;
+        if (!container) return;
+        if (!canvas) return;
+        canvas.width = container.clientWidth * devicePixelRatio;
+        canvas.height = container.clientHeight * devicePixelRatio;
+    };
+
     return (
         <div className="flex flex-col flex-1 w-full h-full">
-            <div className="flex flex-1 bg-black">
-                <div style={{ position: `relative`, width: `100%`, height: `400px`, background: `#111` }}>
-                    <canvas
-                        ref={canvasRef}
-                        style={{
-                            width: `100%`,
-                            height: `100%`,
-                            display: `block`,
-                            cursor: `pointer`,
-                        }}
-                    />
+            <div className="flex-1 bg-black">
+                <div ref={containerRef} className="relative w-full h-full bg-gray-800" onResize={resize}>
+                    <canvas ref={canvasRef} className="w-full h-full" />
                 </div>
             </div>
             <div className="flex flex-row items-center justify-center gap-1 bg-gray-800">

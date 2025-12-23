@@ -261,18 +261,77 @@
       "inputLiterals": [
         {
           "inputName": "path",
-          "value": "mini-game/mini-game.debug.tsx"
+          "value": "mini-game/games/_list.ts"
         }
       ]
     },
     {
-      "id": "n-textSimple-1766453904099",
+      "id": "n-textSimple-1766456316114",
       "typeName": "textSimple",
       "inputLiterals": [
         {
           "inputName": "content",
-          "value": "{     \"miniGame\": \"string\",     \"userState\": \"LofrUserStateBase\",     \"directorState\": \"LofrDirectorState\",     \"narrativeService\": \"LofrNarrativeService\"}"
+          "value": "Energy Bar"
         }
+      ]
+    },
+    {
+      "id": "n-MiniGameView-1766456245765",
+      "typeName": "MiniGameView",
+      "requires": [
+        "n-registerNodeType-1766271067658"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "directorState",
+          "fromNodeId": "n-createDirectorStateDebug-1766267863866",
+          "fromOutputName": "directorState"
+        },
+        {
+          "inputName": "narrativeService",
+          "fromNodeId": "n-createNarrativeServiceDebug-1766267616500",
+          "fromOutputName": "narrativeService"
+        },
+        {
+          "inputName": "userState",
+          "fromNodeId": "n-createUserState-1766264748648",
+          "fromOutputName": "userState"
+        },
+        {
+          "inputName": "miniGameTitle",
+          "fromNodeId": "n-textSimple-1766456316114",
+          "fromOutputName": "content"
+        }
+      ],
+      "inputLiterals": []
+    },
+    {
+      "id": "n-registerNodeType-1766456469617",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "functionPath",
+          "value": "../../mini-game/games/_list.ts"
+        },
+        {
+          "inputName": "outputTypeDefinition",
+          "value": "{\"titles\": [\"\"]}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "getMiniGameTitles"
+        },
+        {
+          "inputName": "functionExportName",
+          "value": "getMiniGameTitles"
+        }
+      ]
+    },
+    {
+      "id": "n-getMiniGameTitles-1766456556173",
+      "typeName": "getMiniGameTitles",
+      "requires": [
+        "n-registerNodeType-1766456469617"
       ]
     }
   ]
