@@ -8,10 +8,13 @@ export const EnergyBarView = (props: { startCharge: number; endCharge: number; s
         update: (args: typeof props) => {
             createDrawingRef.current.value = { ...args };
             createDrawingRef.current.drawingInstance?.start();
+            createDrawingRef.current.drawingInstance?.pause(args.isPaused);
+            // console.log(`[EnergyBarView:update]`, { ...args });
         },
         updateIsPaused: (args: typeof props) => {
             createDrawingRef.current.value = { ...args };
             createDrawingRef.current.drawingInstance?.pause(args.isPaused);
+            // console.log(`[EnergyBarView:updateIsPaused`, { ...args });
         },
         drawingInstance: undefined as
             | undefined
