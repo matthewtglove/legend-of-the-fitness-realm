@@ -203,7 +203,7 @@
       "inputLiterals": [
         {
           "inputName": "content",
-          "value": "Pattern Sprint"
+          "value": "Gym Bag Tetris"
         }
       ]
     },
@@ -292,16 +292,6 @@
         {
           "inputName": "path",
           "value": "mini-game/games/_list.ts"
-        }
-      ]
-    },
-    {
-      "id": "n-textSimple-1766456316114",
-      "typeName": "textSimple",
-      "inputLiterals": [
-        {
-          "inputName": "content",
-          "value": "Energy Bar"
         }
       ]
     },
