@@ -203,9 +203,39 @@
       "inputLiterals": [
         {
           "inputName": "content",
-          "value": "Constellation"
+          "value": "Momentum Wheel"
         }
       ]
+    },
+    {
+      "id": "n-MiniGameView-1766456245765",
+      "typeName": "MiniGameView",
+      "requires": [
+        "n-registerNodeType-1766271067658"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "directorState",
+          "fromNodeId": "n-createDirectorStateDebug-1766267863866",
+          "fromOutputName": "directorState"
+        },
+        {
+          "inputName": "narrativeService",
+          "fromNodeId": "n-createNarrativeServiceDebug-1766267616500",
+          "fromOutputName": "narrativeService"
+        },
+        {
+          "inputName": "userState",
+          "fromNodeId": "n-createUserState-1766264748648",
+          "fromOutputName": "userState"
+        },
+        {
+          "inputName": "miniGameTitle",
+          "fromNodeId": "n-textSimple-1766272182352",
+          "fromOutputName": "content"
+        }
+      ],
+      "inputLiterals": []
     },
     {
       "id": "n-MiniGameView-1766272089229",
@@ -254,36 +284,6 @@
           "inputName": "miniGameExportName"
         }
       ]
-    },
-    {
-      "id": "n-MiniGameView-1766456245765",
-      "typeName": "MiniGameView",
-      "requires": [
-        "n-registerNodeType-1766271067658"
-      ],
-      "inputEdges": [
-        {
-          "inputName": "directorState",
-          "fromNodeId": "n-createDirectorStateDebug-1766267863866",
-          "fromOutputName": "directorState"
-        },
-        {
-          "inputName": "narrativeService",
-          "fromNodeId": "n-createNarrativeServiceDebug-1766267616500",
-          "fromOutputName": "narrativeService"
-        },
-        {
-          "inputName": "userState",
-          "fromNodeId": "n-createUserState-1766264748648",
-          "fromOutputName": "userState"
-        },
-        {
-          "inputName": "miniGameTitle",
-          "fromNodeId": "n-textSimple-1766272182352",
-          "fromOutputName": "content"
-        }
-      ],
-      "inputLiterals": []
     },
     {
       "id": "n-textFile-1766451950679",
