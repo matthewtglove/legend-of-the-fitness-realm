@@ -298,66 +298,71 @@ export const renderEnergyScene = (
   ctx.shadowBlur = 0;
 };
 
-export const animateEnergyBar = (canvas: HTMLCanvasElement) => {
-  const ctx = canvas.getContext(`2d`);
-  if (!ctx) return;
-
-  let currentCharge = 0;
-  let maxCharge = 0;
-  let speed = 100;
-  let currentAnimationPercentage = 0;
-  let animationFrameId: number;
-
-  function animate() {
-    if (!ctx) return;
-
-    currentAnimationPercentage += (0.5 * speed) / 100;
-
-    if (currentCharge < maxCharge) {
-      currentCharge += (0.5 * speed) / 100;
+export type EnergyBarArgs = {
+  startCharge: number;
+  endCharge: number;
+  speed: number;
+};
+export const energyBarAnimation = {
+  setup: (canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext(`2d`);
+    if (!ctx) {
+      throw new Error(`Failed to get 2D context for energy bar animation`);
     }
 
-    if (currentCharge > maxCharge) {
-      currentCharge = maxCharge;
-    }
+    let currentCharge = 0;
+    let maxCharge = 0;
+    let speed = 100;
+    let currentAnimationPercentage = 0;
+    let animationFrameId: number;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    renderEnergyScene(canvas, ctx, {
-      width: canvas.width,
-      height: canvas.height,
-      percentage: currentCharge,
-      animationPercentage: currentAnimationPercentage,
-      jitterIntensity: (currentCharge / 100) * 3,
-    });
+    function animate() {
+      if (!ctx) return;
+
+      currentAnimationPercentage += (0.5 * speed) / 100;
+
+      if (currentCharge < maxCharge) {
+        currentCharge += (0.5 * speed) / 100;
+      }
+
+      if (currentCharge > maxCharge) {
+        currentCharge = maxCharge;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      renderEnergyScene(canvas, ctx, {
+        width: canvas.width,
+        height: canvas.height,
+        percentage: currentCharge,
+        animationPercentage: currentAnimationPercentage,
+        jitterIntensity: (currentCharge / 100) * 3,
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    }
 
     animationFrameId = requestAnimationFrame(animate);
-  }
 
-  animationFrameId = requestAnimationFrame(animate);
-
-  return {
-    start: (args: {
-      startCharge: number;
-      endCharge: number;
-      speed: number;
-    }) => {
-      currentAnimationPercentage = 0;
-      currentCharge = args.startCharge;
-      maxCharge = args.endCharge;
-      speed = args.speed;
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(animate);
-    },
-    stop: () => {
-      cancelAnimationFrame(animationFrameId);
-    },
-    pause: (isPaused: boolean) => {
-      if (isPaused) {
+    return {
+      start: (args: EnergyBarArgs) => {
+        currentAnimationPercentage = 0;
+        currentCharge = args.startCharge;
+        maxCharge = args.endCharge;
+        speed = args.speed;
         cancelAnimationFrame(animationFrameId);
-        return;
-      }
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(animate);
-    },
-  };
+        animationFrameId = requestAnimationFrame(animate);
+      },
+      stop: () => {
+        cancelAnimationFrame(animationFrameId);
+      },
+      pause: (isPaused: boolean) => {
+        if (isPaused) {
+          cancelAnimationFrame(animationFrameId);
+          return;
+        }
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(animate);
+      },
+    };
+  }
 };
