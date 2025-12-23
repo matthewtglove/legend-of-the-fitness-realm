@@ -1,41 +1,43 @@
 import { useEffect, useState } from 'react';
 import { LofrDirectorState, LofrMiniGame, LofrNarrativeService, LofrUserStateBase } from '../systems/lofr-system-types';
+import { miniGameList } from './games/_list';
 
 export const MiniGameView = (props: {
-    miniGamePath: string;
-    miniGameExportName?: string;
+    miniGameTitle?: string;
     userState: LofrUserStateBase;
     directorState: LofrDirectorState;
     narrativeService: LofrNarrativeService;
     onDone?: () => void;
 }) => {
-    const [miniGameModule, setMiniGameModule] = useState(undefined as undefined | LofrMiniGame);
+    const [miniGameTitle, setMiniGameTitle] = useState(props.miniGameTitle);
+    useEffect(() => {
+        setMiniGameTitle(props.miniGameTitle);
+    }, [props.miniGameTitle]);
+
     const [MiniGameComponent, setMiniGameComponent] = useState(
         undefined as undefined | Awaited<ReturnType<LofrMiniGame[`load`]>>,
     );
     useEffect(() => {
         (async () => {
             try {
-                const miniGameCodeModule = await import(/* @vite-ignore */ props.miniGamePath);
-                const miniGame =
-                    miniGameCodeModule[props.miniGameExportName ?? `default`] ??
-                    (miniGameCodeModule.default as LofrMiniGame);
-                setMiniGameModule(miniGame);
+                const miniGame = miniGameList.find((x) => x.title === miniGameTitle);
+                if (!miniGame) {
+                    console.warn(`Mini game not found: ${miniGameTitle}`);
+                    setMiniGameComponent(undefined);
+                    return;
+                }
 
                 const comp = await miniGame.load();
                 setMiniGameComponent(() => comp);
             } catch (e) {
-                console.error(
-                    `Failed to load mini-game from path: ${props.miniGamePath}[${props.miniGameExportName}]`,
-                    {
-                        props,
-                        e,
-                    },
-                );
+                console.error(`Failed to load mini-game from path: ${miniGameTitle}`, {
+                    props,
+                    e,
+                });
+                setMiniGameComponent(undefined);
             }
         })();
-    }, [props.miniGamePath, props.miniGameExportName]);
-
+    }, [miniGameTitle]);
     const hasDeps = props.userState && props.directorState && props.narrativeService;
 
     return (
@@ -52,11 +54,22 @@ export const MiniGameView = (props: {
                         </div>
                     </>
                 )}
-                {/* <div className="text-xs">Def: {JSON.stringify(miniGameModule)}</div> */}
-                <div className="text-xs">
-                    MiniGame: {props.miniGamePath}[{props.miniGameExportName}]
-                </div>
-                <div className="text-xs">Title: {miniGameModule?.title}</div>
+                <select
+                    className="p-1 text-black rounded bg-slate-100"
+                    value={miniGameTitle}
+                    onChange={(e) => setMiniGameTitle(e.target.value)}
+                >
+                    <option value={``} className="text-gray-600">
+                        -- Select Mini Game --
+                    </option>
+                    {miniGameList.map((x) => (
+                        <option key={x.title} value={x.title}>
+                            {x.title}
+                        </option>
+                    ))}
+                </select>
+
+                <div className="text-xs">Mini Game: {miniGameTitle}</div>
                 {MiniGameComponent && hasDeps && (
                     <div className="flex-1">
                         <MiniGameComponent.GameComponent

@@ -193,17 +193,7 @@
         },
         {
           "inputName": "inputTypeDefinition",
-          "value": "{     \"miniGamePath\": \"string\",     \"miniGameExportName\": \" string\",     \"userState\": \"LofrUserStateBase\",     \"directorState\": \"LofrDirectorState\",     \"narrativeService\": \"LofrNarrativeService\"}"
-        }
-      ]
-    },
-    {
-      "id": "n-textSimple-1766272167274",
-      "typeName": "textSimple",
-      "inputLiterals": [
-        {
-          "inputName": "content",
-          "value": "./games/energy-bar/mini-game.tsx"
+          "value": "{     \"miniGameTitle\": \"string\",     \"userState\": \"LofrUserStateBase\",     \"directorState\": \"LofrDirectorState\",     \"narrativeService\": \"LofrNarrativeService\"}"
         }
       ]
     },
@@ -213,7 +203,7 @@
       "inputLiterals": [
         {
           "inputName": "content",
-          "value": "MiniGame_EnergyBar"
+          "value": "Energy Bar"
         }
       ]
     },
@@ -240,13 +230,13 @@
           "fromOutputName": "directorState"
         },
         {
-          "inputName": "miniGameExportName",
+          "inputName": "miniGame",
           "fromNodeId": "n-textSimple-1766272182352",
           "fromOutputName": "content"
         },
         {
-          "inputName": "miniGamePath",
-          "fromNodeId": "n-textSimple-1766272167274",
+          "inputName": "miniGameTitle",
+          "fromNodeId": "n-textSimple-1766272182352",
           "fromOutputName": "content"
         }
       ],
@@ -256,6 +246,12 @@
         },
         {
           "inputName": "exportName"
+        },
+        {
+          "inputName": "miniGamePath"
+        },
+        {
+          "inputName": "miniGameExportName"
         }
       ]
     },
@@ -266,6 +262,16 @@
         {
           "inputName": "path",
           "value": "mini-game/mini-game.debug.tsx"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766453904099",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "{     \"miniGame\": \"string\",     \"userState\": \"LofrUserStateBase\",     \"directorState\": \"LofrDirectorState\",     \"narrativeService\": \"LofrNarrativeService\"}"
         }
       ]
     }

@@ -56,6 +56,7 @@
     - [] {5 mins} create MiniGame_NightPrep as LofrMiniGame component
     - [] {5 mins} create LofrMiniGame registry
     - [] {5 mins} register MiniGame_NightPrep
+- [x] {1 hour} complete MiniGame_EnergyBar as LofrMiniGame
 - [ ] {1 hour} complete MiniGame_MorningRise as LofrMiniGame
 - [ ] {1 hour} improved edges
     - [] {5 mins} hide edge lines until hover
