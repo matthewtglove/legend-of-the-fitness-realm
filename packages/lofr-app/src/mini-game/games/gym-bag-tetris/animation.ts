@@ -110,59 +110,107 @@ export const GymBagTetrisGame: Animation<GymTetrisArgs, GymTetrisResult> = {
             }
 
             // Monte Carlo Packing
+            // Goal: Find the smallest bounding box that fits all selected items.
             let bestArea = Infinity;
             let bestSolution: { w: number, h: number } | null = null;
-            const ATTEMPTS = 250;
+
+            // We can lower attempts because the heuristic is smarter now
+            const ATTEMPTS = 50;
 
             for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
-                const shuffled = [...selectedTypes].sort(() => Math.random() - 0.5);
+                // 1. Sort items by Size (Desc) - Standard bin packing heuristic
+                // We add a little randomness to the sort so we don't always get the same shape for same items
+                const shuffled = [...selectedTypes].sort((a, b) => {
+                    const areaA = getMatrixWidth(SHAPES[a]) * getMatrixHeight(SHAPES[a]);
+                    const areaB = getMatrixWidth(SHAPES[b]) * getMatrixHeight(SHAPES[b]);
+                    return (areaB - areaA) + (Math.random() - 0.5);
+                });
+
                 const placement: { x: number, y: number, m: GridMatrix }[] = [];
-                let maxX = 0;
-                let maxY = 0;
+                let currentMaxX = 0;
+                let currentMaxY = 0;
+                let isValidAttempt = true;
 
                 for (const type of shuffled) {
-                    let matrix = SHAPES[type];
-                    // Random start rotation
-                    const rots = Math.floor(Math.random() * 4);
-                    for (let r = 0; r < rots; r++) matrix = rotateMatrix(matrix);
+                    const baseMatrix = SHAPES[type];
 
-                    const searchDir = Math.random() < 0.5 ? `x` : `y`;
+                    // Optimization: Pre-calculate unique rotations to test
+                    // (Avoids testing a square 4 times)
+                    const rotations: GridMatrix[] = [baseMatrix];
+                    let curr = baseMatrix;
+                    for (let r = 0; r < 3; r++) {
+                        curr = rotateMatrix(curr);
+                        // Simple check to avoid duplicates (string comparison of flat array)
+                        const isDup = rotations.some(m => JSON.stringify(m) === JSON.stringify(curr));
+                        if (!isDup) rotations.push(curr);
+                    }
 
-                    let placed = false;
-                    const searchLimit = 15;
-                    for (let i = -2; i < searchLimit; i++) {
-                        for (let j = -2; j < searchLimit; j++) {
-                            const x = searchDir === `x` ? i : j;
-                            const y = searchDir === `x` ? j : i;
+                    let bestMove: { x: number, y: number, m: GridMatrix, score: number } | null = null;
 
-                            let overlap = false;
-                            for (const p of placement) {
-                                if (matricesOverlap(matrix, x, y, p.m, p.x, p.y)) {
-                                    overlap = true;
-                                    break;
+                    // Scan grid for the "Best Fit"
+                    // We scan a bit beyond current bounds to allow growth
+                    // but we prioritize spots closer to 0,0 via scoring.
+                    const limitX = currentMaxX + 4;
+                    const limitY = currentMaxY + 4;
+
+                    for (let y = 0; y <= limitY; y++) {
+                        for (let x = 0; x <= limitX; x++) {
+
+                            // Try every rotation at this spot
+                            for (const mat of rotations) {
+                                const w = getMatrixWidth(mat);
+                                const h = getMatrixHeight(mat);
+
+                                // Check overlap
+                                let overlap = false;
+                                for (const p of placement) {
+                                    if (matricesOverlap(mat, x, y, p.m, p.x, p.y)) {
+                                        overlap = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!overlap) {
+                                    // Calculate Score (Lower is better)
+                                    // 1. Penalty for expanding the bounding box (Heavy weight)
+                                    const newMaxX = Math.max(currentMaxX, x + w);
+                                    const newMaxY = Math.max(currentMaxY, y + h);
+                                    const newArea = newMaxX * newMaxY;
+
+                                    // 2. Penalty for distance from origin (Light weight - keeps it packed top-left)
+                                    const dist = x + y;
+
+                                    const score = (newArea * 10) + dist;
+
+                                    if (!bestMove || score < bestMove.score) {
+                                        bestMove = { x, y, m: mat, score };
+                                    }
                                 }
                             }
-                            if (!overlap) {
-                                placement.push({ x, y, m: matrix });
-                                maxX = Math.max(maxX, x + getMatrixWidth(matrix));
-                                maxY = Math.max(maxY, y + getMatrixHeight(matrix));
-                                placed = true;
-                                break;
-                            }
                         }
-                        if (placed) break;
+                    }
+
+                    if (bestMove) {
+                        placement.push(bestMove);
+                        currentMaxX = Math.max(currentMaxX, bestMove.x + getMatrixWidth(bestMove.m));
+                        currentMaxY = Math.max(currentMaxY, bestMove.y + getMatrixHeight(bestMove.m));
+                    } else {
+                        isValidAttempt = false;
+                        break;
                     }
                 }
 
-                if (placement.length === shuffled.length) {
-                    const area = maxX * maxY;
-                    // Bias towards square shapes
-                    const ratio = Math.max(maxX, maxY) / Math.min(maxX, maxY);
-                    const score = area * (ratio * 0.5 + 0.5);
+                if (isValidAttempt) {
+                    const area = currentMaxX * currentMaxY;
+                    // Bias towards square-ish shapes (aspect ratio closest to 1)
+                    const ratio = Math.max(currentMaxX, currentMaxY) / Math.min(currentMaxX, currentMaxY);
+
+                    // Final Score for this attempt
+                    const score = area * (ratio * 0.2 + 0.8); // slight penalty for long strips
 
                     if (score < bestArea) {
                         bestArea = score;
-                        bestSolution = { w: maxX, h: maxY };
+                        bestSolution = { w: currentMaxX, h: currentMaxY };
                     }
                 }
             }
@@ -174,7 +222,7 @@ export const GymBagTetrisGame: Animation<GymTetrisArgs, GymTetrisResult> = {
             bagPixelX = (VIRTUAL_SIZE - (bagWidth * CELL_SIZE)) / 2;
             bagPixelY = (VIRTUAL_SIZE - (bagHeight * CELL_SIZE)) / 2;
 
-            // Initialize Items
+            // Initialize Items (Scattered)
             items = selectedTypes.map((type, i) => {
                 const matrix = SHAPES[type];
                 const angle = (i / selectedTypes.length) * Math.PI * 2;
