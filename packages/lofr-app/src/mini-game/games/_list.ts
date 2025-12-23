@@ -5,6 +5,7 @@ import { MiniGame_MistWiper } from "./mist-wiper/mini-game";
 import { MiniGame_MomentumWheelGame } from "./momentum-wheel/mini-game";
 import { MiniGame_PatternSprintGame } from "./pattern-sprint/mini-game";
 import { MiniGame_RipplePondGame } from "./ripple-pond/mini-game";
+import { MiniGame_RhythmRunGame } from "./rythym-run/mini-game";
 
 export const miniGameList = [
     MiniGame_EnergyBar,
@@ -14,6 +15,7 @@ export const miniGameList = [
     MiniGame_RipplePondGame,
     MiniGame_PatternSprintGame,
     MiniGame_GymBagTetrisGame,
+    MiniGame_RhythmRunGame,
 ];
 
 export const getMiniGameTitles = () => {
