@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 export type Canvas2dViewDrawingController = {
     start: () => void;
     stop: () => void;
+    pause: (isPaused: boolean) => void;
     destroy: () => void;
 };
 export const Canvas2dView = (props: {
@@ -10,6 +11,7 @@ export const Canvas2dView = (props: {
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const drawingRef = useRef(undefined as undefined | Canvas2dViewDrawingController);
+    const [isPaused, setIsPaused] = React.useState(false);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -48,10 +50,21 @@ export const Canvas2dView = (props: {
                     className="p-2 m-2 text-white bg-blue-600 rounded"
                     onClick={() => {
                         drawingRef.current?.start();
+                        drawingRef.current?.pause(isPaused);
                     }}
                 >
                     Start
                 </button>
+                <button
+                    className="p-2 m-2 text-white bg-yellow-600 rounded"
+                    onClick={() => {
+                        drawingRef.current?.pause(!isPaused);
+                        setIsPaused((s) => !s);
+                    }}
+                >
+                    {isPaused ? `Resume` : `Pause`}
+                </button>
+
                 <button
                     className="p-2 m-2 text-white bg-red-600 rounded"
                     onClick={() => {

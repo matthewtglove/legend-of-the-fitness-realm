@@ -16,11 +16,7 @@ export const EnergyBarView = (props: { startCharge: number; endCharge: number; s
             createDrawingRef.current.drawingInstance?.pause(args.isPaused);
             // console.log(`[EnergyBarView:updateIsPaused`, { ...args });
         },
-        drawingInstance: undefined as
-            | undefined
-            | (Canvas2dViewDrawingController & {
-                  pause: (isPaused: boolean) => void;
-              }),
+        drawingInstance: undefined as undefined | Canvas2dViewDrawingController,
         createDrawing: (canvas: HTMLCanvasElement) => {
             const drawing = animateEnergyBar(canvas);
             if (!drawing) throw new Error(`Failed to create energy bar drawing`);
