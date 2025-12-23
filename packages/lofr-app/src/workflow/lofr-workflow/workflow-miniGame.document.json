@@ -203,7 +203,7 @@
       "inputLiterals": [
         {
           "inputName": "content",
-          "value": "Mist Wiper"
+          "value": "Constellation"
         }
       ]
     },
@@ -256,26 +256,6 @@
       ]
     },
     {
-      "id": "n-textFile-1766451950679",
-      "typeName": "textFile",
-      "inputLiterals": [
-        {
-          "inputName": "path",
-          "value": "mini-game/games/_list.ts"
-        }
-      ]
-    },
-    {
-      "id": "n-textSimple-1766456316114",
-      "typeName": "textSimple",
-      "inputLiterals": [
-        {
-          "inputName": "content",
-          "value": "Energy Bar"
-        }
-      ]
-    },
-    {
       "id": "n-MiniGameView-1766456245765",
       "typeName": "MiniGameView",
       "requires": [
@@ -299,11 +279,31 @@
         },
         {
           "inputName": "miniGameTitle",
-          "fromNodeId": "n-textSimple-1766456316114",
+          "fromNodeId": "n-textSimple-1766272182352",
           "fromOutputName": "content"
         }
       ],
       "inputLiterals": []
+    },
+    {
+      "id": "n-textFile-1766451950679",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "mini-game/games/_list.ts"
+        }
+      ]
+    },
+    {
+      "id": "n-textSimple-1766456316114",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "Energy Bar"
+        }
+      ]
     },
     {
       "id": "n-registerNodeType-1766456469617",
