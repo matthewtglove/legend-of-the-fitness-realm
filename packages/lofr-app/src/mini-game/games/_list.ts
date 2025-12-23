@@ -2,12 +2,14 @@ import { MiniGame_Constellation } from "./constellation/mini-game";
 import { MiniGame_EnergyBar } from "./energy-bar/mini-game";
 import { MiniGame_MistWiper } from "./mist-wiper/mini-game";
 import { MiniGame_MomentumWheelGame } from "./momentum-wheel/mini-game";
+import { MiniGame_RipplePondGame } from "./ripple-pond/mini-game";
 
 export const miniGameList = [
     MiniGame_EnergyBar,
     MiniGame_MistWiper,
     MiniGame_Constellation,
-    MiniGame_MomentumWheelGame
+    MiniGame_MomentumWheelGame,
+    MiniGame_RipplePondGame,
 ];
 
 export const getMiniGameTitles = () => {

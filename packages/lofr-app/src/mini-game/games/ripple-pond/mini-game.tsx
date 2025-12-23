@@ -2,13 +2,13 @@ import { LofrMiniGame } from '../../../systems/lofr-system-types';
 import { useObservable } from '../../../systems/observable';
 import { AnimationView } from '../../animation-view';
 
-export const MiniGame_MomentumWheelGame: LofrMiniGame = {
-    title: `Momentum Wheel`,
+export const MiniGame_RipplePondGame: LofrMiniGame = {
+    title: `Ripple Pond`,
     defaultTheme: {
         assets: [],
     },
     load: async () => {
-        const { MomentumWheelGame } = await import(`./animation`);
+        const { RipplePondGame } = await import(`./animation`);
         return {
             GameComponent: (props) => {
                 const { newData: userStateData } = useObservable(props.userState.observe()) ?? {};
@@ -18,9 +18,11 @@ export const MiniGame_MomentumWheelGame: LofrMiniGame = {
 
                 return (
                     <AnimationView
-                        animation={MomentumWheelGame}
+                        animation={RipplePondGame}
                         animationArgs={{
-                            targetSpeed: Math.max(1, Math.min(25, sleepCyclesCompleted * 1)),
+                            leafCount: 15,
+                            rippleSpeed: 15,
+                            maxRippleRadius: 250,
                         }}
                         isPaused={gamePaused}
                         debug={props.debug}
