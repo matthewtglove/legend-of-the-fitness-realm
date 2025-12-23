@@ -258,6 +258,16 @@
           "inputName": "exportName"
         }
       ]
+    },
+    {
+      "id": "n-textFile-1766451950679",
+      "typeName": "textFile",
+      "inputLiterals": [
+        {
+          "inputName": "path",
+          "value": "mini-game/mini-game.debug.tsx"
+        }
+      ]
     }
   ]
 }

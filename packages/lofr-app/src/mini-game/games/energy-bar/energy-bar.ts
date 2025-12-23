@@ -250,5 +250,13 @@ export const animateEnergyBar = (canvas: HTMLCanvasElement) => {
     stop: () => {
       cancelAnimationFrame(animationFrameId);
     },
+    pause: (isPaused: boolean) => {
+      if (isPaused) {
+        cancelAnimationFrame(animationFrameId);
+        return;
+      }
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(animate);
+    },
   };
 };
