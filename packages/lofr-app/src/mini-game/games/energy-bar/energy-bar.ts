@@ -1,3 +1,4 @@
+import { createObservable } from "../../../systems/observable";
 import { Animation } from "../../animation-view";
 
 interface EnergyBarConfig {
@@ -305,7 +306,11 @@ export type EnergyBarArgs = {
   endCharge: number;
   speed: number;
 };
-export const energyBarAnimation: Animation<EnergyBarArgs> = {
+export type EneryBarResult = {
+  finalCharge: number;
+};
+
+export const energyBarAnimation: Animation<EnergyBarArgs, EneryBarResult> = {
   setup: (canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext(`2d`);
     if (!ctx) {
@@ -318,6 +323,11 @@ export const energyBarAnimation: Animation<EnergyBarArgs> = {
     let currentAnimationPercentage = 0;
     let animationFrameId: number;
 
+    const doneSubject = createObservable(undefined as undefined | {
+      kind: `completed` | `stopped`,
+      result: EneryBarResult,
+    });
+
     function animate() {
       if (!ctx) return;
 
@@ -329,6 +339,10 @@ export const energyBarAnimation: Animation<EnergyBarArgs> = {
 
       if (currentCharge > maxCharge) {
         currentCharge = maxCharge;
+      }
+
+      if (currentAnimationPercentage >= 120 && doneSubject.lastValue?.kind !== `completed`) {
+        doneSubject.next({ kind: `completed`, result: { finalCharge: currentCharge } });
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -353,9 +367,11 @@ export const energyBarAnimation: Animation<EnergyBarArgs> = {
         speed = args.speed;
         cancelAnimationFrame(animationFrameId);
         animationFrameId = requestAnimationFrame(animate);
+        doneSubject.next(undefined);
       },
       stop: () => {
         cancelAnimationFrame(animationFrameId);
+        doneSubject.next({ kind: `stopped`, result: { finalCharge: currentCharge } });
       },
       pause: (isPaused: boolean) => {
         if (isPaused) {
@@ -365,6 +381,7 @@ export const energyBarAnimation: Animation<EnergyBarArgs> = {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = requestAnimationFrame(animate);
       },
+      done: doneSubject
     };
   }
 };

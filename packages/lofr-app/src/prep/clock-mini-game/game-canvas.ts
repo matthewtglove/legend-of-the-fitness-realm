@@ -442,6 +442,7 @@ export const createPocketWatchGame = (
                 height: bufferCanvas.height,
                 percentage: energyLevel,
                 jitterIntensity: 3 * (energyLevel / 100),
+                animationPercentage: energyLevel / maxEnergyLevel,
             });
             bufferCtx.restore();
         }

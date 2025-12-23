@@ -1,18 +1,27 @@
 import { useEffect, useRef } from 'react';
 import { Canvas2dView, Canvas2dViewDrawingController } from './canvas-2d-view';
+import { Observable } from '../systems/lofr-system-types';
 
-export type Animation<TArgs extends Record<string, unknown>> = {
+export type Animation<
+    TArgs extends Record<string, unknown>,
+    TResult extends Record<string, unknown> = Record<string, never>,
+> = {
     setup: (canvas: HTMLCanvasElement) => {
         start: (args: TArgs) => void;
         stop: () => void;
         pause: (isPaused: boolean) => void;
+        done: Observable<undefined | { kind: `completed` | `stopped`; result: TResult }>;
     };
 };
 
-export const AnimationView = <TAnimationArgs extends Record<string, unknown>>(props: {
-    animation: Animation<TAnimationArgs>;
+export const AnimationView = <
+    TAnimationArgs extends Record<string, unknown>,
+    TAnimationResult extends Record<string, unknown> = Record<string, never>,
+>(props: {
+    animation: Animation<TAnimationArgs, TAnimationResult>;
     animationArgs: TAnimationArgs;
     isPaused: boolean;
+    debug?: boolean;
 }) => {
     const createDrawingRef = useRef({
         value: { ...props },
@@ -46,6 +55,7 @@ export const AnimationView = <TAnimationArgs extends Record<string, unknown>>(pr
                     drawing.stop();
                     createDrawingRef.current.drawingInstance = undefined;
                 },
+                done: drawing.done,
             });
         },
     });
@@ -58,5 +68,5 @@ export const AnimationView = <TAnimationArgs extends Record<string, unknown>>(pr
         createDrawingRef.current.updateIsPaused({ ...props });
     }, [props.isPaused]);
 
-    return <Canvas2dView createDrawing={createDrawingRef.current.createDrawing} />;
+    return <Canvas2dView createDrawing={createDrawingRef.current.createDrawing} debug={props.debug} />;
 };

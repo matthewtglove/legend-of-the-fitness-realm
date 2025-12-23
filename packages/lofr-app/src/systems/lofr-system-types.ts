@@ -151,6 +151,7 @@ export type LofrMiniGame = {
       directorState: LofrDirectorState;
       narrativeService: LofrNarrativeService;
       onDone: () => void;
+      debug?: boolean;
     }>;
   }>;
 };

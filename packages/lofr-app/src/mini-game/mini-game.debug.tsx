@@ -74,6 +74,7 @@ export const MiniGameView = (props: {
                     <div className="flex-1">
                         <MiniGameComponent.GameComponent
                             {...props}
+                            debug={true}
                             onDone={
                                 props.onDone ??
                                 (() => {
