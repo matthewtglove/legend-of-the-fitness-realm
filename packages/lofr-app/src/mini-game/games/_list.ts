@@ -1,3 +1,4 @@
+import { MiniGame_CharacterHair } from "../pixel-art/character-hair-mini-game";
 import { MiniGame_Constellation } from "./constellation/mini-game";
 import { MiniGame_EnergyBar } from "./energy-bar/mini-game";
 import { MiniGame_GymBagTetrisGame } from "./gym-bag-tetris/mini-game";
@@ -16,6 +17,7 @@ export const miniGameList = [
     MiniGame_PatternSprintGame,
     MiniGame_GymBagTetrisGame,
     MiniGame_RhythmRunGame,
+    MiniGame_CharacterHair,
 ];
 
 export const getMiniGameTitles = () => {
