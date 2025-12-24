@@ -10,22 +10,55 @@ export type PixelArtHairArgs = {
         y: number;
     };
     strands: {
+        /** The root pixel position of a section of the hair */
         x: number;
         y: number;
+
+        /** The growing direction of the root of the hair */
         growthAngleRad: number;
+
+        /** Approximate pixel length of the hair */
         hairLength: number;
-        thicknessProfile: [number, number]; // 0=thin, 1=thick
+
+        /** Pixel Thickness at the root and tip
+         * 1=very thin (single hair)
+         * 6=very thick (full ponytail)
+         */
+        thicknessProfile: [number, number];
+
+        /** How wavy is the hair: 
+         * 0=straight (the hair mostly follows a bezier curve)
+         * 0.5=wavy (the hair follows a wavy curve)
+         * 1=curly (the hair follows a spiral curve)
+         */
         waviness: number;
     }[],
+    /** gravity is a constant force */
     gravity: {
         angleRad: number;
+        /** 0=no gravity
+         *  1=earth gravity
+         *  2=double earth gravity
+         *  etc.
+         */
         strength: number;
     };
+    /** wind is a gusty animated force */
     wind: {
         angleRad: number;
+        /** 0=no wind
+         *  0.1=light breeze
+         *  0.5=normal wind
+         *  1=strongest wind
+         */
         strength: number;
+        /** 0=constant wind
+         *  0.5=normal gustiness (2-3 cycles per animation loop)
+         *  1=highly fluctuating wind (5-7 cycles per animation loop)
+         */
         gustiness: number;
     };
+    /** 0-1 progress of the hair animation which should loop */
     animationRatio: number;
     colorPalette: PixelPaletteColor[];
 }
@@ -40,7 +73,7 @@ export const defaultHairArguments: PixelArtHairArgs = {
             y: -5, // Starts slightly above the "center" of the head
             growthAngleRad: -Math.PI * 0.5, // Pointing straight UP (-90 degrees)
             hairLength: 5,
-            thicknessProfile: [0.3, 0.2], // Starts very thick, ends in a sharp point
+            thicknessProfile: [3, 1], // Starts very thick, ends in a sharp point
             waviness: 0.1 // Mostly straight/spiky
         },
         {
@@ -48,7 +81,7 @@ export const defaultHairArguments: PixelArtHairArgs = {
             y: -4, // Starts slightly above the "center" of the head
             growthAngleRad: -Math.PI * 0.55, // Pointing straight UP (-90 degrees)
             hairLength: 7,
-            thicknessProfile: [0.3, 0.2], // Starts very thick, ends in a sharp point
+            thicknessProfile: [4, 2], // Starts very thick, ends in a sharp point
             waviness: 0.1 // Mostly straight/spiky
         },
         {
@@ -56,7 +89,7 @@ export const defaultHairArguments: PixelArtHairArgs = {
             y: -2, // Starts slightly above the "center" of the head
             growthAngleRad: -Math.PI * 0.6, // Pointing straight UP (-90 degrees)
             hairLength: 8,
-            thicknessProfile: [0.3, 0.2], // Starts very thick, ends in a sharp point
+            thicknessProfile: [4, 2], // Starts very thick, ends in a sharp point
             waviness: 0.1 // Mostly straight/spiky
         },
         // 2. The Bangs (Front/Right) - Falling over the forehead
@@ -64,25 +97,26 @@ export const defaultHairArguments: PixelArtHairArgs = {
             x: 0,
             y: -5,
             growthAngleRad: -Math.PI * 0.1, // Pointing Down-Right
-            hairLength: 6,
-            thicknessProfile: [0.3, 0.1], // Thinner, sharper
+            hairLength: 7,
+            thicknessProfile: [3, 1], // Thinner, sharper
             waviness: 0.2 // Slight curve
         },
         // 3. The Flow (Back/Left) - Long hair caught in the wind
+
         {
-            x: -2,
-            y: -4,
-            growthAngleRad: -Math.PI * 1.0, // Pointing Left
+            x: -3,
+            y: -3,
+            growthAngleRad: -Math.PI * 1.25, // Pointing Left
             hairLength: 11,
-            thicknessProfile: [0.8, 0.2], // Remans somewhat thick at the end
+            thicknessProfile: [6, 2], // Remans somewhat thick at the end
             waviness: 0.5 // Wavy/Flowing look
         },
         {
             x: -3,
-            y: -2,
-            growthAngleRad: -Math.PI * 1.25, // Pointing Left
+            y: -3,
+            growthAngleRad: -Math.PI * 1.0, // Pointing Left
             hairLength: 11,
-            thicknessProfile: [0.8, 0.2], // Remans somewhat thick at the end
+            thicknessProfile: [6, 2], // Remans somewhat thick at the end
             waviness: 0.5 // Wavy/Flowing look
         },
 
@@ -152,7 +186,7 @@ export const drawPixelArtHair = (args: {
     const MIN_PIXELS = 1;
     const MAX_PIXELS = 6; // A thick ponytail in SNES style is rarely wider than 6px
 
-    const mapThickness = (t: number) => MIN_PIXELS + t * (MAX_PIXELS - MIN_PIXELS);
+    const mapThickness = (t: number) => Math.max(MIN_PIXELS, Math.min(MAX_PIXELS, t));
 
     // --- 3. RENDERING LOOP ---
     strands.forEach((root, rootIndex) => {
@@ -162,13 +196,14 @@ export const drawPixelArtHair = (args: {
 
         // We step 1 pixel at a time along the length to prevent gaps
         // This is "Forward Kinematics"
-        const steps = Math.floor(root.hairLength);
+        const SUB_STEPS = 3;
+        const steps = Math.ceil(root.hairLength * SUB_STEPS);
 
         // Desynchronize wind per strand so they don't move like a solid block
         const phaseOffset = rootIndex * 0.5;
 
-        for (let i = 0; i < steps; i++) {
-            const progress = i / steps; // 0.0 to 1.0
+        for (let iStep = 0; iStep < steps; iStep++) {
+            const lenRatioPos = iStep / steps; // 0.0 to 1.0
 
             // --- A. PHYSICS CALCULATION ---
 
@@ -177,7 +212,7 @@ export const drawPixelArtHair = (args: {
             const gravityDiff = gravity.angleRad - currentAngle;
             // Normalize angle diff to -PI to +PI
             const normalizedGravityDiff = Math.atan2(Math.sin(gravityDiff), Math.cos(gravityDiff));
-            currentAngle += normalizedGravityDiff * (gravity.strength * 0.05 * progress);
+            currentAngle += normalizedGravityDiff * (gravity.strength * 0.05 * lenRatioPos) / SUB_STEPS;
 
             // 2. Wind Influence (Sine Wave)
             // Main cycle
@@ -188,28 +223,28 @@ export const drawPixelArtHair = (args: {
             const gustCycle = Math.cos(loopTheta * 3 + phaseOffset) * wind.gustiness;
 
             // Calculate wind vector influence relative to hair angle
-            const windForce = (windCycle + gustCycle) * wind.strength * 0.1 * progress;
+            const windForce = (windCycle + gustCycle) * wind.strength * 0.1 * lenRatioPos;
 
             // Apply wind (simply adding to angle creates a waving motion)
-            currentAngle += windForce;
+            currentAngle += windForce / SUB_STEPS;
 
             // 3. Waviness (Static Shape)
             // If hair is curly, add a permanent sine wave to the angle
             if (root.waviness > 0) {
                 const waveFreq = 0.2 + (root.waviness * 0.5); // How tight the curls are
-                currentAngle += Math.cos(i * waveFreq) * (root.waviness * 0.2);
+                currentAngle += Math.cos(lenRatioPos * Math.PI * 2 * 1.5 * waveFreq) * (root.waviness * 0.2) / SUB_STEPS;
             }
 
             // Move the spine position forward based on the new angle
-            currentX += Math.cos(currentAngle);
-            currentY += Math.sin(currentAngle);
+            currentX += Math.cos(currentAngle) / SUB_STEPS;
+            currentY += Math.sin(currentAngle) / SUB_STEPS;
 
             // --- B. RASTERIZATION (The "Ribbon") ---
 
             // Calculate current thickness in pixels
             const startThick = mapThickness(root.thicknessProfile[0]);
             const endThick = mapThickness(root.thicknessProfile[1]);
-            const currentThickness = startThick + (endThick - startThick) * progress;
+            const currentThickness = startThick + (endThick - startThick) * lenRatioPos;
 
             // const radius = currentThickness / 2;
 
