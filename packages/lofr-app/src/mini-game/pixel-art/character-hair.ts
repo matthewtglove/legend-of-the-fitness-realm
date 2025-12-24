@@ -81,15 +81,15 @@ export const defaultHairArguments: PixelArtHairArgs = {
             y: -4, // Starts slightly above the "center" of the head
             growthAngleRad: -Math.PI * 0.55, // Pointing straight UP (-90 degrees)
             hairLength: 7,
-            thicknessProfile: [4, 2], // Starts very thick, ends in a sharp point
+            thicknessProfile: [4, 1], // Starts very thick, ends in a sharp point
             waviness: 0.1 // Mostly straight/spiky
         },
         {
             x: -4,
             y: -2, // Starts slightly above the "center" of the head
-            growthAngleRad: -Math.PI * 0.6, // Pointing straight UP (-90 degrees)
-            hairLength: 8,
-            thicknessProfile: [4, 2], // Starts very thick, ends in a sharp point
+            growthAngleRad: -Math.PI * 0.65, // Pointing straight UP (-90 degrees)
+            hairLength: 9,
+            thicknessProfile: [5, 1], // Starts very thick, ends in a sharp point
             waviness: 0.1 // Mostly straight/spiky
         },
         // 2. The Bangs (Front/Right) - Falling over the forehead
@@ -108,7 +108,7 @@ export const defaultHairArguments: PixelArtHairArgs = {
             y: -3,
             growthAngleRad: -Math.PI * 1.25, // Pointing Left
             hairLength: 11,
-            thicknessProfile: [6, 2], // Remans somewhat thick at the end
+            thicknessProfile: [5, 2], // Remans somewhat thick at the end
             waviness: 0.5 // Wavy/Flowing look
         },
         {
@@ -116,7 +116,7 @@ export const defaultHairArguments: PixelArtHairArgs = {
             y: -3,
             growthAngleRad: -Math.PI * 1.0, // Pointing Left
             hairLength: 11,
-            thicknessProfile: [6, 2], // Remans somewhat thick at the end
+            thicknessProfile: [4, 2], // Remans somewhat thick at the end
             waviness: 0.5 // Wavy/Flowing look
         },
 
