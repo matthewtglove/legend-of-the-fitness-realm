@@ -20,7 +20,7 @@ export const MiniGame_PatternSprintGame: LofrMiniGame = {
                     <AnimationView
                         animation={PatternSprintGame}
                         animationArgs={{
-                            startingDifficulty: 3,
+                            startingDifficulty: sleepCyclesCompleted,
                         }}
                         isPaused={gamePaused}
                         debug={props.debug}
