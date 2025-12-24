@@ -31,7 +31,7 @@ export type PixelArtHairArgs = {
 }
 
 export const defaultHairArguments: PixelArtHairArgs = {
-    origin: { x: 14, y: 12 }, // Top Center of 24x32 character cell
+    origin: { x: 15, y: 12 }, // Top Center of 24x32 character cell
     // A classic "Spiky Anime" hairstyle with 3 distinct volumes
     strands: [
         // 1. The Main Spike (Top Center) - Large volume sticking up
@@ -53,7 +53,7 @@ export const defaultHairArguments: PixelArtHairArgs = {
         },
         {
             x: -4,
-            y: -3, // Starts slightly above the "center" of the head
+            y: -2, // Starts slightly above the "center" of the head
             growthAngleRad: -Math.PI * 0.6, // Pointing straight UP (-90 degrees)
             hairLength: 8,
             thicknessProfile: [0.3, 0.2], // Starts very thick, ends in a sharp point
@@ -70,7 +70,7 @@ export const defaultHairArguments: PixelArtHairArgs = {
         },
         // 3. The Flow (Back/Left) - Long hair caught in the wind
         {
-            x: -3,
+            x: -2,
             y: -4,
             growthAngleRad: -Math.PI * 1.0, // Pointing Left
             hairLength: 11,
@@ -78,7 +78,7 @@ export const defaultHairArguments: PixelArtHairArgs = {
             waviness: 0.5 // Wavy/Flowing look
         },
         {
-            x: -5,
+            x: -3,
             y: -2,
             growthAngleRad: -Math.PI * 1.25, // Pointing Left
             hairLength: 11,
@@ -96,8 +96,10 @@ export const defaultHairArguments: PixelArtHairArgs = {
 
     // A gentle breeze blowing Left -> Right
     wind: {
-        angleRad: 0, // 0 degrees (Right)
-        strength: 0.4, // Visible movement, but not a storm
+        angleRad: -Math.PI * 1.1,
+        // angleRad: 0, // 0 degrees (Right)
+        // angleRad: Math.PI, // 180 degrees (Left)
+        strength: 0.75, // Visible movement, but not a storm
         gustiness: 0.5 // Occasional flutters
     },
 
@@ -237,7 +239,7 @@ export const drawPixelArtHair = (args: {
                 // 1. Outline Rule
                 // If we are at the extreme edges of the scan, draw outline
                 const isEdge = Math.abs(offsetFactor) > 0.4; // Top 10% and Bottom 10% are edges
-                if (isEdge && currentThickness > 2) {
+                if (isEdge && currentThickness > 1) {
                     pixelColor = cOutline;
                 } else {
                     // 2. Lighting / Volume Rule
