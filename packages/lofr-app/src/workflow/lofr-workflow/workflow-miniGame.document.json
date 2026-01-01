@@ -352,6 +352,61 @@
       "requires": [
         "n-registerNodeType-1767286472308"
       ]
+    },
+    {
+      "id": "n-user-state-debug-view-1767290836830",
+      "typeName": "user-state-debug-view",
+      "requires": [
+        "n-registerNodeType-1766264501374"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "userState",
+          "fromNodeId": "n-app-main-1767286519485",
+          "fromOutputName": "userState"
+        }
+      ],
+      "inputLiterals": []
+    },
+    {
+      "id": "n-textSimple-1767293763176",
+      "typeName": "textSimple",
+      "inputLiterals": [
+        {
+          "inputName": "content",
+          "value": "Energy Bar"
+        }
+      ]
+    },
+    {
+      "id": "n-MiniGameView-1767293500340",
+      "typeName": "MiniGameView",
+      "requires": [
+        "n-registerNodeType-1766271067658"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "userState",
+          "fromNodeId": "n-app-main-1767286519485",
+          "fromOutputName": "userState"
+        },
+        {
+          "inputName": "narrativeService",
+          "fromNodeId": "n-app-main-1767286519485",
+          "fromOutputName": "narrativeService"
+        },
+        {
+          "inputName": "directorState",
+          "fromNodeId": "n-app-main-1767286519485",
+          "fromOutputName": "directorState"
+        },
+        {
+          "inputName": "miniGameTitle",
+          "fromNodeId": "n-textSimple-1767293763176",
+          "fromOutputName": "content"
+        }
+      ],
+      "inputLiterals": []
     }
   ]
 }

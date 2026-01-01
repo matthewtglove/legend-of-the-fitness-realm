@@ -1,3 +1,4 @@
+import { workflowInstrumentationContext, workflowInstrumentationGlobalState } from './instrumentation';
 import {
     createObservable,
     ObservableOf,
@@ -80,14 +81,22 @@ export const createRegistry = (): WorkflowRegistry => {
                             const inputValues = Object.fromEntries(
                                 Object.entries(inputs).map(([key, value]) => [key, value.lastValue]),
                             ) as TInputs;
-                            const outputValues = await nodeTypeArgs.execute(inputValues, {
+
+                            const lengthInstrumentedBefore = workflowInstrumentationGlobalState.length;
+                            const executePromise = nodeTypeArgs.execute(inputValues, {
                                 id: loadArgs.id,
                                 refresh: () => updateDebounced(`refresh`),
                             });
+                            const instrumentedResult =
+                                workflowInstrumentationGlobalState.length !== lengthInstrumentedBefore
+                                    ? workflowInstrumentationGlobalState[workflowInstrumentationGlobalState.length - 1]
+                                    : undefined;
+                            const outputValues = await executePromise;
 
                             console.log(`[registerSimpleNodeType:update] '${loadArgs.id}'`, {
                                 inputValues,
                                 outputValues,
+                                instrumentedResult,
                             });
 
                             for (const key in outputValues) {
@@ -96,6 +105,32 @@ export const createRegistry = (): WorkflowRegistry => {
                                     continue;
                                 }
                                 outputs[key] = createObservable(outputValues[key]) as (typeof outputs)[typeof key];
+                            }
+
+                            if (instrumentedResult) {
+                                console.log(`[registerSimpleNodeType:update] '${loadArgs.id}' Instrumented State:`, {
+                                    instrumentedResult,
+                                });
+
+                                const instrumentedOutputValues = instrumentedResult.state as TOutputs;
+                                for (const key in instrumentedOutputValues) {
+                                    console.log(
+                                        `[registerSimpleNodeType:update] '${loadArgs.id}' Setting instrumented output '${key}' to:`,
+                                        {
+                                            instrumentedResult,
+                                            key,
+                                            value: instrumentedOutputValues[key],
+                                        },
+                                    );
+                                    const val = instrumentedOutputValues[key];
+                                    if (outputs[key]) {
+                                        if (val !== outputs[key].lastValue) {
+                                            outputs[key].next(val);
+                                        }
+                                        continue;
+                                    }
+                                    outputs[key] = createObservable(val) as (typeof outputs)[typeof key];
+                                }
                             }
                         } catch (e) {
                             console.error(
@@ -199,7 +234,37 @@ export const createRegistry = (): WorkflowRegistry => {
 
                     return instance;
                 },
-                Component: nodeTypeArgs.Component,
+                Component: (props) => {
+                    return (
+                        <workflowInstrumentationContext.Provider
+                            value={{
+                                nodeId: props.id,
+                                callback: ({ key, value }) => {
+                                    console.log(
+                                        `[registerSimpleNodeType:Component] '${props.id}' Setting instrumented output '${key}' to:`,
+                                        {
+                                            key,
+                                            value,
+                                        },
+                                    );
+                                    const outputs = props.data.outputs as SubjectsOf<TOutputs>;
+                                    const val = value as TOutputs[string];
+                                    if (outputs[key]) {
+                                        if (val !== outputs[key].lastValue) {
+                                            outputs[key].next(val);
+                                        }
+                                        return;
+                                    }
+                                    (outputs as Record<string, WorkflowObservable<unknown>>)[key] = createObservable(
+                                        val,
+                                    ) as (typeof outputs)[typeof key];
+                                },
+                            }}
+                        >
+                            <nodeTypeArgs.Component {...props} />
+                        </workflowInstrumentationContext.Provider>
+                    );
+                },
             };
             nodeTypes[nodeTypeArgs.typeName] = nodeType as unknown as WorkflowNodeTypes[string];
 
