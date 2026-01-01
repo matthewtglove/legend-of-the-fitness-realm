@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LofrDirectorState, LofrMiniGame, LofrNarrativeService, LofrUserStateBase } from '../systems/lofr-system-types';
 import { miniGameList } from './games/_list';
+import { useObservable } from '../systems/observable';
 
 export const MiniGameView = (props: {
     miniGameTitle?: string;
@@ -11,13 +12,29 @@ export const MiniGameView = (props: {
 }) => {
     const [miniGameTitle, setMiniGameTitle] = useState(props.miniGameTitle);
     useEffect(() => {
+        if (!props.miniGameTitle) {
+            return;
+        }
         setMiniGameTitle(props.miniGameTitle);
     }, [props.miniGameTitle]);
+
+    const userState = useObservable(props.userState.observe());
+    useEffect(() => {
+        if (!userState?.newData.miniGameTitle) {
+            return;
+        }
+        setMiniGameTitle(userState.newData.miniGameTitle as string);
+    }, [userState?.newData.miniGameTitle]);
 
     const [MiniGameComponent, setMiniGameComponent] = useState(
         undefined as undefined | Awaited<ReturnType<LofrMiniGame[`load`]>>,
     );
     useEffect(() => {
+        // record in userState
+        props.userState.update({
+            miniGameTitle,
+        });
+
         (async () => {
             try {
                 const miniGame = miniGameList.find((x) => x.title === miniGameTitle);

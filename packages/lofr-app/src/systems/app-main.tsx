@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { createAppSystems } from './app-systems';
 import { useObservable } from './observable';
 import { useWorkflowInstrumentation } from '../workflow/workflow-editor/instrumentation';
+import { MiniGameView } from '../mini-game/mini-game.debug';
 
 export const AppMain = () => {
     const W = useWorkflowInstrumentation(`AppMain`);
@@ -13,7 +14,13 @@ export const AppMain = () => {
     const gameActivity = useObservable(systems.directorState.observeGameActivity());
 
     if (gameActivity === `mini-game`) {
-        // TODO: display mini-game
+        return (
+            <MiniGameView
+                directorState={systems.directorState}
+                narrativeService={systems.narrativeService}
+                userState={systems.userState}
+            />
+        );
     }
 
     return (

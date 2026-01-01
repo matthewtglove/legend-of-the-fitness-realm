@@ -369,6 +369,20 @@
       "inputLiterals": []
     },
     {
+      "id": "n-DirectorStateDebugView-1767295909299",
+      "typeName": "DirectorStateDebugView",
+      "requires": [
+        "n-registerNodeType-1766268028003"
+      ],
+      "inputEdges": [
+        {
+          "inputName": "directorState",
+          "fromNodeId": "n-app-main-1767286519485",
+          "fromOutputName": "directorState"
+        }
+      ]
+    },
+    {
       "id": "n-textSimple-1767293763176",
       "typeName": "textSimple",
       "inputLiterals": [
