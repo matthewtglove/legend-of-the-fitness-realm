@@ -203,7 +203,7 @@
       "inputLiterals": [
         {
           "inputName": "content",
-          "value": "Character Hair"
+          "value": "Rhythm Run"
         }
       ]
     },
@@ -322,6 +322,35 @@
       "typeName": "getMiniGameTitles",
       "requires": [
         "n-registerNodeType-1766456469617"
+      ]
+    },
+    {
+      "id": "n-registerNodeType-1767286472308",
+      "typeName": "registerNodeType",
+      "inputLiterals": [
+        {
+          "inputName": "componentPath",
+          "value": "../../systems/app-main.tsx"
+        },
+        {
+          "inputName": "outputTypeDefinition",
+          "value": "{\"userState\":\"\",\"narrativeService\":\"\",\"directorState\":\"\"}"
+        },
+        {
+          "inputName": "typeName",
+          "value": "app-main"
+        },
+        {
+          "inputName": "componentExportName",
+          "value": "AppMain"
+        }
+      ]
+    },
+    {
+      "id": "n-app-main-1767286519485",
+      "typeName": "app-main",
+      "requires": [
+        "n-registerNodeType-1767286472308"
       ]
     }
   ]

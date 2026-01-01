@@ -1,16 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    createRegistry,
-    WorkflowNodeTypeUnknown,
-    WorkflowObservable,
-    WorkflowRegistry,
-    WorkflowSubject,
-} from './types';
+import { WorkflowNodeTypeUnknown, WorkflowObservable, WorkflowRegistry, WorkflowSubject } from './types';
 import '@xyflow/react/dist/style.css';
 import { NodeResizer, Handle, Position, useReactFlow } from '@xyflow/react';
 import { useObservable, useObservableRecord } from './use-observable';
 import { TextCodeEditorComponent } from './code-editor/text-code-editor-main';
 import { WorkflowDocumentFormat } from './document';
+import { createRegistry } from './registry';
 
 const debug = false;
 

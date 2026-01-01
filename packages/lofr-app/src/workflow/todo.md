@@ -39,14 +39,21 @@
     - [x] {5 mins} remove node
     - [x] {5 mins} handle reloading nodes
     - [x] {5 mins} edit literal input values
-- [ ] {1 hour} edit workflow node definition from workflow
-    - [] {5 mins} register imported nodes
+- [x] {1 hour} edit workflow node definition from workflow
     - [x] {5 mins} register node type from workflow
     - [x] {5 mins} edit node inputs and output slots (by default values)
     - [x] {5 mins} function only backed implementation
     - [x] {5 mins} component only backed implementation
     - [x] {5 mins} component + function backed implementation
+- [x] {1 hour} complete MiniGame_EnergyBar as LofrMiniGame
+- [ ] {1 hour} setup morning routine as part of app
+    - [] {5 mins} setup new app root view
+    - [] {5 mins} setup the dependencies for the app
+    - [] {5 mins} setup director to change app mode to morning routine mini game
+    - [] {5 mins} add mini game view to app
+    - [] {5 mins} select a random mini game
 - [ ] {1 hour} nested workflows
+    - [] {5 mins} register imported nodes
     - [] {5 mins} workflow to function
     - [] {5 mins} register workflow as node
 - [ ] {1 hour} complete MiniGame_NightPrep as LofrMiniGame
@@ -56,12 +63,23 @@
     - [] {5 mins} create MiniGame_NightPrep as LofrMiniGame component
     - [] {5 mins} create LofrMiniGame registry
     - [] {5 mins} register MiniGame_NightPrep
-- [x] {1 hour} complete MiniGame_EnergyBar as LofrMiniGame
-- [ ] {1 hour} complete MiniGame_MorningRise as LofrMiniGame
 - [ ] {1 hour} improved edges
     - [] {5 mins} hide edge lines until hover
     - [] {5 mins} jump to source
     - [] {5 mins} jump to targets
+
+# Node Editor Use Cases
+
+- Testing a nested function
+    - requires code modification (i.e. copy function and mock captures or convert captures to parameters)
+- Testing a section of code (lines of a body of code)
+    - requires code modification
+    - requires converting used variables to inputs
+- Intercepting and modifying internal values
+- Building a function (from a workflow)
+    - requires converting a workflow into function code
+- visual code refactoring
+    - requires solving full code to workflow to code
 
 # ideas
 
